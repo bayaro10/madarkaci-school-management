@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madarkaci Model School - Welcome</title>
+    <style>
+        :root {
+            --primary: #20795d;
+            --secondary: #285f9d;
+            --dark: #182433;
+            --light: #f3f6f8;
+            --white: #ffffff;
+            --gold: #bd7d18;
+            --red: #b33d3a;
+            --line: #d8e0e8;
+            --shadow: 0 12px 28px rgba(23, 36, 51, .08);
+            --transition: all 0.3s ease;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, var(--light) 0%, #e6edf2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        header {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: var(--white);
+            padding: 70px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(135deg, rgba(255,255,255,.12) 0, rgba(255,255,255,.12) 1px, transparent 1px, transparent 18px);
+            opacity: 0.7;
+        }
+        .logo {
+            width: 130px;
+            height: 130px;
+            background: var(--white);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: grid;
+            place-items: center;
+            border: 4px solid rgba(255,255,255,0.4);
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .logo img { width: 80%; height: auto; }
+        h1 { margin: 0; font-size: 2.8em; position: relative; z-index: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        p.motto { font-style: italic; opacity: 0.95; margin-top: 10px; position: relative; z-index: 1; font-size: 1.1em; }
+        
+        .hero {
+            background: var(--white);
+            max-width: 600px;
+            margin: -80px auto 40px;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        .hero:hover { transform: translateY(-5px); }
+        
+        .hero h2 {
+            color: var(--primary);
+            text-align: center;
+            margin-top: 0;
+            font-size: 1.8em;
+            position: relative;
+        }
+        .hero h2::after {
+            content: "";
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: var(--gold);
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+        .hero p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 480px;
+            margin: 0 auto 25px;
+        }
+        
+        .cta-btn {
+            display: inline-block;
+            padding: 14px 35px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: var(--white);
+        }
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(32, 121, 93, 0.3);
+        }
+        
+        .features {
+            max-width: 1200px;
+            margin: 0 auto 50px;
+            padding: 0 20px;
+        }
+        .features h2 {
+            text-align: center;
+            color: var(--dark);
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .features h2::after {
+            content: "";
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+            margin: 10px auto;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+        }
+        .feature-card {
+            background: var(--white);
+            padding: 35px 25px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: var(--transition);
+            border-top: 4px solid var(--primary);
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(32, 121, 93, 0.15);
+        }
+        .feature-card:nth-child(2) { border-top-color: var(--secondary); }
+        .feature-card:nth-child(3) { border-top-color: var(--gold); }
+        .feature-card:nth-child(4) { border-top-color: var(--red); }
+        
+        .feature-card h3 { 
+            color: var(--secondary); 
+            margin-top: 0; 
+            font-size: 1.3em; 
+            margin-bottom: 15px;
+        }
+        .feature-icon { 
+            font-size: 3em; 
+            margin-bottom: 15px;
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .about-section {
+            background: var(--white);
+            padding: 60px 20px;
+            margin: 50px auto;
+            max-width: 1200px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+        .about-section h2 { 
+            text-align: center; 
+            color: var(--primary); 
+            margin-top: 0;
+            font-size: 2em;
+            margin-bottom: 30px;
+        }
+        .about-section h2::after {
+            content: "";
+            display: block;
+            width: 70px;
+            height: 3px;
+            background: var(--gold);
+            margin: 10px auto;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #fff;
+            font-size: 0.95em;
+            background: linear-gradient(90deg, var(--dark), #12202f);
+        }
+        footer a { color: var(--gold); text-decoration: none; }
+        
+        .slider-container {
+            max-width: 1200px;
+            height: 400px;
+            margin: 50px auto 0;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+        .slide.active { opacity: 1; }
+        .slide-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            color: var(--white);
+            padding: 40px 30px 25px;
+        }
+        .slide-overlay h3 { 
+            margin: 0; 
+            font-size: 1.8em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .slider-dots {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            z-index: 5;
+        }
+        .dot {
+            width: 14px;
+            height: 14px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid var(--white);
+        }
+        .dot:hover, .dot.active { 
+            background: var(--primary); 
+            transform: scale(1.3);
+        }
+        
+        @media (max-width: 700px) {
+            .hero { 
+                margin: -40px 15px 30px; 
+                padding: 25px;
+            }
+            h1 { font-size: 2em; }
+            .slider-container { 
+                margin: 30px 15px 0; 
+                height: 250px; 
+            }
+            .slide-overlay h3 { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="assets/mms-logo.jpg" alt="MMS Logo">
+        </div>
+        <h1>Madarkaci Model School</h1>
+        <p class="motto">"Learning For Brighter Future"</p>
+    </header>
+
+    <div class="hero">
+        <h2>Welcome to MMS Portal</h2>
+        <p>Access your school management system to view academic records, results, fees, and more. Click below to login.</p>
+        
+        <a href="login.html" class="cta-btn">🔑 Proceed to Login</a>
+    </div>
+
+    <div class="slider-container">
+        <div class="slide active" style="background-image: url('assets/screenshot(86).png');">
+            <div class="slide-overlay"><h3>Welcome to Our Modern Learning Environment</h3></div>
+        </div>
+        <div class="slide" style="background-image: url('assets/school-image-2.jpg');">
+            <div class="slide-overlay"><h3>Quality Education and Moral Upbringing</h3></div>
+        </div>
+        <div class="slide" style="background-image: url('assets/mms-logo.jpg');">
+            <div class="slide-overlay"><h3>Building a Brighter Future Together</h3></div>
+        </div>
+        <div class="slider-dots">
+            <span class="dot active" onclick="setSlide(0)"></span>
+            <span class="dot" onclick="setSlide(1)"></span>
+            <span class="dot" onclick="setSlide(2)"></span>
+        </div>
+    </div>
+
+    <div class="features">
+        <h2>✨ System Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Academic Management</h3>
+                <p>Manage student records, subjects, exam results, and attendance with ease.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Financial System</h3>
+                <p>Track fee payments, generate invoices, and manage financial records.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Parent Portal</h3>
+                <p>Parents can view results, fees, and attendance using their phone number.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📄</div>
+                <h3>Reports & Analytics</h3>
+                <p>Generate report cards, broadsheets, and class lists with one click.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-section">
+        <h2>About Our School</h2>
+        <p style="text-align: center; max-width: 800px; margin: 0 auto; line-height: 1.8; font-size: 16px;">
+            Madarkaci Model School is an institution established to provide quality modern and religious education.
+            We are committed to ensuring our students receive good moral upbringing and excel in science,
+            technology, and languages. We utilize modern technology to manage our operations, making information
+            easily accessible to parents and students.
+        </p>
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line);">
+            <strong>Address:</strong> NO. 103 ALIYU ROAD, MADARKACI, OPP. INSTITUTE OF CHILD HEALTH, A.B.U-TIH ZARIA - KADUNA STATE<br><br>
+            <strong>Email:</strong> madarkacimodelschools@gmail.com | <strong>Phone:</strong> 080XXXXXXXX
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 Madarkaci Model School. All Rights Reserved.<br>
+        Designed with Excellence | Powered by MMS Management System
+    </footer>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+        
+        function setSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            dots[currentSlide].classList.remove('active');
+            currentSlide = n;
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+        }
+        
+        function nextSlide() {
+            let next = (currentSlide + 1) % slides.length;
+            setSlide(next);
+        }
+        
+        setInterval(nextSlide, 5000);
+    </script>
+</body>
+</html>

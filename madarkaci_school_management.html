@@ -1,0 +1,2036 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madarkaci Model School Management System</title>
+  <style>
+    :root {
+      --ink: #182433;
+      --muted: #667486;
+      --line: #d8e0e8;
+      --bg: #f3f6f8;
+      --panel: #ffffff;
+      --green: #20795d;
+      --blue: #285f9d;
+      --red: #b33d3a;
+      --gold: #bd7d18;
+      --dark: #1a3452;
+      --soft: #edf2f6;
+      --shadow: 0 12px 28px rgba(23, 36, 51, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font: 14px/1.45 Arial, Helvetica, sans-serif;
+    }
+
+    header {
+      min-height: 88px;
+      color: #fff;
+      background:
+        linear-gradient(90deg, rgba(32, 121, 93, .96), rgba(40, 95, 157, .92)),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.16) 1px, transparent 1px, transparent 14px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px 24px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .crest {
+      width: 54px;
+      height: 54px;
+      border: 2px solid rgba(255,255,255,.86);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      background: rgba(255,255,255,.16);
+      overflow: hidden;
+    }
+    .crest img { width: 100%; height: 100%; object-fit: cover; background: #fff; }
+    h1, h2, h3 { margin: 0; letter-spacing: 0; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 21px; }
+    h3 { font-size: 16px; margin-bottom: 12px; }
+    .subtitle, .session span { color: rgba(255,255,255,.82); }
+    .session { text-align: right; font-weight: 800; }
+
+    main {
+      min-height: calc(100vh - 88px);
+      display: grid;
+      grid-template-columns: 254px minmax(0, 1fr);
+    }
+
+    nav {
+      background: var(--dark);
+      color: #fff;
+      padding: 16px;
+      overflow: auto;
+    }
+    nav button {
+      width: 100%;
+      min-height: 38px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #dce5ee;
+      text-align: left;
+      padding: 9px 11px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    nav button.active, nav button:hover { background: var(--green); color: #fff; }
+
+    .content { padding: 20px; min-width: 0; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 15px;
+      min-width: 0;
+    }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .hide { display: none !important; }
+
+    .metric { min-height: 104px; border-top: 4px solid var(--green); }
+    .metric.blue { border-top-color: var(--blue); }
+    .metric.gold { border-top-color: var(--gold); }
+    .metric.red { border-top-color: var(--red); }
+    .metric span { color: var(--muted); font-weight: 800; }
+    .metric strong { display: block; font-size: 28px; margin-top: 8px; }
+
+    label { display: block; color: var(--muted); font-size: 12px; font-weight: 800; margin-bottom: 5px; }
+    input, select, textarea {
+      width: 100%;
+      min-height: 37px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+    textarea { min-height: 76px; resize: vertical; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    button.primary, button.secondary, button.danger {
+      border: 0;
+      border-radius: 6px;
+      min-height: 37px;
+      padding: 8px 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    button.primary { background: var(--green); color: #fff; }
+    button.secondary { background: #e7edf3; color: var(--ink); }
+    button.danger { background: var(--red); color: #fff; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 9px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--soft); color: #405061; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    .table-wrap { overflow: auto; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 23px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: #e7f3ee;
+      color: var(--green);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .pill.warn { background: #fff3dc; color: #98620b; }
+    .pill.bad { background: #ffe8e8; color: var(--red); }
+    .hint { color: var(--muted); margin: 0 0 12px; }
+    .login-box { max-width: 430px; margin: 26px auto; }
+    .report-box, .card-box {
+      background: #fff;
+      border: 1px solid #aeb9c5;
+      padding: 16px;
+    }
+    .report-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+    .report-brand { display: flex; align-items: center; gap: 10px; }
+    .report-logo { width: 58px; height: 58px; object-fit: contain; }
+    .id-card {
+      width: 330px;
+      min-height: 205px;
+      border: 2px solid var(--blue);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+    .id-logo { width: 44px; height: 44px; object-fit: contain; }
+    .photo {
+      width: 74px;
+      height: 84px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: var(--muted);
+    }
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      background: var(--dark);
+      color: #fff;
+      padding: 10px 13px;
+      border-radius: 7px;
+      box-shadow: var(--shadow);
+      z-index: 10;
+    }
+
+    @media (max-width: 1000px) {
+      main { grid-template-columns: 1fr; }
+      nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      nav button { margin: 0; }
+      .span-3, .span-4, .span-5, .span-6, .span-7, .span-8 { grid-column: span 12; }
+    }
+    @media (max-width: 650px) {
+      header, .toolbar { align-items: flex-start; flex-direction: column; }
+      .session { text-align: left; }
+      .content { padding: 14px; }
+      nav { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      table { font-size: 12px; }
+      th, td { padding: 7px; }
+    }
+    @media print {
+      header, nav, .toolbar, .no-print { display: none !important; }
+      main { display: block; min-height: auto; }
+      .content { padding: 0; }
+      .page { display: none; }
+      .page.print-page { display: block !important; }
+      .panel { box-shadow: none; border: 0; }
+      body { background: #fff; }
+      .login-container { display: none !important; }
+    }
+
+    /* New Login Page Styles */
+    .login-container {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: calc(100vh - 88px);
+      margin: -20px;
+    }
+
+    .login-sidebar {
+      background: linear-gradient(160deg, #1a3452 0%, #20795d 50%, #285f9d 100%);
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-sidebar::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, transparent 70%);
+    }
+
+    .brand-logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+    }
+
+    .brand-logo svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    }
+
+    .school-brand {
+      position: relative;
+      z-index: 1;
+    }
+
+    .school-name {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.2;
+      margin: 0 0 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .school-tagline {
+      font-size: 14px;
+      opacity: 0.85;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .school-info {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+      margin-top: auto;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    .info-item svg {
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
+    .login-main {
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3f6f8;
+    }
+
+    .login-form-wrapper {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(23, 36, 51, 0.12);
+      border: 1px solid #e2e8f0;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .login-header h3 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--ink);
+      margin: 0 0 6px;
+    }
+
+    .login-header p {
+      color: var(--muted);
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #405061;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-wrapper select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23667486'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+      background-position: right 12px center;
+      background-repeat: no-repeat;
+      background-size: 20px 20px;
+      padding-right: 40px;
+    }
+
+    .input-icon {
+      position: relative;
+    }
+
+    .input-icon svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .input-icon input {
+      padding-left: 42px !important;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, var(--green), #1a5a45);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(32, 121, 93, 0.3);
+    }
+
+    .login-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(32, 121, 93, 0.4);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .login-btn svg {
+      transition: transform 0.2s ease;
+    }
+
+    .login-btn:hover svg {
+      transform: translateX(3px);
+    }
+
+    .recover-btn {
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .recover-btn:hover {
+      background: var(--soft);
+      color: var(--ink);
+      border-color: #c5cdd5;
+    }
+
+    .demo-hint {
+      margin-top: 20px;
+      padding: 14px 16px;
+      background: var(--soft);
+      border-radius: 8px;
+      border-left: 3px solid var(--gold);
+    }
+
+    .demo-hint p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .demo-hint strong {
+      color: var(--ink);
+    }
+
+    @media (max-width: 900px) {
+      .login-container {
+        grid-template-columns: 1fr;
+      }
+      .login-sidebar {
+        display: none;
+      }
+      .login-main {
+        padding: 20px;
+      }
+      .login-form-wrapper {
+        padding: 28px 24px;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="crest"><img src="assets/mms-logo.jpg" alt="Madarkaci Model School logo"></div>
+      <div>
+        <h1 id="schoolTitle">Madarkaci Model School</h1>
+        <div class="subtitle"> School Management System <span id="breadcrumb" style="color: #ffeb3b; margin-left: 10px; font-weight: bold;"></span></div>
+      </div>
+    </div>
+    <div class="session"><span id="activeUser">Not logged in</span><div id="sessionLabel">2025/2026 | First Term</div></div>
+  </header>
+
+  <main>
+    <nav class="no-print" id="nav">
+      <button class="active" data-section="login">Login System</button>
+      <button data-section="dashboard">Admin Menu</button>
+      <button data-section="students">Student Management</button>
+      <button data-section="staff">Staff Management</button>
+      <button data-section="classes">Class Management</button>
+      <button data-section="subjects">Subject Management</button>
+      <button data-section="scores">Result Management</button>
+      <button data-section="fees">Fee Management</button>
+      <button data-section="attendance">Attendance</button>
+      <button data-section="users">User Management</button>
+      <button data-section="settings">School Settings</button>
+      <button data-section="reports">Reports</button>
+      <button data-section="portals">Portals</button>
+      <button data-section="tools">Calendar / Backup</button>
+    </nav>
+
+    <section class="content">
+      <div id="login" class="page">
+        <div class="login-container">
+          <div class="login-sidebar">
+            <div class="school-brand">
+              <div class="brand-logo">
+                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="10" y="28" width="60" height="38" rx="4" fill="white" fill-opacity="0.15" stroke="white" stroke-width="2"/>
+                  <rect x="20" y="40" width="14" height="12" rx="2" fill="white"/>
+                  <rect x="38" y="40" width="14" height="12" rx="2" fill="white"/>
+                  <rect x="26" y="18" width="28" height="14" rx="3" fill="white" fill-opacity="0.2" stroke="white" stroke-width="1.5"/>
+                  <path d="M30 25 L34 22 L38 25 L40 21 L42 25 L46 22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h2 class="school-name">Madarkaci<br>Model School</h2>
+              <p class="school-tagline">Excellence in Education</p>
+            </div>
+            <div class="school-info">
+              <div class="info-item">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <span>Quality Education</span>
+              </div>
+              <div class="info-item">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 001.171 0l4 1.714a1 999.999.999.999.999 0 01.356.257l2.707 1.869a1 1 0 000 1.84l-7 3A1 1 0 0014 12h2.5a1 1 0 00.894-.553l3-6a1 1 0 00-.42-1.168l-8-3.75z"/></svg>
+                <span>Student Management</span>
+              </div>
+              <div class="info-item">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100-4h-.5a1 1 0 000-2H8a2 2 0 012-2v1h4v2a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/></svg>
+                <span>Academic Records</span>
+              </div>
+            </div>
+          </div>
+          <div class="login-main">
+            <div class="login-header">
+              <h3>Welcome Back</h3>
+              <p>Sign in to access your dashboard</p>
+            </div>
+            <div class="login-form-wrapper">
+              <div class="form-group">
+                <label>Login Type</label>
+                <div class="select-wrapper">
+                  <select id="loginRole"><option>Administrator</option><option>Teacher</option><option>Accountant</option><option>Exam Officer</option><option>Parent</option><option>Student</option></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Username</label>
+                <div class="input-icon">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                  <input id="loginUsername" value="admin">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <div class="input-icon">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                  <input id="loginPassword" type="password" value="admin123">
+                </div>
+              </div>
+              <button class="login-btn" onclick="login()">
+                <span>Sign In</span>
+                <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              </button>
+              <button class="recover-btn" onclick="recoverPassword()">Reset / Recover Password</button>
+            </div>
+            <div class="demo-hint">
+              <p>Demo: admin/admin123 | teacher/teacher | accountant/account123</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="dashboard" class="page hide">
+        <div class="toolbar"><h2>Admin Menu</h2><div class="actions"><button class="secondary" onclick="window.location.href='index.html'">Back to Main Site</button><button class="secondary" onclick="showPage('reports')">Open Reports</button><button class="secondary" onclick="logout()">Logout</button></div></div>
+        <div class="grid">
+          <div class="panel metric span-3"><span>Students</span><strong id="metricStudents">0</strong></div>
+          <div class="panel metric blue span-3"><span>Staff</span><strong id="metricStaff">0</strong></div>
+          <div class="panel metric gold span-3"><span>Fee Balance</span><strong id="metricBalance">0</strong></div>
+          <div class="panel metric red span-3"><span>Published Results</span><strong id="metricResults">0</strong></div>
+          <div class="panel span-6"><h3>Recent Students</h3><div class="table-wrap" id="recentStudents"></div></div>
+          <div class="panel span-6"><h3>System Modules</h3><div class="table-wrap" id="moduleStatus"></div></div>
+          <div class="span-12"><h3 id="rolePanelTitle">Role Panel</h3><div id="rolePanels"></div></div>
+        </div>
+      </div>
+
+      <div id="students" class="page hide">
+        <div class="toolbar"><h2>Student Management</h2><div class="actions"><button class="primary" onclick="saveStudent()">Save Student</button><button class="secondary" onclick="newStudent()">New</button><button class="secondary" onclick="generateAdmissionNo()">Generate Admission No</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-5">
+            <h3>Add / Edit Student</h3>
+            <input id="studentId" type="hidden">
+            <div class="form-grid">
+              <div><label>Admission / Reg No</label><input id="studentRegNo"></div>
+              <div><label>Class</label><select id="studentClass"></select></div>
+              <div><label>First Name</label><input id="studentFirst"></div>
+              <div><label>Middle Name</label><input id="studentMiddle"></div>
+              <div><label>Last Name</label><input id="studentLast"></div>
+              <div><label>Gender</label><select id="studentGender"><option>Female</option><option>Male</option></select></div>
+              <div><label>House</label><input id="studentHouse"></div>
+              <div><label>Date of Birth</label><input id="studentDob" type="date"></div>
+              <div><label>Religion</label><input id="studentReligion"></div>
+              <div><label>LGA</label><input id="studentLga"></div>
+              <div><label>State</label><input id="studentState"></div>
+              <div><label>Parent Name</label><input id="studentParent"></div>
+              <div><label>Parent Phone</label><input id="studentPhone"></div>
+              <div class="full"><label>Parent Address</label><textarea id="studentAddress"></textarea></div>
+              <div><label>Medical Fitness</label><input id="studentMedical"></div>
+              <div><label>Status</label><select id="studentStatus"><option>Active</option><option>Graduated</option><option>Transferred</option></select></div>
+              <div class="full"><label>Student Photo</label><input type="file" id="studentPhoto" accept="image/*" onchange="handlePhoto(event)"></div>
+              <div class="photo" id="studentPhotoPreview" style="width:100px; height:110px;">PHOTO</div>
+            </div>
+          </div>
+          <div class="panel span-7">
+            <h3>Student Search and Filtering</h3>
+            <div class="form-grid" style="margin-bottom:12px">
+              <div><label>Search</label><input id="studentSearch" oninput="renderStudents()" placeholder="Name, reg no, parent phone"></div>
+              <div><label>Filter Class</label><select id="studentFilterClass" onchange="renderStudents()"></select></div>
+            </div>
+            <div class="table-wrap" id="studentTable"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="staff" class="page hide">
+        <div class="toolbar"><h2>Staff Management</h2><div class="actions"><button class="primary" onclick="saveStaff()">Save Staff</button><button class="secondary" onclick="newStaff()">New</button><button class="secondary" onclick="generateStaffNo()">Generate Staff No</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Add / Edit Staff</h3>
+            <input id="staffId" type="hidden">
+            <div class="form-grid">
+              <div><label>Staff No (Auto-generated)</label><input id="staffNo" readonly placeholder="Auto-generated"></div>
+              <div><label>Role</label><select id="staffRole"><option>Teacher</option><option>Accountant</option><option>Administrator</option><option>Exam Officer</option></select></div>
+              <div><label>First Name</label><input id="staffFirst"></div>
+              <div><label>Middle Name</label><input id="staffMiddle"></div>
+              <div><label>Last Name</label><input id="staffLast"></div>
+              <div><label>Phone</label><input id="staffPhone"></div>
+              <div class="full"><label>Subjects (Hold Ctrl to select multiple)</label><select id="staffSubject" multiple style="height: 100px;"></select></div>
+              <div class="full"><label>Address</label><textarea id="staffAddress"></textarea></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Staff Reports</h3><div class="table-wrap" id="staffTable"></div></div>
+        </div>
+      </div>
+
+      <div id="classes" class="page hide">
+        <div class="toolbar"><h2>Class Management</h2><div class="actions"><button class="primary" onclick="saveClass()">Save Class</button><button class="secondary" onclick="newClass()">New</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Create / Edit Class</h3>
+            <input id="classId" type="hidden">
+            <div class="form-grid">
+              <div><label>Class Name</label><input id="className"></div>
+              <div><label>Section</label><input id="classSection"></div>
+              <div class="full"><label>Class Teacher</label><select id="classTeacher"></select></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Class Lists</h3><div class="table-wrap" id="classTable"></div></div>
+        </div>
+      </div>
+
+      <div id="subjects" class="page hide">
+        <div class="toolbar"><h2>Subject Management</h2><div class="actions"><button class="primary" onclick="saveSubject()">Save Subject</button><button class="secondary" onclick="newSubject()">New</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Add / Edit Subject</h3>
+            <input id="subjectId" type="hidden">
+            <div class="form-grid">
+              <div><label>Subject Name</label><input id="subjectName"></div>
+              <div><label>Code</label><input id="subjectCode"></div>
+              <div><label>Assign Class</label><select id="subjectClass"></select></div>
+              <div><label>Assign Teacher</label><select id="subjectTeacher"></select></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Subjects and Assigned Teachers</h3><div class="table-wrap" id="subjectTable"></div></div>
+        </div>
+      </div>
+
+      <div id="scores" class="page hide">
+        <div class="toolbar"><h2>Result Management</h2><div class="actions"><button class="primary" onclick="saveScore()">Save Score</button><button class="secondary" onclick="publishResults()">Approve / Publish</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Score Entry</h3>
+            <div class="form-grid">
+              <div class="full"><label>Student</label><select id="scoreStudent"></select></div>
+              <div class="full"><label>Subject</label><select id="scoreSubject"></select></div>
+              <div><label>CA / 40</label><input id="scoreCa" type="number" min="0" max="40" value="35" oninput="previewScore()"></div>
+              <div><label>Exam / 60</label><input id="scoreExam" type="number" min="0" max="60" value="52" oninput="previewScore()"></div>
+              <div><label>Total</label><input id="scoreTotal" readonly></div>
+              <div><label>Grade</label><input id="scoreGrade" readonly></div>
+              <div class="full"><label>Remark</label><input id="scoreRemark" readonly></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Class Broadsheet / Position Ranking</h3><div class="table-wrap" id="scoreTable"></div></div>
+        </div>
+      </div>
+
+      <div id="fees" class="page hide">
+        <div class="toolbar"><h2>Fee Management</h2><div class="actions"><button class="primary" onclick="saveFee()">Record Payment</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Fee and Payment Tracking</h3>
+            <div class="form-grid">
+              <div class="full"><label>Student</label><select id="feeStudent"></select></div>
+              <div><label>Amount Due</label><input id="feeDue" type="number" value="25000"></div>
+              <div><label>Amount Paid</label><input id="feePaid" type="number" value="0"></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Fee Payment Reports</h3><div class="table-wrap" id="feeTable"></div></div>
+        </div>
+      </div>
+
+      <div id="attendance" class="page hide">
+        <div class="toolbar"><h2>Attendance Management</h2><div class="actions"><button class="primary" onclick="saveAttendance()">Save Attendance</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Daily Attendance</h3>
+            <div class="form-grid">
+              <div class="full"><label>Student</label><select id="attendanceStudent"></select></div>
+              <div><label>Date</label><input id="attendanceDate" type="date"></div>
+              <div><label>Status</label><select id="attendanceStatus"><option>Present</option><option>Absent</option><option>Late</option></select></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Attendance Reports</h3><div class="table-wrap" id="attendanceTable"></div></div>
+        </div>
+      </div>
+
+      <div id="users" class="page hide">
+        <div class="toolbar"><h2>User Management</h2><div class="actions"><button class="primary" onclick="saveUser()">Save User</button><button class="secondary" onclick="newUser()">New User</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Create User</h3>
+            <input id="userId" type="hidden">
+            <div class="form-grid">
+              <div><label>Username</label><input id="userName"></div>
+              <div><label>Password</label><input id="userPassword" type="password"></div>
+              <div class="full"><label>Role</label><select id="userRole"><option>Administrator</option><option>Teacher</option><option>Accountant</option><option>Parent</option><option>Student</option><option>Exam Officer</option></select></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>System Users</h3><div class="table-wrap" id="userTable"></div></div>
+        </div>
+      </div>
+
+      <div id="settings" class="page hide">
+        <div class="toolbar"><h2>School Settings</h2><div class="actions"><button class="primary" onclick="saveSettings()">Save Settings</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="panel">
+          <div class="form-grid">
+            <div><label>School Name</label><input id="setSchoolName"></div>
+            <div><label>School Phone</label><input id="setPhone"></div>
+            <div><label>Session</label><input id="setSession"></div>
+            <div><label>Term</label><select id="setTerm"><option>First Term</option><option>Second Term</option><option>Third Term</option></select></div>
+            <div><label>Days Open</label><input id="setDaysOpen" type="number"></div>
+            <div><label>Next Term Begins</label><input id="setNextTerm" type="date"></div>
+            <div class="full"><label>School Email</label><input id="setEmail"></div>
+            <div class="full"><label>Address</label><textarea id="setAddress"></textarea></div>
+            <div class="full"><label>Principal Comment</label><textarea id="setPrincipalComment"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="reports" class="page hide print-page">
+        <div class="toolbar"><h2>Reports</h2><div class="actions"><button class="secondary" onclick="printCurrentReport()">Print / PDF</button><button class="secondary" onclick="downloadCsv()">Download Excel CSV</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4 no-print">
+            <h3>Report Options</h3>
+            <div class="form-grid">
+              <div class="full"><label>Report Type</label><select id="reportType" onchange="renderReports()"><option>Student Report Card</option><option>Class Broadsheet</option><option>Academic Performance</option><option>Attendance Report</option><option>Fee Payment Report</option><option>Staff Report</option><option>Admission Report</option><option>Student ID Card</option><option>Certificate</option><option>Class List Report</option></select></div>
+              <div class="full"><label>Student</label><select id="reportStudent" onchange="renderReports()"></select></div>
+              <div class="full"><label>Class</label><select id="reportClass" onchange="renderReports()"></select></div>
+            </div>
+          </div>
+          <div class="panel span-8"><div id="reportOutput"></div></div>
+        </div>
+      </div>
+
+      <div id="portals" class="page hide">
+        <div class="toolbar"><h2>Parent / Student Portal</h2><div class="actions"><button class="primary" onclick="renderPortal()">Check Result</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Online Result Checking</h3>
+            <label>Admission Number</label><input id="portalRegNo" value="MMS/2026/001">
+            <p class="hint" style="margin-top:10px">Parents and students can view published results, fees, and attendance using the admission number.</p>
+          </div>
+          <div class="panel span-8"><div id="portalOutput"></div></div>
+        </div>
+      </div>
+
+      <div id="tools" class="page hide">
+        <div class="toolbar"><h2>Calendar / Notifications / Backup</h2><div class="actions"><button class="primary" onclick="saveEvent()">Save Event</button><button class="secondary" onclick="backupData()">Backup</button><button class="danger" onclick="resetDemo()">Reset Demo</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>School Calendar Management</h3>
+            <div class="form-grid">
+              <div><label>Date</label><input id="eventDate" type="date"></div>
+              <div><label>Type</label><select id="eventType"><option>Academic</option><option>Exam</option><option>Fee</option><option>Holiday</option></select></div>
+              <div class="full"><label>Title</label><input id="eventTitle"></div>
+            </div>
+            <h3 style="margin-top:14px">Restore Backup</h3>
+            <input type="file" id="restoreFile" accept="application/json" onchange="restoreData(event)">
+          </div>
+          <div class="panel span-8">
+            <h3>SMS / Email Notifications</h3>
+            <div class="actions" style="margin-bottom:12px">
+              <button class="secondary" onclick="notifyParents()">Notify Parents</button>
+              <button class="secondary" onclick="notifyDebtors()">Notify Fee Debtors</button>
+            </div>
+            <div id="notificationOutput"></div>
+            <h3 style="margin-top:14px">Calendar</h3>
+            <div class="table-wrap" id="calendarTable"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hide"></div>
+
+  <script>
+    const KEY = "madarkaci_sms_v2";
+    const API_URL = "http://localhost:3000/api/db"; // Canza wannan zuwa adireshin API ɗinka na ainihi idan an tura shi kan layi
+    const today = new Date().toISOString().slice(0, 10);
+    let currentUser = null;
+    let currentCsv = [];
+
+    const seed = {
+      settings: {
+        schoolName: "Madarkaci Model School",
+        address: "NO. 103 ALIYU ROAD, MADARKACI, OPP. INSTITUTE OF CHILD HEALTH, A.B.U-TIH ZARIA - KADUNA STATE",
+        email: "madarkacimodelschools@gmail.com",
+        phone: "",
+        session: "2025/2026",
+        term: "First Term",
+        daysOpen: 65,
+        nextTermBegins: "2026-01-12",
+        principalComment: "Approved. More effort is encouraged."
+      },
+      users: [
+        { id: "u1", username: "admin", password: "admin123", role: "Administrator" },
+        { id: "u2", username: "teacher", password: "teacher", role: "Teacher" },
+        { id: "u3", username: "accountant", password: "account123", role: "Accountant" },
+        { id: "u4", username: "parent", password: "parent123", role: "Parent" },
+        { id: "u5", username: "student", password: "student123", role: "Student" },
+        { id: "u6", username: "exam_officer", password: "exam123", role: "Exam Officer" }
+      ],
+      classes: [
+        { id: "c1", name: "Nursery 1", section: "Nursery", teacherId: "s1" },
+        { id: "c2", name: "Primary 1", section: "Primary", teacherId: "s2" },
+        { id: "c3", name: "JSS 1 (Basic 7)", section: "Junior Secondary", teacherId: "s1" },
+        { id: "c4", name: "SS 1", section: "Senior Secondary", teacherId: "s3" },
+        { id: "c5", name: "Primary 2 (Basic 2)", section: "Primary", teacherId: "s2" },
+        { id: "c6", name: "Primary 4 (Basic 4)", section: "Primary", teacherId: "s1" },
+        { id: "c7", name: "Primary 5 (Basic 5)", section: "Primary", teacherId: "s2" },
+        { id: "c8", name: "JSS 2 (Basic 8)", section: "Junior Secondary", teacherId: "s2" }
+      ],
+      subjects: [
+        { id: "sub1", name: "Numeracy", code: "NUM", classId: "c3", teacherId: "s1" },
+        { id: "sub2", name: "Literacy", code: "LIT", classId: "c3", teacherId: "s1" },
+        { id: "sub3", name: "Islamic Religious Studies", code: "IRS", classId: "c3", teacherId: "s2" },
+        { id: "sub4", name: "Hausa Language", code: "HAU", classId: "c3", teacherId: "s2" },
+        { id: "sub5", name: "Further Mathematics", code: "FMATH", classId: "c4", teacherId: "s3" },
+        { id: "sub6", name: "Agricultural Science", code: "AGRIC", classId: "c4", teacherId: "s3" },
+        { id: "sub7", name: "Business Studies", code: "BUS", classId: "c3", teacherId: "s1" },
+        { id: "sub8", name: "Economics", code: "ECO", classId: "c4", teacherId: "s3" },
+        { id: "sub9", name: "Literature in English", code: "LITENG", classId: "c4", teacherId: "s2" },
+        { id: "sub10", name: "Marketing", code: "MKT", classId: "c4", teacherId: "s3" },
+        { id: "sub11", name: "Basic Technology", code: "BTECH", classId: "c3", teacherId: "s1" },
+        { id: "sub12", name: "Arabic Language", code: "ARB", classId: "c3", teacherId: "s2" },
+        { id: "sub13", name: "Vocational Studies", code: "VOC", classId: "c3", teacherId: "s1" },
+        { id: "sub14", name: "Accounting", code: "ACC", classId: "c4", teacherId: "s3" },
+        { id: "sub15", name: "Biology", code: "BIO", classId: "c4", teacherId: "s2" },
+        { id: "sub16", name: "Basic Science", code: "BSCI", classId: "c3", teacherId: "s1" }
+      ],
+      staff: [
+        { id: "s1", staffNo: "MMS/STF/001", firstName: "Amina", middleName: "", lastName: "Yusuf", role: "Teacher", phone: "08010000001", subjectIds: ["sub16", "sub1"], address: "Madarkaci" },
+        { id: "s2", staffNo: "MMS/STF/002", firstName: "Kabiru", middleName: "Muhammad", lastName: "Sani", role: "Teacher", phone: "08010000002", subjectIds: ["sub3", "sub4"], address: "Kano" },
+        { id: "s3", staffNo: "MMS/STF/003", firstName: "Maryam", middleName: "", lastName: "Ali", role: "Accountant", phone: "08010000003", subjectIds: ["sub14"], address: "Madarkaci" }
+      ],
+      students: [
+        { id: "st1", regNo: "MMS/2026/001", firstName: "Aisha", middleName: "", lastName: "Abdullahi", gender: "Female", classId: "c3", house: "Red", dob: "2013-05-12", religion: "Islam", lga: "Fagge", state: "Kano", parentName: "Malam Abdullahi", parentPhone: "08000000001", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active", photo: "assets/school-image-2.jpg" },
+        { id: "st2", regNo: "MMS/2026/002", firstName: "Musa", middleName: "Ahmad", lastName: "Ibrahim", gender: "Male", classId: "c3", house: "Blue", dob: "2012-09-21", religion: "Islam", lga: "Fagge", state: "Kano", parentName: "Malam Ibrahim", parentPhone: "08000000002", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active" },
+        { id: "st3", regNo: "MMS/2026/003", firstName: "Fatima", middleName: "", lastName: "Sani", gender: "Female", classId: "c3", house: "Green", dob: "2013-02-03", religion: "Islam", lga: "Gwale", state: "Kano", parentName: "Hajiya Sani", parentPhone: "08000000003", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active" },
+        // Basic 4 Students
+        { id: "st4", regNo: "MMS/2026/004", firstName: "Buhari", middleName: "", lastName: "Zubairu", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st5", regNo: "MMS/2026/005", firstName: "Kabir", middleName: "", lastName: "Abdulaziz", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st6", regNo: "MMS/2026/006", firstName: "Alamin", middleName: "Yusuf", lastName: "Adam", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st7", regNo: "MMS/2026/007", firstName: "Umar", middleName: "Faruk", lastName: "Sufiyan", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st8", regNo: "MMS/2026/008", firstName: "Hauwa’u", middleName: "", lastName: "Isah", gender: "Female", classId: "c6", status: "Active" },
+        { id: "st9", regNo: "MMS/2026/009", firstName: "Muhamad", middleName: "", lastName: "Lawal", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st10", regNo: "MMS/2026/010", firstName: "Hauwa’u", middleName: "", lastName: "Abdulganiyyu", gender: "Female", classId: "c6", status: "Active" },
+        { id: "st11", regNo: "MMS/2026/011", firstName: "Zainab", middleName: "", lastName: "Mustapha", gender: "Female", classId: "c6", status: "Active" },
+        // Basic 2 Students
+        { id: "st12", regNo: "MMS/2026/012", firstName: "Aisha", middleName: "Aliyu", lastName: "Ja’afar", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st13", regNo: "MMS/2026/013", firstName: "Abu-Sufyan", middleName: "", lastName: "Abdulkarim", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st14", regNo: "MMS/2026/014", firstName: "Hafsat", middleName: "", lastName: "Hashim", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st15", regNo: "MMS/2026/015", firstName: "Abubakar", middleName: "Sadiq", lastName: "Ibrahim", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st16", regNo: "MMS/2026/016", firstName: "Ramlat", middleName: "Yakubu", lastName: "Abubakar", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st17", regNo: "MMS/2026/017", firstName: "Abdulmalik", middleName: "Aminu", lastName: "Gambo", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st18", regNo: "MMS/2026/018", firstName: "Isah", middleName: "", lastName: "Zakariyya", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st19", regNo: "MMS/2026/019", firstName: "Abdulhalim", middleName: "Aliyu", lastName: "Gibril", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st20", regNo: "MMS/2026/020", firstName: "Safarau", middleName: "", lastName: "Abdulkarim", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st21", regNo: "MMS/2026/021", firstName: "Yusuf", middleName: "", lastName: "Khalil", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st22", regNo: "MMS/2026/022", firstName: "Muhammed", middleName: "Ismail", lastName: "Danbaba", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st23", regNo: "MMS/2026/023", firstName: "Fatima", middleName: "Yusuf", lastName: "Adam", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st24", regNo: "MMS/2026/024", firstName: "Abdullahi", middleName: "", lastName: "Usman", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st25", regNo: "MMS/2026/025", firstName: "Aisha", middleName: "", lastName: "Hawal", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st26", regNo: "MMS/2026/026", firstName: "Adam", middleName: "", lastName: "Abdulkadir", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st27", regNo: "MMS/2026/027", firstName: "Ishaq", middleName: "", lastName: "Abdurrahman", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st28", regNo: "MMS/2026/028", firstName: "Hassana", middleName: "Idris", lastName: "Musa", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st29", regNo: "MMS/2026/029", firstName: "Aliyu", middleName: "Haidar", lastName: "Ishaq", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st30", regNo: "MMS/2026/030", firstName: "Muhammed", middleName: "Adnan", lastName: "Dalhat", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st31", regNo: "MMS/2026/031", firstName: "Salamatu", middleName: "Ilyasu", lastName: "Sani", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st32", regNo: "MMS/2026/032", firstName: "Abdullahi", middleName: "", lastName: "Aminu", gender: "Male", classId: "c5", status: "Active" },
+        // Basic 5 Students
+        { id: "st33", regNo: "MMS/2026/033", firstName: "Ahmad", middleName: "M.", lastName: "Sani", gender: "Male", classId: "c7", status: "Active" },
+        { id: "st34", regNo: "MMS/2026/034", firstName: "Abdulkadir", middleName: "", lastName: "Mustapha", gender: "Male", classId: "c7", status: "Active" },
+        { id: "st35", regNo: "MMS/2026/035", firstName: "Khadija", middleName: "Dauda", lastName: "Yusuf", gender: "Female", classId: "c7", status: "Active" },
+        { id: "st36", regNo: "MMS/2026/036", firstName: "Khadija", middleName: "", lastName: "Abdulkadir", gender: "Female", classId: "c7", status: "Active" },
+        // Basic 7 Students
+        { id: "st37", regNo: "MMS/2026/037", firstName: "Abu", middleName: "sufyan", lastName: "Iliyasu sani", gender: "Male", classId: "c3", status: "Active" },
+        { id: "st38", regNo: "MMS/2026/038", firstName: "Ahmad", middleName: "", lastName: "sadiq", gender: "Male", classId: "c3", status: "Active" },
+        { id: "st39", regNo: "MMS/2026/039", firstName: "Umar", middleName: "M", lastName: "Bello", gender: "Male", classId: "c3", status: "Active" },
+        { id: "st40", regNo: "MMS/2026/040", firstName: "fatima", middleName: "Ismail", lastName: "danbaba", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st41", regNo: "MMS/2026/041", firstName: "salbiyya", middleName: "", lastName: "Abdulaziz", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st42", regNo: "MMS/2026/042", firstName: "Humaida", middleName: "", lastName: "Ibrahim", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st43", regNo: "MMS/2026/043", firstName: "Nusaiba", middleName: "", lastName: "Ibrahim", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st44", regNo: "MMS/2026/044", firstName: "khadija", middleName: "", lastName: "shehu", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st45", regNo: "MMS/2026/045", firstName: "Aisha", middleName: "Aliyu", lastName: "Jibril", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st46", regNo: "MMS/2026/046", firstName: "Amina", middleName: "Yusuf", lastName: "Jibril", gender: "Female", classId: "c3", status: "Active" },
+        // Basic 8 Students
+        { id: "st47", regNo: "MMS/2026/047", firstName: "Abubakar", middleName: "", lastName: "Abdulkadir", gender: "Male", classId: "c8", status: "Active" },
+        { id: "st48", regNo: "MMS/2026/048", firstName: "Ahmad", middleName: "", lastName: "Abubakar", gender: "Male", classId: "c8", status: "Active" },
+        { id: "st49", regNo: "MMS/2026/049", firstName: "Bilal", middleName: "", lastName: "Abubakar", gender: "Male", classId: "c8", status: "Active" },
+        { id: "st50", regNo: "MMS/2026/050", firstName: "Khalid", middleName: "", lastName: "Hashim", gender: "Male", classId: "c8", status: "Active" },
+        { id: "st51", regNo: "MMS/2026/051", firstName: "fatima", middleName: "Ibrahim", lastName: "Kusfa", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st52", regNo: "MMS/2026/052", firstName: "Maryam", middleName: "D", lastName: "Yusuf", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st53", regNo: "MMS/2026/053", firstName: "firdausi", middleName: "", lastName: "Lawal", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st54", regNo: "MMS/2026/054", firstName: "fatima", middleName: "", lastName: "Isah", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st55", regNo: "MMS/2026/055", firstName: "Mabruka", middleName: "Ahmad", lastName: "Nuhu", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st56", regNo: "MMS/2026/056", firstName: "Ahmad", middleName: "M", lastName: "Malik", gender: "Male", classId: "c8", status: "Active" }
+      ],
+      scores: [],
+      fees: [
+        { id: "f1", studentId: "st1", amountDue: 25000, amountPaid: 25000, date: "2025-10-15" },
+        { id: "f2", studentId: "st2", amountDue: 25000, amountPaid: 10000, date: "2025-10-20" },
+        { id: "f3", studentId: "st3", amountDue: 25000, amountPaid: 0, date: "" }
+      ],
+      attendance: [
+        { id: "a1", studentId: "st1", date: today, status: "Present" },
+        { id: "a2", studentId: "st2", date: today, status: "Late" },
+        { id: "a3", studentId: "st3", date: today, status: "Present" }
+      ],
+      events: [
+        { id: "e1", date: "2026-01-12", type: "Academic", title: "Next term begins" }
+      ],
+      published: true
+    };
+
+    seed.students.forEach((student, index) => {
+      seed.subjects.filter((subject) => subject.classId === student.classId).slice(0, 6).forEach((subject) => {
+        const base = [87, 68, 77][index];
+        const ca = Math.min(40, Math.round(base * .4));
+        const exam = base - ca;
+        const grade = gradeFor(base);
+        seed.scores.push({ id: id(), studentId: student.id, subjectId: subject.id, ca, exam, total: base, grade: grade.grade, remark: grade.remark, approved: true });
+      });
+    });
+
+    let db = seed; // Fallback to seed while loading
+
+    function id() { return "id" + Math.random().toString(36).slice(2, 10); }
+    
+    async function load() {
+      try {
+        const response = await fetch(API_URL);
+        if (response.ok) db = await response.json();
+      } catch (err) {
+        console.error("Failed to load from API, using local seed.", err);
+      }
+
+      // Check for existing session or auto-login credentials
+      const savedUser = localStorage.getItem("mms_user");
+      const autoRole = getUrlParameter('role');
+      const autoUser = getUrlParameter('username');
+      const autoPass = getUrlParameter('password');
+      const view = getUrlParameter('view');
+
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        document.getElementById("activeUser").textContent = `${currentUser.role}: ${currentUser.username}`;
+        showPage(currentUser.role === "Teacher" ? "scores" : "dashboard");
+      } else if (autoRole && autoUser && autoPass) {
+        document.getElementById("loginRole").value = autoRole;
+        document.getElementById("loginUsername").value = autoUser;
+        document.getElementById("loginPassword").value = autoPass;
+        login();
+      } else {
+        // Setup login page if no session found
+        if (autoRole) document.getElementById("loginRole").value = autoRole;
+        if (view === 'portal') {
+          const roleSelect = document.getElementById("loginRole");
+          for (let i = roleSelect.options.length - 1; i >= 0; i--) {
+            const val = roleSelect.options[i].text;
+            if (val !== 'Student' && val !== 'Parent') roleSelect.remove(i);
+          }
+          roleSelect.value = "Student";
+        }
+        showPage("login");
+      }
+      renderAll();
+    }
+
+    async function save() {
+      const toastEl = document.getElementById("toast");
+      toast("Saving changes to server...");
+      
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(db)
+        });
+        if (!response.ok) throw new Error("Server storage failed");
+        toast("Data saved successfully");
+      } catch (err) {
+        console.error("Save error:", err);
+        toast("Error: Could not save to server!");
+      }
+      renderAll();
+    }
+    function money(value) { return Number(value || 0).toLocaleString(); }
+    function fullName(item) { return [item.firstName, item.middleName, item.lastName].filter(Boolean).join(" ").trim(); }
+    function cls(id) { return db.classes.find((item) => item.id === id) || { name: "Unassigned", section: "" }; }
+    function subject(id) { return db.subjects.find((item) => item.id === id) || { name: "Unknown", code: "" }; }
+    function student(id) { return db.students.find((item) => item.id === id) || null; }
+    function staff(id) { return db.staff.find((item) => item.id === id) || { firstName: "", lastName: "Unassigned" }; }
+    function esc(value) { return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])); }
+    function toast(message) {
+      const el = document.getElementById("toast");
+      el.textContent = message;
+      el.classList.remove("hide");
+      setTimeout(() => el.classList.add("hide"), 2200);
+    }
+    function handlePhoto(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => document.getElementById("studentPhotoPreview").innerHTML = `<img src="${reader.result}" style="width:100%;height:100%;object-fit:cover">`;
+      reader.readAsDataURL(file);
+    }
+    function gradeFor(total) {
+      total = Math.max(0, Math.min(100, Number(total || 0)));
+      if (total >= 70) return { grade: "A", remark: "Excellent" };
+      if (total >= 60) return { grade: "B", remark: "Very Good" };
+      if (total >= 50) return { grade: "C", remark: "Good" };
+      if (total >= 45) return { grade: "D", remark: "Pass" };
+      if (total >= 40) return { grade: "E", remark: "Fair" };
+      return { grade: "F", remark: "Fail" };
+    }
+
+    function table(headers, rows) {
+      currentCsv = [headers, ...rows.map((row) => row.map((cell) => String(cell).replace(/<[^>]*>/g, "")))];
+      return `<table><tr>${headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr>${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</table>`;
+    }
+
+    function options(items, selected, label = "name") {
+      return items.map((item) => `<option value="${item.id}" ${item.id === selected ? "selected" : ""}>${esc(typeof label === "function" ? label(item) : item[label])}</option>`).join("");
+    }
+
+    function showPage(idName) {
+      document.querySelectorAll(".page").forEach((page) => {
+        if (page.id !== idName) page.classList.add("hide");
+      });
+      const buttons = document.querySelectorAll("nav button");
+      buttons.forEach((button) => {
+        const isActive = button.dataset.section === idName;
+        button.classList.toggle("active", isActive);
+        if (isActive) {
+          document.getElementById("breadcrumb").textContent = idName === "login" ? "" : "| " + button.textContent;
+        }
+      });
+      const targetPage = document.getElementById(idName);
+      if (targetPage) targetPage.classList.remove("hide");
+      renderAll();
+    }
+
+    function renderNav() {
+      const nav = document.getElementById("nav");
+      const role = currentUser ? currentUser.role : null;
+      
+      const permissions = {
+        "Administrator": ["dashboard", "students", "staff", "classes", "subjects", "scores", "fees", "attendance", "users", "settings", "reports", "portals", "tools"],
+        "Teacher": ["scores", "attendance", "reports"],
+        "Exam Officer": ["dashboard", "students", "staff", "classes", "subjects", "scores", "attendance", "reports"],
+        "Accountant": ["dashboard", "students", "fees", "reports"],
+        "Student": ["dashboard", "portals", "reports"],
+        "Parent": ["dashboard", "portals", "reports"]
+      };
+
+      nav.querySelectorAll("button").forEach(btn => {
+        const section = btn.dataset.section;
+        if (section === "login") {
+          btn.classList.toggle("hide", currentUser !== null);
+          return;
+        }
+        if (!currentUser) {
+          btn.classList.add("hide");
+          return;
+        }
+        const allowed = permissions[role] || ["dashboard"];
+        btn.classList.toggle("hide", !allowed.includes(section));
+      });
+    }
+
+    // Function to parse URL parameters
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    };
+
+
+
+    document.querySelectorAll("nav button").forEach((button) => {
+      button.addEventListener("click", () => showPage(button.dataset.section));
+    });
+
+    function login() {
+      const role = document.getElementById("loginRole").value;
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      if (!username || !password) {
+        return toast("Username da password ya kamata a sanya.");
+      }
+
+      let user = null;
+      const lowerUser = username.toLowerCase();
+
+      // 1. Check generic users (case-insensitive)
+      user = db.users.find((u) => u.username.toLowerCase() === lowerUser && u.password === password && u.role === role);
+
+      // 2. Check Special ID Logins if not found above
+      if (!user) {
+        if (role === "Student") {
+          const s = db.students.find((s) => s.regNo.toLowerCase() === lowerUser);
+          if (s && password === "student123") {
+            user = { id: s.id, username: s.regNo, role: "Student", studentId: s.id };
+          }
+        } else if (role === "Parent") {
+          const s = db.students.find((s) => s.parentPhone === username);
+          if (s && password === "parent123") {
+            user = { id: s.id, username: s.parentPhone, role: "Parent", studentId: s.id };
+          }
+        } else if (["Teacher", "Accountant", "Exam Officer"].includes(role)) {
+          const s = db.staff.find((s) => s.staffNo.toLowerCase() === lowerUser && s.role === role);
+          if (s) {
+            const demoPass = role === "Teacher" ? "teacher" : (role === "Accountant" ? "account123" : "exam123");
+            if (password === demoPass) {
+              user = { id: s.id, username: fullName(s), role: role, staffId: s.id };
+            }
+          }
+        }
+      }
+
+      if (!user) return toast("Login failed. Duba Username/ID ko Password.");
+
+       currentUser = user;
+       localStorage.setItem("mms_user", JSON.stringify(user));
+       document.getElementById("activeUser").textContent = `${user.role}: ${user.username}`;
+       toast("Login successful");
+       showPage(user.role === "Teacher" ? "scores" : "dashboard");
+     }
+     function logout() {
+       currentUser = null;
+       localStorage.removeItem("mms_user");
+       document.getElementById("activeUser").textContent = "Not logged in";
+       document.getElementById("breadcrumb").textContent = "";
+       showPage("login");
+     }
+     function recoverPassword() {
+       const username = document.getElementById("loginUsername").value.trim();
+       const user = db.users.find((item) => item.username === username);
+       toast(user ? `Recovery hint: password is ${user.password}` : "User not found");
+     }
+
+    function renderDashboard() {
+      const role = currentUser?.role || "User";
+      const dashboardHeader = document.querySelector("#dashboard .toolbar h2");
+      if (dashboardHeader) dashboardHeader.textContent = `${role} Dashboard`;
+
+      document.getElementById("schoolTitle").textContent = db.settings.schoolName;
+      document.getElementById("sessionLabel").textContent = `${db.settings.session} | ${db.settings.term} | Days Open: ${db.settings.daysOpen}`;
+      document.getElementById("metricStudents").textContent = db.students.length;
+      document.getElementById("metricStaff").textContent = db.staff.length;
+      document.getElementById("metricBalance").textContent = money(db.fees.reduce((sum, fee) => sum + Math.max(0, fee.amountDue - fee.amountPaid), 0));
+      document.getElementById("metricResults").textContent = db.scores.filter((score) => score.approved).length;
+      document.getElementById("recentStudents").innerHTML = table(["Reg No", "Name", "Class"], db.students.slice(-5).reverse().map((s) => [esc(s.regNo), esc(fullName(s)), esc(cls(s.classId).name)]));
+      document.getElementById("moduleStatus").innerHTML = table(["Module", "Status"], [
+        ["Student / Staff / Class / Subject Management", '<span class="pill">Functional</span>'],
+        ["Score Entry, Grade, Position, Publishing", '<span class="pill">Functional</span>'],
+        ["Reports, Print PDF, CSV Download", '<span class="pill">Functional</span>'],
+        ["Portals, Calendar, Backup / Restore", '<span class="pill">Functional</span>']
+      ]);
+      renderRolePanels();
+    }
+
+    function studentSummaryForPortal() {
+      const firstStudent = db.students[0];
+      if (!firstStudent) return { student: null, total: 0, average: 0, balance: 0, present: 0 };
+      const scores = db.scores.filter((score) => score.studentId === firstStudent.id);
+      const total = scores.reduce((sum, score) => sum + score.total, 0);
+      const average = scores.length ? total / scores.length : 0;
+      const fee = db.fees.find((item) => item.studentId === firstStudent.id);
+      const balance = fee ? Math.max(0, fee.amountDue - fee.amountPaid) : 0;
+      const present = db.attendance.filter((item) => item.studentId === firstStudent.id && item.status === "Present").length;
+      return { student: firstStudent, total, average, balance, present };
+    }
+
+    function roleActionButton(label, target) {
+      return `<button class="secondary" onclick="showPage('${target}')">${label}</button>`;
+    }
+
+    function renderRolePanels() {
+      const role = currentUser?.role || "Guest";
+      const title = document.getElementById("rolePanelTitle");
+      const output = document.getElementById("rolePanels");
+      title.textContent = `${role} Panel`;
+
+      if (role === "Administrator") {
+        output.innerHTML = `
+          <div class="grid">
+            <div class="panel metric span-3"><span>Admission Records</span><strong>${db.students.length}</strong></div>
+            <div class="panel metric blue span-3"><span>System Users</span><strong>${db.users.length}</strong></div>
+            <div class="panel metric gold span-3"><span>Classes</span><strong>${db.classes.length}</strong></div>
+            <div class="panel metric red span-3"><span>Subjects</span><strong>${db.subjects.length}</strong></div>
+            <div class="span-12 actions">
+              ${roleActionButton("Manage Students", "students")}
+              ${roleActionButton("Manage Staff", "staff")}
+              ${roleActionButton("Manage Users", "users")}
+              ${roleActionButton("School Settings", "settings")}
+              ${roleActionButton("Backup / Restore", "tools")}
+            </div>
+          </div>`;
+        return;
+      }
+
+if (role === "Teacher" || role === "Exam Officer") {
+         const teacherStaffId = currentUser?.staffId;
+         const assignedSubjects = teacherStaffId ? db.subjects.filter((item) => item.teacherId === teacherStaffId) : (role === "Exam Officer" ? db.subjects : []);
+         const teacherClasses = teacherStaffId ? db.classes.filter((c) => assignedSubjects.some((s) => s.classId === c.id)) : (role === "Exam Officer" ? db.classes : []);
+         const myScores = teacherStaffId ? db.scores.filter((score) => assignedSubjects.some((s) => s.id === score.subjectId)) : db.scores;
+         const classCount = teacherClasses.length;
+
+         const subjectRows = assignedSubjects.length ? assignedSubjects.map((subj) => [esc(subj.name), esc(cls(subj.classId).name), esc(staff(subj.teacherId).lastName)]) : [["No subjects assigned", "", ""]];
+         const classRows = teacherClasses.length ? teacherClasses.map((c) => [esc(c.name), esc(fullName(staff(c.teacherId))), db.students.filter((s) => s.classId === c.id).length]) : [["No classes assigned", "", ""]];
+
+         output.innerHTML = `
+           <div class="grid">
+             <div class="panel metric span-3"><span>Assigned Subjects</span><strong>${assignedSubjects.length}</strong></div>
+             <div class="panel metric blue span-3"><span>Assigned Classes</span><strong>${classCount}</strong></div>
+             <div class="panel metric gold span-3"><span>My Scores Entered</span><strong>${myScores.length}</strong></div>
+             <div class="panel metric red span-3"><span>Pending Approval</span><strong>${myScores.filter((score) => !score.approved).length}</strong></div>
+             <div class="panel span-6"><h3>My Subjects (Access Granted)</h3>${table(["Subject", "Class", "Teacher"], subjectRows)}</div>
+             <div class="panel span-6"><h3>My Classes (Access Granted)</h3>${table(["Class", "Class Teacher", "Students"], classRows)}</div>
+             <div class="panel span-12 actions">
+               ${roleActionButton("Enter Scores", "scores")}
+               ${roleActionButton("Mark Attendance", "attendance")}
+               ${roleActionButton("View Reports", "reports")}
+             </div>
+           </div>`;
+         return;
+       }
+
+      if (role === "Student") {
+        const summary = studentSummaryForPortal();
+        const s = summary.student;
+        output.innerHTML = s ? `
+          <div class="grid">
+            <div class="panel metric span-3"><span>My Class</span><strong>${esc(cls(s.classId).name)}</strong></div>
+            <div class="panel metric blue span-3"><span>Average</span><strong>${summary.average.toFixed(1)}</strong></div>
+            <div class="panel metric gold span-3"><span>Attendance</span><strong>${summary.present}</strong></div>
+            <div class="panel metric red span-3"><span>Fee Balance</span><strong>${money(summary.balance)}</strong></div>
+            <div class="panel span-8"><h3>My Academic Summary</h3>${studentReportCard(s)}</div>
+            <div class="panel span-4"><h3>Student Actions</h3><div class="actions">${roleActionButton("Check Result", "portals")}${roleActionButton("Print ID Card", "reports")}${roleActionButton("View Fees", "fees")}</div></div>
+          </div>` : "<p class='hint'>No student record is available.</p>";
+        return;
+      }
+
+      if (role === "Parent") {
+        const summary = studentSummaryForPortal();
+        const s = summary.student;
+        output.innerHTML = s ? `
+          <div class="grid">
+            <div class="panel metric span-3"><span>Child</span><strong>${esc(s.firstName)}</strong></div>
+            <div class="panel metric blue span-3"><span>Average</span><strong>${summary.average.toFixed(1)}</strong></div>
+            <div class="panel metric gold span-3"><span>Present Days</span><strong>${summary.present}</strong></div>
+            <div class="panel metric red span-3"><span>Fee Balance</span><strong>${money(summary.balance)}</strong></div>
+            <div class="panel span-8"><h3>Parent Overview</h3>${table(["Student", "Class", "Parent Phone", "Fee Status"], [[esc(fullName(s)), esc(cls(s.classId).name), esc(s.parentPhone), summary.balance === 0 ? '<span class="pill">Paid</span>' : '<span class="pill warn">Balance Due</span>']])}</div>
+            <div class="panel span-4"><h3>Parent Actions</h3><div class="actions">${roleActionButton("Check Result", "portals")}${roleActionButton("Fee Report", "fees")}${roleActionButton("Attendance", "attendance")}</div></div>
+          </div>` : "<p class='hint'>No linked child record is available.</p>";
+        return;
+      }
+
+      output.innerHTML = `<p class="hint">Login as Administrator, Teacher, Student, or Parent to see the correct panel.</p>`;
+    }
+
+function fillSelects() {
+       // Filter Report Types for Teacher
+       const reportTypeSelect = document.getElementById("reportType");
+       if (reportTypeSelect) {
+         const allOptions = [
+           "Student Report Card", "Class Broadsheet", "Academic Performance",
+           "Attendance Report", "Fee Payment Report", "Staff Report",
+           "Admission Report", "Student ID Card", "Certificate", "Class List Report"
+         ];
+         const teacherAllowed = ["Student Report Card", "Class Broadsheet", "Fee Payment Report", "Class List Report"];
+         
+         if (currentUser?.role === "Teacher") {
+           reportTypeSelect.innerHTML = allOptions
+             .filter(opt => teacherAllowed.includes(opt))
+             .map(opt => `<option>${opt}</option>`).join("");
+         } else {
+           reportTypeSelect.innerHTML = allOptions.map(opt => `<option>${opt}</option>`).join("");
+         }
+       }
+
+       const classOpts = `<option value="">All Classes</option>${options(db.classes)}`;
+       ["studentClass", "studentFilterClass", "reportClass"].forEach((idName) => {
+         const el = document.getElementById(idName);
+         if (el) el.innerHTML = classOpts;
+       });
+
+       // Filter students based on role
+       let studentOptions = db.students;
+       if (currentUser?.role === "Teacher" && currentUser?.staffId && currentUser?.role !== "Administrator") {
+         const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
+         studentOptions = db.students.filter((s) => assignedClasses.includes(s.classId));
+       }
+
+       ["scoreStudent", "attendanceStudent"].forEach((idName) => {
+         const el = document.getElementById(idName);
+         if (el) el.innerHTML = studentOptions.length ? options(studentOptions, "", (s) => `${s.regNo} - ${fullName(s)}`) : "";
+       });
+
+       ["feeStudent", "reportStudent"].forEach((idName) => {
+         const el = document.getElementById(idName);
+         if (el) el.innerHTML = options(db.students, "", (s) => `${s.regNo} - ${fullName(s)}`);
+       });
+
+       // Filter subjects based on role
+       let subjectOptions = db.subjects;
+       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+         subjectOptions = db.subjects.filter((subj) => subj.teacherId === currentUser.staffId);
+       }
+
+       ["scoreSubject"].forEach((idName) => {
+         const el = document.getElementById(idName);
+         if (el) el.innerHTML = options(subjectOptions);
+       });
+       ["staffSubject"].forEach((idName) => {
+         const el = document.getElementById(idName);
+         if (el) el.innerHTML = options(db.subjects);
+       });
+       ["classTeacher", "subjectTeacher"].forEach((idName) => {
+         const el = document.getElementById(idName);
+         if (el) el.innerHTML = `<option value="">Unassigned</option>${options(db.staff, "", fullName)}`;
+       });
+
+       // Set reportClass options
+       const reportClassOpts = (currentUser?.role === "Teacher" && currentUser?.staffId)
+         ? `<option value="">Select Class</option>${options(db.classes.filter((c) => {
+             const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
+             return assignedClasses.includes(c.id);
+           }))}`
+         : classOpts;
+       ["reportClass"].forEach((idName) => {
+         const el = document.getElementById(idName);
+         if (el) el.innerHTML = reportClassOpts;
+       });
+    }
+    function newStudent() {
+      ["studentId", "studentRegNo", "studentFirst", "studentMiddle", "studentLast", "studentHouse", "studentDob", "studentReligion", "studentLga", "studentState", "studentParent", "studentPhone", "studentAddress", "studentMedical", "studentPhoto"].forEach((x) => document.getElementById(x).value = "");
+      document.getElementById("studentStatus").value = "Active";
+      document.getElementById("studentPhotoPreview").innerHTML = "PHOTO";
+    }
+    function generateAdmissionNo() {
+      const next = String(db.students.length + 1).padStart(3, "0");
+      document.getElementById("studentRegNo").value = `MMS/2026/${next}`;
+    }
+    function saveStudent() {
+      const data = {
+        id: document.getElementById("studentId").value || id(),
+        regNo: document.getElementById("studentRegNo").value.trim(),
+        firstName: document.getElementById("studentFirst").value.trim(),
+        middleName: document.getElementById("studentMiddle").value.trim(),
+        lastName: document.getElementById("studentLast").value.trim(),
+        gender: document.getElementById("studentGender").value,
+        classId: document.getElementById("studentClass").value,
+        house: document.getElementById("studentHouse").value,
+        dob: document.getElementById("studentDob").value,
+        religion: document.getElementById("studentReligion").value,
+        lga: document.getElementById("studentLga").value,
+        state: document.getElementById("studentState").value,
+        parentName: document.getElementById("studentParent").value,
+        parentPhone: document.getElementById("studentPhone").value,
+        parentAddress: document.getElementById("studentAddress").value,
+        medical: document.getElementById("studentMedical").value,
+        status: document.getElementById("studentStatus").value,
+        photo: document.querySelector("#studentPhotoPreview img")?.src || null
+      };
+      if (!data.regNo || !data.firstName || !data.classId) return toast("Admission no, first name, and class are required.");
+      const existing = db.students.findIndex((item) => item.id === data.id);
+      existing >= 0 ? db.students.splice(existing, 1, data) : db.students.push(data);
+      save();
+      toast("Student saved");
+    }
+    function editStudent(studentId) {
+      const s = student(studentId);
+      if (!s) return;
+      document.getElementById("studentId").value = s.id;
+      document.getElementById("studentRegNo").value = s.regNo;
+      document.getElementById("studentFirst").value = s.firstName;
+      document.getElementById("studentMiddle").value = s.middleName || "";
+      document.getElementById("studentLast").value = s.lastName;
+      document.getElementById("studentGender").value = s.gender;
+      document.getElementById("studentClass").value = s.classId;
+      document.getElementById("studentHouse").value = s.house;
+      document.getElementById("studentDob").value = s.dob;
+      document.getElementById("studentReligion").value = s.religion;
+      document.getElementById("studentLga").value = s.lga;
+      document.getElementById("studentState").value = s.state;
+      document.getElementById("studentParent").value = s.parentName;
+      document.getElementById("studentPhone").value = s.parentPhone;
+      document.getElementById("studentAddress").value = s.parentAddress;
+      document.getElementById("studentMedical").value = s.medical;
+      document.getElementById("studentStatus").value = s.status;
+      document.getElementById("studentPhotoPreview").innerHTML = s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover">` : "PHOTO";
+    }
+    function deleteStudent(studentId) {
+      if (!confirm("Delete this student and related scores, fees, and attendance?")) return;
+      db.students = db.students.filter((item) => item.id !== studentId);
+      db.scores = db.scores.filter((item) => item.studentId !== studentId);
+      db.fees = db.fees.filter((item) => item.studentId !== studentId);
+      db.attendance = db.attendance.filter((item) => item.studentId !== studentId);
+      save();
+    }
+    function promoteStudent(studentId) {
+      const s = student(studentId);
+      const index = db.classes.findIndex((item) => item.id === s.classId);
+      if (index >= 0 && db.classes[index + 1]) s.classId = db.classes[index + 1].id;
+      save();
+      toast("Student promoted to next class");
+    }
+    function renderStudents() {
+      const search = document.getElementById("studentSearch")?.value.toLowerCase() || "";
+      const classId = document.getElementById("studentFilterClass")?.value || "";
+      const rows = db.students
+        .filter((s) => !classId || s.classId === classId)
+        .filter((s) => `${s.regNo} ${fullName(s)} ${s.parentPhone}`.toLowerCase().includes(search))
+        .map((s) => [
+          esc(s.regNo), esc(fullName(s)), esc(s.gender), esc(cls(s.classId).name), esc(s.parentPhone),
+          `<button class="secondary" onclick="editStudent('${s.id}')">Edit</button> <button class="secondary" onclick="promoteStudent('${s.id}')">Promote</button> <button class="danger" onclick="deleteStudent('${s.id}')">Delete</button>`
+        ]);
+      document.getElementById("studentTable").innerHTML = table(["Reg No", "Name", "Gender", "Class", "Parent Phone", "Action"], rows);
+    }
+
+    function newStaff() { 
+      ["staffId", "staffNo", "staffFirst", "staffMiddle", "staffLast", "staffPhone", "staffAddress"].forEach((x) => document.getElementById(x).value = ""); 
+      ["staffId", "staffFirst", "staffMiddle", "staffLast", "staffPhone", "staffAddress"].forEach((x) => document.getElementById(x).value = ""); 
+      generateStaffNo();
+      const subjectSelect = document.getElementById("staffSubject");
+      if (subjectSelect) Array.from(subjectSelect.options).forEach(opt => opt.selected = false);
+    }
+    function generateStaffNo() {
+      const next = String(db.staff.length + 1).padStart(3, "0");
+      document.getElementById("staffNo").value = `MMS/STF/${next}`;
+    }
+    function saveStaff() {
+      const get = (id) => document.getElementById(id).value;
+      const selectedSubjects = Array.from(document.getElementById("staffSubject").selectedOptions).map(opt => opt.value);
+      const data = { 
+        id: get("staffId") || id(), staffNo: get("staffNo"), firstName: get("staffFirst"), 
+        middleName: get("staffMiddle"), lastName: get("staffLast"), role: get("staffRole"), 
+        phone: get("staffPhone"), subjectIds: selectedSubjects, address: get("staffAddress") 
+      };
+      const index = db.staff.findIndex((item) => item.id === data.id);
+      index >= 0 ? db.staff.splice(index, 1, data) : db.staff.push(data);
+      save();
+      toast("Staff saved");
+    }
+    function editStaff(staffIdValue) {
+      const s = db.staff.find((item) => item.id === staffIdValue);
+      if (!s) return;
+      document.getElementById("staffId").value = s.id;
+      document.getElementById("staffNo").value = s.staffNo;
+      document.getElementById("staffFirst").value = s.firstName;
+      document.getElementById("staffMiddle").value = s.middleName || "";
+      document.getElementById("staffLast").value = s.lastName;
+      document.getElementById("staffRole").value = s.role;
+      document.getElementById("staffPhone").value = s.phone;
+      const subjectSelect = document.getElementById("staffSubject");
+      const sIds = s.subjectIds || (s.subjectId ? [s.subjectId] : []);
+      Array.from(subjectSelect.options).forEach(opt => opt.selected = sIds.includes(opt.value));
+      document.getElementById("staffAddress").value = s.address;
+    }
+    function deleteStaff(staffIdValue) {
+      if (db.classes.some((item) => item.teacherId === staffIdValue) || db.subjects.some((item) => item.teacherId === staffIdValue)) {
+        return toast("Remove this staff member from assigned classes/subjects first.");
+      }
+      db.staff = db.staff.filter((item) => item.id !== staffIdValue);
+      save();
+    }
+    function renderStaff() {
+      document.getElementById("staffTable").innerHTML = table(["Staff No", "Name", "Role", "Phone", "Subjects", "Action"], db.staff.map((s) => {
+        const sIds = s.subjectIds || (s.subjectId ? [s.subjectId] : []);
+        const names = sIds.map(id => subject(id).name).filter(n => n !== "Unknown").join(", ");
+        return [
+        esc(s.staffNo),
+        esc(fullName(s)),
+        esc(s.role),
+        esc(s.phone),
+        esc(names || "None"),
+        `<button class="secondary" onclick="editStaff('${s.id}')">Edit</button> <button class="danger" onclick="deleteStaff('${s.id}')">Delete</button>`
+        ];
+      }));
+    }
+
+    function newClass() { ["classId", "className", "classSection", "classTeacher"].forEach(id => document.getElementById(id).value = ""); }
+    function saveClass() {
+      const get = (id) => document.getElementById(id).value;
+      const data = { id: get("classId") || id(), name: get("className"), section: get("classSection"), teacherId: get("classTeacher") };
+      const index = db.classes.findIndex((item) => item.id === data.id);
+      index >= 0 ? db.classes.splice(index, 1, data) : db.classes.push(data);
+      save();
+      toast("Class saved");
+    }
+    function deleteClass(classIdValue) {
+      if (db.students.some((s) => s.classId === classIdValue)) return toast("Move students before deleting this class.");
+      db.classes = db.classes.filter((item) => item.id !== classIdValue);
+      save();
+    }
+    function editClass(classIdValue) {
+      const c = db.classes.find((item) => item.id === classIdValue);
+      if (!c) return;
+      document.getElementById("classId").value = c.id;
+      document.getElementById("className").value = c.name;
+      document.getElementById("classSection").value = c.section;
+      document.getElementById("classTeacher").value = c.teacherId || "";
+    }
+    function renderClasses() {
+      document.getElementById("classTable").innerHTML = table(["Class", "Section", "Class Teacher", "Students", "Action"], db.classes.map((c) => [
+        esc(c.name), esc(c.section), esc(fullName(staff(c.teacherId))), db.students.filter((s) => s.classId === c.id).length,
+        `<button class="secondary" onclick="editClass('${c.id}')">Edit</button> <button class="danger" onclick="deleteClass('${c.id}')">Delete</button>`
+      ]));
+    }
+
+    function newSubject() { ["subjectId", "subjectName", "subjectCode"].forEach(id => document.getElementById(id).value = ""); }
+    function saveSubject() {
+      const get = (id) => document.getElementById(id).value;
+      const data = { id: get("subjectId") || id(), name: get("subjectName"), code: get("subjectCode"), classId: get("subjectClass"), teacherId: get("subjectTeacher") };
+      const index = db.subjects.findIndex((item) => item.id === data.id);
+      index >= 0 ? db.subjects.splice(index, 1, data) : db.subjects.push(data);
+      save();
+      toast("Subject saved");
+    }
+    function deleteSubject(subjectIdValue) {
+      db.subjects = db.subjects.filter((item) => item.id !== subjectIdValue);
+      db.scores = db.scores.filter((item) => item.subjectId !== subjectIdValue);
+      save();
+    }
+    function editSubject(subjectIdValue) {
+      const s = db.subjects.find((item) => item.id === subjectIdValue);
+      if (!s) return;
+      document.getElementById("subjectId").value = s.id;
+      document.getElementById("subjectName").value = s.name;
+      document.getElementById("subjectCode").value = s.code;
+      document.getElementById("subjectClass").value = s.classId;
+      document.getElementById("subjectTeacher").value = s.teacherId || "";
+    }
+    function renderSubjects() {
+      document.getElementById("subjectTable").innerHTML = table(["Subject", "Code", "Class", "Teacher", "Action"], db.subjects.map((s) => [
+        esc(s.name), esc(s.code), esc(cls(s.classId).name), esc(fullName(staff(s.teacherId))), `<button class="secondary" onclick="editSubject('${s.id}')">Edit</button> <button class="danger" onclick="deleteSubject('${s.id}')">Delete</button>`
+      ]));
+    }
+
+    function previewScore() {
+      const caEl = document.getElementById("scoreCa");
+      const examEl = document.getElementById("scoreExam");
+      const ca = Math.min(40, Math.max(0, Number(caEl.value || 0)));
+      const exam = Math.min(60, Math.max(0, Number(examEl.value || 0)));
+      const total = ca + exam;
+      const result = gradeFor(total);
+      caEl.value = ca;
+      examEl.value = exam;
+      document.getElementById("scoreTotal").value = total;
+      document.getElementById("scoreGrade").value = result.grade;
+      document.getElementById("scoreRemark").value = result.remark;
+    }
+    function saveScore() {
+      previewScore();
+      const studentId = document.getElementById("scoreStudent").value;
+      const subjectId = document.getElementById("scoreSubject").value;
+      const stu = student(studentId);
+      if (!stu || !subjectId) return toast("Select student and subject.");
+      const existing = db.scores.find((item) => item.studentId === stu.id && item.subjectId === subjectId);
+      const data = { 
+        id: existing?.id || id(), studentId: stu.id, subjectId: subjectId, 
+        ca: Number(document.getElementById("scoreCa").value), 
+        exam: Number(document.getElementById("scoreExam").value), 
+        total: Number(document.getElementById("scoreTotal").value), 
+        grade: document.getElementById("scoreGrade").value, 
+        remark: document.getElementById("scoreRemark").value, 
+        approved: false 
+      };
+      existing ? Object.assign(existing, data) : db.scores.push(data);
+      save();
+      toast("Score saved");
+    }
+    function publishResults() {
+      db.scores.forEach((score) => score.approved = true);
+      db.published = true;
+      save();
+      toast("Results approved and published");
+    }
+    function rankedStudents(classId) {
+      return db.students.filter((s) => !classId || s.classId === classId).map((s) => {
+        const scores = db.scores.filter((score) => score.studentId === s.id);
+        const total = scores.reduce((sum, score) => sum + score.total, 0);
+        const avg = scores.length ? total / scores.length : 0;
+        return { ...s, total, avg, grade: gradeFor(avg).grade };
+      }).sort((a, b) => b.total - a.total).map((s, index) => ({ ...s, position: index + 1 }));
+    }
+function renderScores() {
+       previewScore();
+       let targetClassId = "";
+       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+         const assignedClasses = [...new Set(db.subjects.filter((s) => s.teacherId === currentUser.staffId).map((s) => s.classId))];
+         targetClassId = assignedClasses.length === 1 ? assignedClasses[0] : "";
+       }
+       document.getElementById("scoreTable").innerHTML = table(["Position", "Reg No", "Name", "Class", "Total", "Average", "Grade"], rankedStudents(targetClassId).map((s) => [s.position, esc(s.regNo), esc(fullName(s)), esc(cls(s.classId).name), s.total, s.avg.toFixed(2), s.grade]));
+     }
+
+    function saveFee() {
+      const studentId = document.getElementById("feeStudent").value;
+      const existing = db.fees.find((fee) => fee.studentId === studentId);
+      const data = { id: existing?.id || id(), studentId: studentId, amountDue: Number(document.getElementById("feeDue").value || 0), amountPaid: Number(document.getElementById("feePaid").value || 0), date: today };
+      existing ? Object.assign(existing, data) : db.fees.push(data);
+      save();
+      toast("Fee payment saved");
+    }
+    function renderFees() {
+      let filteredFees = db.fees;
+      if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+        const assignedClasses = [...new Set(db.subjects.filter((s) => s.teacherId === currentUser.staffId).map((s) => s.classId))];
+        filteredFees = db.fees.filter((f) => {
+          const s = db.students.find((st) => st.id === f.studentId);
+          return s && assignedClasses.includes(s.classId);
+        });
+      }
+      document.getElementById("feeTable").innerHTML = table(["Student", "Amount Due", "Amount Paid", "Balance", "Remark"], filteredFees.map((fee) => {
+        const balance = Math.max(0, fee.amountDue - fee.amountPaid);
+        const label = balance === 0 ? '<span class="pill">Paid</span>' : fee.amountPaid > 0 ? '<span class="pill warn">Part Payment</span>' : '<span class="pill bad">Not Paid</span>';
+        return [esc(fullName(student(fee.studentId) || {})), money(fee.amountDue), money(fee.amountPaid), money(balance), label];
+      }));
+    }
+
+    function saveAttendance() {
+      const studentId = document.getElementById("attendanceStudent").value;
+      db.attendance.push({ id: id(), studentId: studentId, date: document.getElementById("attendanceDate").value || today, status: document.getElementById("attendanceStatus").value });
+      save();
+      toast("Attendance saved");
+    }
+function renderAttendance() {
+       let filteredAttendance = db.attendance.slice().reverse();
+       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+         const assignedClasses = [...new Set(db.subjects.filter((s) => s.teacherId === currentUser.staffId).map((s) => s.classId))];
+         filteredAttendance = db.attendance.filter((a) => {
+           const s = db.students.find((st) => st.id === a.studentId);
+           return s && assignedClasses.includes(s.classId);
+         }).slice().reverse();
+       }
+       document.getElementById("attendanceTable").innerHTML = table(["Date", "Student", "Class", "Status"], filteredAttendance.map((a) => {
+         const s = student(a.studentId) || {};
+         return [esc(a.date), esc(fullName(s)), esc(cls(s.classId).name), esc(a.status)];
+       }));
+     }
+
+    function newUser() {
+      document.getElementById("userId").value = "";
+      document.getElementById("userName").value = "";
+      document.getElementById("userPassword").value = "";
+      document.getElementById("userRole").value = "Administrator"; // Default role
+      toast("Form cleared for new user entry.");
+    }
+
+    function saveUser() {
+      const userId = document.getElementById("userId").value;
+      const username = document.getElementById("userName").value.trim();
+      const password = document.getElementById("userPassword").value;
+      const role = document.getElementById("userRole").value;
+
+      if (!username || !password) return toast("Username and password are required.");
+
+      if (userId) {
+        // Update existing user
+        const existingUserIndex = db.users.findIndex((item) => item.id === userId);
+        if (existingUserIndex >= 0) {
+          db.users[existingUserIndex].username = username;
+          db.users[existingUserIndex].password = password;
+          db.users[existingUserIndex].role = role;
+        }
+      } else {
+        // Add new user
+        db.users.push({ id: id(), username, password, role });
+      }
+      
+      newUser(); // Clear form after saving
+      save();
+      toast("User saved");
+    }
+
+    function editUser(userId) {
+      const u = db.users.find((item) => item.id === userId);
+      if (!u) return toast("User not found.");
+      document.getElementById("userId").value = u.id;
+      document.getElementById("userName").value = u.username;
+      document.getElementById("userPassword").value = u.password; // Populate password for editing
+      document.getElementById("userRole").value = u.role;
+      toast(`Editing user: ${u.username}`);
+    }
+
+    function deleteUser(userId) {
+      if (!confirm("Are you sure you want to delete this user?")) return;
+      db.users = db.users.filter((item) => item.id !== userId);
+      save();
+      toast("User deleted.");
+    }
+
+    function renderUsers() {
+      document.getElementById("userTable").innerHTML = table(["Username", "Role", "Action"], db.users.map((u) => [
+        esc(u.username),
+        esc(u.role),
+        `<button class="secondary" onclick="editUser('${u.id}')">Edit</button> <button class="danger" onclick="deleteUser('${u.id}')">Delete</button>`
+      ]));
+    }
+
+    function saveSettings() {
+      const get = (id) => document.getElementById(id).value;
+      db.settings = { schoolName: get("setSchoolName"), phone: get("setPhone"), email: get("setEmail"), session: get("setSession"), term: get("setTerm"), daysOpen: Number(get("setDaysOpen") || 0), nextTermBegins: get("setNextTerm"), address: get("setAddress"), principalComment: get("setPrincipalComment") };
+      save();
+      toast("Settings saved");
+    }
+    function renderSettings() {
+      const set = (id, val) => document.getElementById(id).value = val;
+      set("setSchoolName", db.settings.schoolName);
+      set("setPhone", db.settings.phone);
+      set("setSession", db.settings.session);
+      set("setTerm", db.settings.term);
+      set("setDaysOpen", db.settings.daysOpen);
+      set("setEmail", db.settings.email || "");
+      set("setNextTerm", db.settings.nextTermBegins);
+      set("setAddress", db.settings.address);
+      set("setPrincipalComment", db.settings.principalComment);
+    }
+
+    function studentReportCard(s) {
+      const scores = db.scores.filter((score) => score.studentId === s.id);
+      const total = scores.reduce((sum, score) => sum + score.total, 0);
+      const avg = scores.length ? total / scores.length : 0;
+      const rankData = rankedStudents(s.classId);
+      const rank = rankData.find((item) => item.id === s.id)?.position || "";
+      const classSize = rankData.length;
+      const fee = db.fees.find((item) => item.studentId === s.id);
+      const balance = fee ? Math.max(0, fee.amountDue - fee.amountPaid) : 0;
+      const att = db.attendance.filter((item) => item.studentId === s.id);
+      const photoHtml = s.photo ? `<img src="${s.photo}" style="width:90px;height:100px;object-fit:cover;border:1px solid var(--line);border-radius:4px">` : `<div class="photo">PHOTO</div>`;
+      
+      return `<div class="report-box" style="font-family: inherit;">
+        <div class="report-head">
+          <div class="report-brand">
+            <img class="report-logo" src="assets/mms-logo.jpg" alt="Logo">
+            <div>
+              <h2 style="color:var(--green); margin-bottom:2px">${esc(db.settings.schoolName)}</h2>
+              <div style="font-weight:bold; font-size:14px">Student Terminal Progress Report Card</div>
+              <div style="font-size:11px; color:var(--muted); line-height:1.2; margin-top:2px;">${esc(db.settings.address)}</div>
+              <div style="font-size:11px; color:var(--blue); font-weight:bold;">Email: ${esc(db.settings.email)}</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            ${photoHtml}
+            <div style="margin-top:8px"><strong>Session:</strong> ${esc(db.settings.session)}</div>
+            <div><strong>Term:</strong> ${esc(db.settings.term)}</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:15px">
+          ${table(["Student Name", "Admission No", "Class", "Gender", "Position", "Attendance"], [
+            [esc(fullName(s)), esc(s.regNo), esc(cls(s.classId).name), esc(s.gender), `${rank} of ${classSize}`, `${att.filter((a) => a.status === "Present").length} / ${db.settings.daysOpen}`]
+          ])}
+        </div>
+
+        <div class="table-wrap">
+          ${table(["Subject", "CA (40)", "Exam (60)", "Total (100)", "Grade", "Remark"], scores.map((score) => [
+            esc(subject(score.subjectId).name), score.ca, score.exam, score.total, `<strong>${score.grade}</strong>`, esc(score.remark)
+          ]))}
+        </div>
+
+        <div style="margin-top:12px; font-size:11px; color:var(--muted); text-align:center">
+          <strong>Grading Scale:</strong> 70-100: A (Excellent) | 60-69: B (Very Good) | 50-59: C (Good) | 45-49: D (Pass) | 40-44: E (Fair) | 0-39: F (Fail)
+        </div>
+
+        <div style="margin-top:20px">
+          ${table(["Aggregate Score", "Average Score", "Final Grade", "Fees Status"], [
+            [total, avg.toFixed(2), `<strong>${gradeFor(avg).grade}</strong>`, balance === 0 ? '<span class="pill">Paid</span>' : `<span class="pill bad">Balance: ${money(balance)}</span>`]
+          ])}
+        </div>
+
+        <div class="grid" style="margin-top:25px; gap:20px">
+          <div class="panel span-6" style="box-shadow:none; border:1px solid var(--line)">
+            <label>Class Teacher's Comment</label>
+            <p style="margin:5px 0 15px; min-height:20px">${avg >= 60 ? "A very good performance, keep it up." : avg >= 45 ? "A fair result. You need to work harder." : "Poor performance. Significant improvement required."}</p>
+          </div>
+          <div class="panel span-6" style="box-shadow:none; border:1px solid var(--line)">
+            <label>Principal's Comment</label>
+            <p style="margin:5px 0 15px; min-height:20px">${esc(db.settings.principalComment)}</p>
+          </div>
+        </div>
+        
+        <div style="text-align:center; margin-top:25px; padding:15px; border:1px solid var(--line); border-radius:8px; background:var(--soft)">
+          <div style="font-size:10px; font-weight:bold; margin-bottom:5px; color:var(--muted); letter-spacing:1px">DIGITAL VERIFICATION QR CODE</div>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(s.regNo + ' | ' + db.settings.schoolName + ' | ' + db.settings.session + ' | ' + db.settings.term + ' | Avg: ' + avg.toFixed(2))}" style="width:100px; height:100px; margin:5px 0; border:2px solid #fff; border-radius:4px;">
+          <div style="font-family:monospace; font-size:11px; margin-top:5px; font-weight:bold;">${s.regNo} // ${db.settings.session} // ${db.settings.term.toUpperCase()}</div>
+          <div style="font-size:9px; color:var(--muted); margin-top:3px;">Digitally Generated by MMS Management System</div>
+        </div>
+        
+        <div style="text-align:center; margin-top:20px; font-style:italic" class="hint">
+          Next Term Begins: ${esc(db.settings.nextTermBegins || "To Be Announced")}
+        </div>
+      </div>`;
+    }
+    function idCard(s) {
+      const photoHtml = s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover">` : "PHOTO";
+      return `<div class="id-card"><div style="display:flex;justify-content:space-between;gap:10px"><div style="display:flex;gap:8px;align-items:center"><img class="id-logo" src="assets/mms-logo.jpg" alt="Madarkaci Model School logo"><div><strong>${esc(db.settings.schoolName)}</strong><br><span class="hint">Student Identity Card</span></div></div><div class="photo">${photoHtml}</div></div><hr><strong>${esc(fullName(s))}</strong><br>Reg No: ${esc(s.regNo)}<br>Class: ${esc(cls(s.classId).name)}<br>Gender: ${esc(s.gender)}<br>Parent Phone: ${esc(s.parentPhone)}</div>`;
+    }
+    function certificate(s) {
+      return `<div class="report-box" style="text-align:center;min-height:360px;display:grid;place-items:center"><div><img class="report-logo" src="assets/mms-logo.jpg" alt="Madarkaci Model School logo"><h2>${esc(db.settings.schoolName)}</h2><h3>Certificate of Student Record</h3><p>Motto: Learning For Brighter Future</p><p>This certifies that</p><h2>${esc(fullName(s))}</h2><p>with admission number <strong>${esc(s.regNo)}</strong> is a registered student of ${esc(cls(s.classId).name)}.</p><p>Session: ${esc(db.settings.session)}</p><br><p>Principal Signature __________________</p></div></div>`;
+    }
+function renderReports() {
+       const type = document.getElementById("reportType").value;
+       const studentId = document.getElementById("reportStudent").value;
+       const s = student(studentId) || db.students[0];
+       let classId = document.getElementById("reportClass").value || s?.classId || "";
+       let html = "";
+
+       const schoolHeader = `
+         <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 10px;">
+           <img src="assets/mms-logo.jpg" style="height: 60px; margin-bottom: 5px;">
+           <h2 style="margin: 0; color: var(--green);">${esc(db.settings.schoolName)}</h2>
+           <p style="margin: 3px 0; font-size: 12px;">${esc(db.settings.address)}</p>
+           <p style="margin: 3px 0; font-size: 12px; font-weight: bold;">Email: ${esc(db.settings.email)}</p>
+         </div>`;
+
+       // Filter class/report data for teachers
+       if (currentUser?.role === "Teacher" && currentUser?.staffId && type === "Class Broadsheet") {
+         const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
+         if (assignedClasses.length === 1) {
+           classId = assignedClasses[0];
+         } else if (!assignedClasses.includes(classId)) {
+           classId = "";
+         }
+       }
+
+       if (type === "Student Report Card") html = studentReportCard(s);
+       if (type === "Class Broadsheet") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Class Broadsheet: ${esc(cls(classId).name)}</h3>` + table(["Position", "Reg No", "Name", "Total", "Average", "Grade"], rankedStudents(classId).map((x) => [x.position, esc(x.regNo), esc(fullName(x)), x.total, x.avg.toFixed(2), x.grade]));
+       if (type === "Academic Performance") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Academic Performance Report</h3>` + table(["Class", "Students", "Class Average"], db.classes.map((c) => { const r = rankedStudents(c.id); const avg = r.length ? r.reduce((sum, x) => sum + x.avg, 0) / r.length : 0; return [esc(c.name), r.length, avg.toFixed(2)]; }));
+       if (type === "Attendance Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Attendance Report</h3>` + document.getElementById("attendanceTable").innerHTML;
+       if (type === "Fee Payment Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Fee Payment Report</h3>` + document.getElementById("feeTable").innerHTML;
+       if (type === "Staff Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Staff Directory Report</h3>` + document.getElementById("staffTable").innerHTML;
+       if (type === "Admission Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Admission List</h3>` + table(["Reg No", "Name", "Class", "Parent", "Phone"], db.students.map((x) => [esc(x.regNo), esc(fullName(x)), esc(cls(x.classId).name), esc(x.parentName), esc(x.parentPhone)]));
+       if (type === "Student ID Card") html = idCard(s);
+       if (type === "Certificate") html = certificate(s);
+       if (type === "Class List Report") {
+         // Filter class list for teachers
+         if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+           const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
+           if (!assignedClasses.includes(classId)) classId = assignedClasses[0] || "";
+         }
+         const studentsInClass = db.students
+             .filter((std) => std.classId === classId)
+             .map((std) => [
+                 esc(std.regNo),
+                 esc(fullName(std)),
+                 esc(std.gender),
+                 esc(std.dob || "N/A"),
+                 esc(std.parentPhone || "N/A")
+             ]);
+         if (classId && studentsInClass.length > 0) {
+           html = schoolHeader + `<h3 style="margin-top: 15px; text-align:center; border-bottom: 1px solid var(--ink); padding-bottom: 10px;">Class List for ${esc(cls(classId).name)}</h3>` + table(["Reg No", "Student Name", "Gender", "Date of Birth", "Parent Phone"], studentsInClass);
+         } else {
+           html = `<p class="hint">No students found for the selected class or class not selected.</p>`;
+         }
+       }
+       document.getElementById("reportOutput").innerHTML = html;
+     }
+    function printCurrentReport() { window.print(); }
+    function downloadCsv() {
+      const csv = currentCsv.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+      link.download = "madarkaci-report.csv";
+      link.click();
+    }
+
+    function renderPortal() {
+      const s = db.students.find((item) => item.regNo === document.getElementById("portalRegNo").value.trim());
+      if (!s) return portalOutput.innerHTML = "<p class='hint'>Student not found.</p>";
+      if (!db.published) return portalOutput.innerHTML = "<p class='hint'>Results have not been published.</p>";
+      portalOutput.innerHTML = studentReportCard(s);
+    }
+
+    function saveEvent() {
+      const titleEl = document.getElementById("eventTitle");
+      db.events.push({ 
+        id: id(), date: document.getElementById("eventDate").value || today, 
+        type: document.getElementById("eventType").value, title: titleEl.value 
+      });
+      titleEl.value = "";
+      save();
+      toast("Calendar event saved");
+    }
+    function notifyParents() {
+      notificationOutput.innerHTML = table(["Parent", "Phone", "Message"], db.students.map((s) => [esc(s.parentName), esc(s.parentPhone), `Result/attendance update for ${esc(fullName(s))}`]));
+    }
+    function notifyDebtors() {
+      const debtors = db.fees.filter((fee) => fee.amountPaid < fee.amountDue);
+      notificationOutput.innerHTML = table(["Parent", "Phone", "Balance Message"], debtors.map((fee) => {
+        const s = student(fee.studentId) || {};
+        return [esc(s.parentName), esc(s.parentPhone), `Outstanding fee balance: ${money(fee.amountDue - fee.amountPaid)}`];
+      }));
+    }
+    function renderTools() {
+      document.getElementById("calendarTable").innerHTML = table(["Date", "Type", "Title"], db.events.map((e) => [esc(e.date), esc(e.type), esc(e.title)]));
+    }
+    function backupData() {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(db, null, 2)], { type: "application/json" }));
+      link.download = "madarkaci-school-backup.json";
+      link.click();
+    }
+    function restoreData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        db = JSON.parse(reader.result);
+        save();
+        toast("Backup restored");
+      };
+      reader.readAsText(file);
+    }
+    async function resetDemo() {
+      if (!confirm("Reset all data to the demo records? This will overwrite the server file.")) return;
+      db = JSON.parse(JSON.stringify(seed));
+      await save();
+      toast("Demo data restored");
+    }
+
+    function renderAll() {
+      renderNav();
+      fillSelects(); // Always fill selects, even if not logged in (e.g., loginRole)
+      if (!currentUser) return; // Stop rendering data if not logged in
+
+      renderDashboard();
+      renderStudents();
+      renderStaff();
+      renderClasses();
+      renderSubjects();
+      renderScores();
+      renderFees();
+      renderAttendance();
+      renderUsers();
+      renderSettings();
+      renderTools();
+      renderReports();
+    }
+
+    attendanceDate.value = today;
+    eventDate.value = today;
+
+    load();
+    previewScore();
+  </script>
+</body>
+</html>
