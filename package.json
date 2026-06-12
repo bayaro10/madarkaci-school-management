@@ -1,7 +1,10 @@
 {
   "dependencies": {
+    "@vercel/kv": "^1.0.1",
     "cors": "^2.8.6",
-    "express": "^4.18.2",
-    "mongodb": "^7.2.0"
+    "express": "^5.2.1"
+  },
+  "scripts": {
+    "dev": "node server.js"
   }
 }
