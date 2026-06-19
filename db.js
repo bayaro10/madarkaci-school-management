@@ -6,17 +6,23 @@ const LOCAL_DB = path.join(__dirname, 'school_db.json');
 let vercelKV;
 let isVercel = false;
 
-try {
-  vercelKV = require('@vercel/kv');
-  isVercel = !!vercelKV;
-} catch (err) {
-  console.warn('Vercel KV not available, running in local mode.');
+const hasKVCredentials = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+
+if (hasKVCredentials) {
+  try {
+    vercelKV = require('@vercel/kv');
+    isVercel = true;
+  } catch (err) {
+    console.warn('Vercel KV package not available, running in local mode.');
+  }
+} else {
+  console.log('No Vercel KV credentials found, running in local file mode.');
 }
 
 const KV_KEY = 'mms:school_db';
 
 async function loadData() {
-  if (isVercel) {
+  if (isVercel && vercelKV) {
     try {
       const raw = await vercelKV.get(KV_KEY);
       if (raw) return JSON.parse(raw);
@@ -34,7 +40,7 @@ async function loadData() {
 }
 
 async function saveData(data) {
-  if (isVercel) {
+  if (isVercel && vercelKV) {
     try {
       await vercelKV.set(KV_KEY, JSON.stringify(data));
       return true;

@@ -539,6 +539,7 @@
       <button data-section="reports">Reports</button>
       <button data-section="portals">Portals</button>
       <button data-section="tools">Calendar / Backup</button>
+      <button data-section="website">Website Editor</button>
     </nav>
 
     <section class="content">
@@ -599,7 +600,7 @@
                   <input id="loginPassword" type="password" value="admin123">
                 </div>
               </div>
-              <button class="login-btn" onclick="login()">
+              <button class="login-btn" onclick="doLogin()">
                 <span>Sign In</span>
                 <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
               </button>
@@ -851,6 +852,45 @@
           </div>
         </div>
       </div>
+      <!-- WEBSITE EDITOR SECTION -->
+      <div id="website" class="page hide">
+        <div class="toolbar">
+          <h2>Website Editor</h2>
+          <div class="actions">
+            <button class="primary" onclick="saveWebsite()">Save Changes</button>
+            <a href="index.html" target="_blank"><button class="secondary">Preview Site</button></a>
+            <button class="secondary" onclick="showPage('dashboard')">Back</button>
+          </div>
+        </div>
+
+        <!-- Hero Section Editor -->
+        <div class="panel" style="margin-bottom:16px">
+          <h3>Hero Section</h3>
+          <div class="form-grid">
+            <div><label>Eyebrow Badge Text</label><input id="webEyebrow"></div>
+            <div><label>Tagline (Sub-heading)</label><input id="webTagline"></div>
+            <div class="full"><label>Main Heading</label><input id="webHeading"></div>
+            <div class="full"><label>Description Paragraph</label><textarea id="webDescription" style="min-height:80px"></textarea></div>
+            <div class="full">
+              <label>Hero Image</label>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <img id="webHeroPreview" src="assets/image1.jpg" style="width:140px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #d8e0e8">
+                <div>
+                  <input type="file" id="webHeroFile" accept="image/*" style="width:auto" onchange="uploadWebImage(this,'hero','webHeroPreview','webHeroPath')">
+                  <div style="font-size:11px;color:#667486;margin-top:4px">Recommended: 900×600px or larger</div>
+                  <input type="hidden" id="webHeroPath">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gallery Editor -->
+        <div class="panel">
+          <h3>Gallery Images (5 Slides)</h3>
+          <div id="galleryEditorSlots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px"></div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -874,6 +914,22 @@
         daysOpen: 65,
         nextTermBegins: "2026-01-12",
         principalComment: "Approved. More effort is encouraged."
+      },
+      website: {
+        hero: {
+          eyebrow: "Excellence in Education",
+          heading: "Welcome to Madarkaci Model School",
+          tagline: "Learning for a Brighter Future",
+          description: "Nurturing minds, building character, and shaping the leaders of tomorrow through quality education and a modern school management platform.",
+          heroImage: "assets/image1.jpg"
+        },
+        gallery: [
+          { src: "assets/image2.jpg", caption: "Our School Campus" },
+          { src: "assets/image3.jpg", caption: "Classroom Learning" },
+          { src: "assets/image4.jpg", caption: "School Activities" },
+          { src: "assets/image5.jpg", caption: "Community & Events" },
+          { src: "assets/image6.jpg", caption: "Student Life" }
+        ]
       },
       users: [
         { id: "u1", username: "admin", password: "admin123", role: "Administrator" },
@@ -1129,7 +1185,7 @@
       const role = currentUser ? currentUser.role : null;
       
       const permissions = {
-        "Administrator": ["dashboard", "students", "staff", "classes", "subjects", "scores", "fees", "attendance", "users", "settings", "reports", "portals", "tools"],
+        "Administrator": ["dashboard", "students", "staff", "classes", "subjects", "scores", "fees", "attendance", "users", "settings", "reports", "portals", "tools", "website"],
         "Teacher": ["scores", "attendance", "reports"],
         "Exam Officer": ["dashboard", "students", "staff", "classes", "subjects", "scores", "attendance", "reports"],
         "Accountant": ["dashboard", "students", "fees", "reports"],
@@ -1166,7 +1222,7 @@
       button.addEventListener("click", () => showPage(button.dataset.section));
     });
 
-    function login() {
+    function doLogin() {
       const role = document.getElementById("loginRole").value;
       const username = document.getElementById("loginUsername").value.trim();
       const password = document.getElementById("loginPassword").value;
@@ -2007,6 +2063,86 @@ function renderReports() {
       toast("Demo data restored");
     }
 
+    /* ── WEBSITE EDITOR ─────────────────────────── */
+    function renderWebsite() {
+      if (!currentUser || currentUser.role !== 'Administrator') return;
+      const w = db.website || { hero: {}, gallery: [] };
+      const h = w.hero || {};
+
+      document.getElementById('webEyebrow').value   = h.eyebrow   || '';
+      document.getElementById('webHeading').value   = h.heading   || '';
+      document.getElementById('webTagline').value   = h.tagline   || '';
+      document.getElementById('webDescription').value = h.description || '';
+
+      const heroImg = h.heroImage || 'assets/image1.jpg';
+      document.getElementById('webHeroPreview').src = heroImg + '?t=' + Date.now();
+      document.getElementById('webHeroPath').value  = heroImg;
+
+      const gallery = w.gallery || [];
+      const slots = document.getElementById('galleryEditorSlots');
+      slots.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const slide = gallery[i] || { src: 'assets/image' + (i + 2) + '.jpg', caption: 'Slide ' + (i + 1) };
+        const slotId = 'gal' + i;
+        slots.innerHTML += `
+          <div class="panel" style="padding:12px">
+            <div style="font-weight:800;margin-bottom:8px;color:#285f9d">Slide ${i + 1}</div>
+            <img id="${slotId}Prev" src="${slide.src}?t=${Date.now()}" style="width:100%;height:110px;object-fit:cover;border-radius:6px;margin-bottom:8px;border:1px solid #d8e0e8">
+            <label>Caption</label>
+            <input id="${slotId}Cap" value="${esc(slide.caption)}" style="margin-bottom:6px">
+            <label>Replace Image</label>
+            <input type="file" accept="image/*" style="width:auto;font-size:11px" onchange="uploadWebImage(this,'gallery-${i}','${slotId}Prev','${slotId}Src')">
+            <input type="hidden" id="${slotId}Src" value="${esc(slide.src)}">
+          </div>`;
+      }
+    }
+
+    async function uploadWebImage(input, filename, previewId, hiddenId) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => document.getElementById(previewId).src = e.target.result;
+      reader.readAsDataURL(file);
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('filename', 'web-' + filename);
+      toast('Uploading image...');
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById(hiddenId).value = data.path;
+          toast('Image uploaded!');
+        } else {
+          toast('Upload failed: ' + (data.error || 'unknown error'));
+        }
+      } catch (e) {
+        toast('Upload error: ' + e.message);
+      }
+    }
+
+    async function saveWebsite() {
+      if (!db.website) db.website = { hero: {}, gallery: [] };
+      db.website.hero = {
+        eyebrow:     document.getElementById('webEyebrow').value.trim(),
+        heading:     document.getElementById('webHeading').value.trim(),
+        tagline:     document.getElementById('webTagline').value.trim(),
+        description: document.getElementById('webDescription').value.trim(),
+        heroImage:   document.getElementById('webHeroPath').value || 'assets/image1.jpg'
+      };
+      db.website.gallery = [];
+      for (let i = 0; i < 5; i++) {
+        db.website.gallery.push({
+          src:     document.getElementById('gal' + i + 'Src').value,
+          caption: document.getElementById('gal' + i + 'Cap').value.trim()
+        });
+      }
+      await save();
+      toast('Website content saved and live!');
+    }
+    /* ── END WEBSITE EDITOR ──────────────────── */
+
     function renderAll() {
       renderNav();
       fillSelects(); // Always fill selects, even if not logged in (e.g., loginRole)
@@ -2024,6 +2160,7 @@ function renderReports() {
       renderSettings();
       renderTools();
       renderReports();
+      renderWebsite();
     }
 
     attendanceDate.value = today;

@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const { loadData, saveData, isVercel } = require('./db');
 
 const app = express();
@@ -9,6 +11,33 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname)));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, 'assets');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const name = (req.body.filename || ('upload-' + Date.now())).replace(/[^a-zA-Z0-9_-]/g, '');
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, name + ext);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Only images are allowed'));
+  }
+});
+
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  res.json({ success: true, path: 'assets/' + req.file.filename });
+});
 
 app.get('/api/ping', async (req, res) => {
   try {
@@ -20,22 +49,14 @@ app.get('/api/ping', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (err) {
-    res.json({
-      status: 'online',
-      uptime: Math.floor(process.uptime()) + 's',
-      database: 'error',
-      error: err.message,
-      timestamp: new Date().toISOString()
-    });
+    res.json({ status: 'online', uptime: Math.floor(process.uptime()) + 's', database: 'error', error: err.message, timestamp: new Date().toISOString() });
   }
 });
 
 app.get('/api/db', async (req, res) => {
   try {
     const data = await loadData();
-    if (data) {
-      return res.json(data);
-    }
+    if (data) return res.json(data);
     res.status(404).json({ error: 'Database empty. Initialize from application.' });
   } catch (err) {
     res.status(500).json({ error: err.message });

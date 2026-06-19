@@ -903,5 +903,57 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    (async () => {
+      try {
+        const res = await fetch('/api/db');
+        if (!res.ok) return;
+        const db = await res.json();
+        const w = db.website;
+        if (!w) return;
+
+        const h = w.hero || {};
+
+        if (h.eyebrow) {
+          const eyebrow = document.querySelector('.hero-eyebrow');
+          if (eyebrow) eyebrow.innerHTML = `<i class="bi bi-award-fill"></i> ${h.eyebrow}`;
+        }
+
+        if (h.heading) {
+          const headingEl = document.querySelector('.hero h1');
+          if (headingEl) headingEl.innerHTML = h.heading.replace('Madarkaci', '<span class="highlight">Madarkaci</span>');
+        }
+
+        if (h.tagline) {
+          const taglineEls = document.querySelectorAll('.about-section .section-title + p, .cta-section p.lead');
+        }
+
+        if (h.description) {
+          const descEl = document.querySelector('.hero p.lead');
+          if (descEl) descEl.textContent = h.description;
+        }
+
+        if (h.heroImage) {
+          const heroImg = document.querySelector('.hero-image-card img');
+          if (heroImg) heroImg.src = h.heroImage + '?t=' + Date.now();
+        }
+
+        const gallery = w.gallery || [];
+        if (gallery.length > 0) {
+          const items = document.querySelectorAll('#schoolCarousel .carousel-item');
+          items.forEach((item, i) => {
+            const slide = gallery[i];
+            if (!slide) return;
+            const img = item.querySelector('img');
+            const cap = item.querySelector('.caption-overlay h5');
+            if (img) img.src = slide.src + '?t=' + Date.now();
+            if (cap) cap.textContent = slide.caption;
+          });
+        }
+      } catch (e) {
+        console.log('Could not load dynamic content:', e.message);
+      }
+    })();
+  </script>
 </body>
 </html>

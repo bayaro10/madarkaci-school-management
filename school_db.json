@@ -2606,5 +2606,21 @@
       "title": "Next term begins"
     }
   ],
-  "published": true
+  "published": true,
+  "website": {
+    "hero": {
+      "eyebrow": "Excellence in Education",
+      "heading": "Welcome to Madarkaci Model School",
+      "tagline": "Learning for a Brighter Future",
+      "description": "Nurturing minds, building character, and shaping the leaders of tomorrow through quality education and a modern school management platform.",
+      "heroImage": "assets/image1.jpg"
+    },
+    "gallery": [
+      { "src": "assets/image2.jpg", "caption": "Our School Campus" },
+      { "src": "assets/image3.jpg", "caption": "Classroom Learning" },
+      { "src": "assets/image4.jpg", "caption": "School Activities" },
+      { "src": "assets/image5.jpg", "caption": "Community & Events" },
+      { "src": "assets/image6.jpg", "caption": "Student Life" }
+    ]
+  }
 }
