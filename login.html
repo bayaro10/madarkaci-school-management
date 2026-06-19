@@ -1,314 +1,643 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Madarkaci Model School Management System</title>
-    <link rel="stylesheet" href="assets/style.css">
-    <style>
-        :root {
-            --primary: #20795d;
-            --secondary: #285f9d;
-            --dark: #182433;
-            --light: #f3f6f8;
-            --white: #ffffff;
-            --gold: #bd7d18;
-            --red: #b33d3a;
-            --line: #d8e0e8;
-            --shadow: 0 12px 28px rgba(23, 36, 51, .08);
-        }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
-            background: linear-gradient(135deg, var(--light) 0%, #e6edf2 100%);
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
-        }
-        .login-container {
-            background: var(--white);
-            padding: 50px 40px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            max-width: 420px;
-            width: 100%;
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: var(--white);
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: grid;
-            place-items: center;
-            border: 3px solid var(--primary);
-            overflow: hidden;
-        }
-        .logo img { width: 60px; }
-        h1 { 
-            margin: 0; 
-            font-size: 1.8em; 
-            color: var(--dark);
-            text-align: center;
-        }
-        h2 { 
-            margin: 5px 0 25px; 
-            font-size: 1em; 
-            color: #666;
-            font-weight: normal;
-            text-align: center;
-        }
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block;
-            color: var(--dark);
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            min-height: 45px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 15px;
-            background: #fff;
-            color: var(--dark);
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(32, 121, 93, 0.2);
-        }
-        .btn {
-            width: 100%;
-            min-height: 45px;
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-        }
-        .btn:hover { background: #1a654d; transform: translateY(-2px); }
-        .btn-secondary {
-            background: #e7edf3;
-            color: var(--dark);
-            margin-top: 12px;
-        }
-        .hint {
-            background: #fff8e6;
-            border-left: 4px solid var(--gold);
-            padding: 15px;
-            margin-top: 25px;
-            font-size: 13px;
-            color: var(--dark);
-            border-radius: 0 8px 8px 0;
-        }
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back-link a {
-            color: var(--secondary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .back-link a:hover { text-decoration: underline; }
-        .toast {
-            position: fixed;
-            right: 18px;
-            bottom: 18px;
-            background: var(--dark);
-            color: #fff;
-            padding: 12px 16px;
-            border-radius: 8px;
-            box-shadow: var(--shadow);
-            z-index: 1000;
-            display: none;
-        }
-        .toast.show { display: block; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — Madarkaci Model School</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #0d47a1;
+      --blue-mid:   #1565c0;
+      --blue-light: #1976d2;
+      --gold:       #f9a825;
+      --gold-dark:  #f57f17;
+      --soft:       #f0f4f8;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: linear-gradient(155deg, var(--blue) 0%, #0a2d6e 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 3.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      width: 380px; height: 380px;
+      border-radius: 50%;
+      background: rgba(249,168,37,.1);
+      top: -100px; right: -100px;
+      pointer-events: none;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.05);
+      bottom: -60px; left: -40px;
+      pointer-events: none;
+    }
+
+    .left-content { position: relative; z-index: 1; }
+
+    .school-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .school-logo-wrap img {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 3px solid var(--gold);
+      object-fit: cover;
+    }
+
+    .school-logo-wrap .school-label {
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .left-heading {
+      font-size: clamp(1.8rem, 2.8vw, 2.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .left-heading .gold { color: var(--gold); }
+
+    .left-desc {
+      color: rgba(255,255,255,.75);
+      font-size: 1rem;
+      line-height: 1.75;
+      max-width: 400px;
+      margin-bottom: 2.5rem;
+    }
+
+    .role-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .role-card {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: rgba(255,255,255,.9);
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .role-card:hover {
+      background: rgba(255,255,255,.15);
+      border-color: rgba(255,255,255,.3);
+    }
+
+    .role-card.active {
+      background: rgba(249,168,37,.18);
+      border-color: rgba(249,168,37,.5);
+      color: #fff;
+    }
+
+    .role-card i {
+      font-size: 1.2rem;
+      color: var(--gold);
+    }
+
+    .back-home {
+      margin-top: 2.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(255,255,255,.7);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: color .2s;
+    }
+
+    .back-home:hover { color: #fff; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      background: var(--soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .login-box {
+      background: #fff;
+      border-radius: 1.6rem;
+      padding: 2.5rem 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(13,71,161,.1);
+    }
+
+    .login-box-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-box-header .portal-icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--blue-light), var(--blue));
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: #fff;
+      margin-bottom: 1rem;
+      box-shadow: 0 8px 20px rgba(13,71,161,.3);
+    }
+
+    .login-box-header h2 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--blue);
+      letter-spacing: -0.02em;
+    }
+
+    .login-box-header p {
+      color: #6b7280;
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+
+    .form-group { margin-bottom: 1.2rem; }
+
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #374151;
+      margin-bottom: 0.45rem;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .input-wrap input,
+    .input-wrap select {
+      width: 100%;
+      height: 48px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 0 14px 0 42px;
+      font-size: 0.95rem;
+      color: #111827;
+      background: #fff;
+      appearance: none;
+      transition: border-color .2s, box-shadow .2s;
+      font-family: inherit;
+    }
+
+    .input-wrap input:focus,
+    .input-wrap select:focus {
+      outline: none;
+      border-color: var(--blue-light);
+      box-shadow: 0 0 0 3px rgba(25,118,210,.12);
+    }
+
+    .input-wrap .toggle-pw {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      font-size: 1rem;
+      padding: 0;
+      pointer-events: all;
+    }
+
+    .input-wrap .toggle-pw:hover { color: var(--blue); }
+
+    .btn-login {
+      width: 100%;
+      height: 50px;
+      background: linear-gradient(135deg, var(--blue-light), var(--blue));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .25s;
+      box-shadow: 0 6px 18px rgba(13,71,161,.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(13,71,161,.35);
+    }
+
+    .btn-login:active { transform: translateY(0); }
+
+    .btn-recover {
+      width: 100%;
+      height: 44px;
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      transition: background .2s;
+    }
+
+    .btn-recover:hover { background: #e5e7eb; }
+
+    .demo-box {
+      background: linear-gradient(135deg, rgba(13,71,161,.04), rgba(249,168,37,.06));
+      border: 1px solid rgba(13,71,161,.1);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-top: 1.3rem;
+    }
+
+    .demo-box .demo-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--blue);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .demo-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(13,71,161,.06);
+      color: #374151;
+    }
+
+    .demo-row:last-child { border-bottom: none; }
+
+    .demo-row .role-tag {
+      font-weight: 700;
+      color: var(--blue);
+      min-width: 90px;
+    }
+
+    .demo-row code {
+      background: rgba(13,71,161,.07);
+      color: #0d47a1;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .demo-row code:hover { background: rgba(13,71,161,.14); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 0.85rem 1.4rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,.2);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all .25s;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      body { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { background: linear-gradient(155deg, var(--blue) 0%, #0a2d6e 100%); padding: 1.5rem; }
+      .login-box { max-width: 100%; }
+    }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <img src="assets/mms-logo.jpg" alt="MMS Logo">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="left-content">
+      <div class="school-logo-wrap">
+        <img src="assets/mms-logo.jpg" alt="Madarkaci Model School">
+        <div class="school-label">Madarkaci<br>Model School</div>
+      </div>
+
+      <h2 class="left-heading">
+        Your school,<br>
+        <span class="gold">fully connected.</span>
+      </h2>
+
+      <p class="left-desc">
+        Access student records, results, fees, attendance, and reports — all from one unified platform designed for every member of the school community.
+      </p>
+
+      <div class="role-cards">
+        <div class="role-card" onclick="setRole('Administrator')">
+          <i class="bi bi-shield-fill-check"></i> Administrator
         </div>
-        <h1>Madarkaci Model School</h1>
-        <h2>School Management System Login</h2>
-        
-        <div class="form-group">
-            <label for="loginRole">Login Type</label>
-            <select id="loginRole">
-                <option value="Administrator">Administrator</option>
-                <option value="Teacher">Teacher</option>
-                <option value="Accountant">Accountant</option>
-                <option value="Exam Officer">Exam Officer</option>
-                <option value="Parent">Parent</option>
-                <option value="Student">Student</option>
-            </select>
+        <div class="role-card" onclick="setRole('Teacher')">
+          <i class="bi bi-person-video3"></i> Teacher
         </div>
-        
-        <div class="form-group">
-            <label for="loginUsername">Username / ID / Phone</label>
-            <input type="text" id="loginUsername" placeholder="Enter your ID, username or phone number">
+        <div class="role-card" onclick="setRole('Student')">
+          <i class="bi bi-mortarboard-fill"></i> Student
         </div>
-        
-        <div class="form-group">
-            <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter your password">
+        <div class="role-card" onclick="setRole('Parent')">
+          <i class="bi bi-people-fill"></i> Parent
         </div>
-        
-        <button class="btn" onclick="login()">Login →</button>
-        <button class="btn btn-secondary" onclick="recoverPassword()">Reset / Recover Password</button>
-        
-        <div class="hint">
-            <strong>Demo Credentials:</strong><br>
-            <code style="display: block; margin: 8px 0;">Administrator: admin / admin123</code>
-            <code style="display: block; margin: 8px 0;">Teacher: MMS/STF/001 / teacher</code>
-            <code style="display: block; margin: 8px 0;">Accountant: accountant / account123</code>
-            <code style="display: block; margin: 8px 0;">Student: MMS/2026/001 / student123</code>
+        <div class="role-card" onclick="setRole('Accountant')">
+          <i class="bi bi-cash-coin"></i> Accountant
         </div>
-        
-        <div class="back-link">
-            <a href="index.html">← Back to Home</a>
+        <div class="role-card" onclick="setRole('Exam Officer')">
+          <i class="bi bi-clipboard2-check-fill"></i> Exam Officer
         </div>
+      </div>
+
+      <a class="back-home" href="index.html">
+        <i class="bi bi-arrow-left"></i> Back to Homepage
+      </a>
     </div>
-    
-    <div id="toast" class="toast"></div>
-    
-    <script>
-        const API_URL = "/api/db";
-        let currentUser = null;
-        
-        const seed = {
-          settings: {
-            schoolName: "Madarkaci Model School",
-            address: "NO. 103 ALIYU ROAD, MADARKACI, OPP. INSTITUTE OF CHILD HEALTH, A.B.U-TIH ZARIA - KADUNA STATE",
-            email: "madarkacimodelschools@gmail.com",
-            phone: "",
-            session: "2025/2026",
-            term: "First Term",
-            daysOpen: 65,
-            nextTermBegins: "2026-01-12",
-            principalComment: "Approved. More effort is encouraged."
-          },
-          users: [
-            { id: "u1", username: "admin", password: "admin123", role: "Administrator" },
-            { id: "u2", username: "teacher", password: "teacher", role: "Teacher" },
-            { id: "u3", username: "accountant", password: "account123", role: "Accountant" },
-            { id: "u4", username: "parent", password: "parent123", role: "Parent" },
-            { id: "u5", username: "student", password: "student123", role: "Student" },
-            { id: "u6", username: "exam_officer", password: "exam123", role: "Exam Officer" }
-          ],
-          classes: [
-            { id: "c1", name: "Nursery 1", section: "Nursery", teacherId: "s1" },
-            { id: "c2", name: "Primary 1", section: "Primary", teacherId: "s2" },
-            { id: "c3", name: "JSS 1 (Basic 7)", section: "Junior Secondary", teacherId: "s1" },
-            { id: "c4", name: "SS 1", section: "Senior Secondary", teacherId: "s3" },
-          ],
-          subjects: [
-            { id: "sub1", name: "Numeracy", code: "NUM", classId: "c3", teacherId: "s1" },
-            { id: "sub2", name: "Literacy", code: "LIT", classId: "c3", teacherId: "s1" },
-            { id: "sub3", name: "Islamic Religious Studies", code: "IRS", classId: "c3", teacherId: "s2" },
-            { id: "sub4", name: "Hausa Language", code: "HAU", classId: "c3", teacherId: "s2" },
-          ],
-          staff: [
-            { id: "s1", staffNo: "MMS/STF/001", firstName: "Amina", middleName: "", lastName: "Yusuf", role: "Teacher", phone: "08010000001", subjectIds: ["sub1", "sub2"] },
-            { id: "s2", staffNo: "MMS/STF/002", firstName: "Kabiru", middleName: "Muhammad", lastName: "Sani", role: "Teacher", phone: "08010000002", subjectIds: ["sub3", "sub4"] },
-            { id: "s3", staffNo: "MMS/STF/003", firstName: "Maryam", middleName: "", lastName: "Ali", role: "Accountant", phone: "08010000003", subjectIds: [] }
-          ],
-          students: [
-            { id: "st1", regNo: "MMS/2026/001", firstName: "Aisha", middleName: "", lastName: "Abdullahi", gender: "Female", classId: "c3", parentPhone: "08000000001" },
-          ]
-        };
-        
-        let db = seed;
-        
-        function fullName(staff) { return [staff.firstName, staff.middleName, staff.lastName].filter(Boolean).join(" ").trim(); }
-        
-        function toast(message) {
-            const el = document.getElementById("toast");
-            el.textContent = message;
-            el.classList.add("show");
-            setTimeout(() => el.classList.remove("show"), 2200);
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="login-box">
+      <div class="login-box-header">
+        <div class="portal-icon"><i class="bi bi-person-badge-fill"></i></div>
+        <h2>Sign In to Portal</h2>
+        <p>Enter your credentials to access your dashboard</p>
+      </div>
+
+      <div class="form-group">
+        <label>Login Type</label>
+        <div class="input-wrap">
+          <i class="bi bi-person-gear"></i>
+          <select id="loginRole" onchange="syncRoleCards()">
+            <option value="Administrator">Administrator</option>
+            <option value="Teacher">Teacher</option>
+            <option value="Accountant">Accountant</option>
+            <option value="Exam Officer">Exam Officer</option>
+            <option value="Parent">Parent</option>
+            <option value="Student">Student</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Username / ID / Phone</label>
+        <div class="input-wrap">
+          <i class="bi bi-person-fill"></i>
+          <input type="text" id="loginUsername" placeholder="Enter your ID, username or phone">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <i class="bi bi-lock-fill"></i>
+          <input type="password" id="loginPassword" placeholder="Enter your password">
+          <button class="toggle-pw" type="button" onclick="togglePassword()" title="Show/hide password">
+            <i class="bi bi-eye-fill" id="pwEyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-login" onclick="doLogin()">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      </button>
+      <button class="btn-recover" onclick="recoverPassword()">
+        <i class="bi bi-key-fill"></i> Reset / Recover Password
+      </button>
+
+      <div class="demo-box">
+        <div class="demo-title">
+          <i class="bi bi-info-circle-fill"></i> Demo Credentials
+        </div>
+        <div class="demo-row">
+          <span class="role-tag">Admin</span>
+          <code onclick="fillDemo('admin','admin123','Administrator')">admin / admin123</code>
+        </div>
+        <div class="demo-row">
+          <span class="role-tag">Teacher</span>
+          <code onclick="fillDemo('MMS/STF/001','teacher','Teacher')">MMS/STF/001 / teacher</code>
+        </div>
+        <div class="demo-row">
+          <span class="role-tag">Accountant</span>
+          <code onclick="fillDemo('accountant','account123','Accountant')">accountant / account123</code>
+        </div>
+        <div class="demo-row">
+          <span class="role-tag">Student</span>
+          <code onclick="fillDemo('MMS/2026/001','student123','Student')">MMS/2026/001 / student123</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_URL = "/api/db";
+    let db = null;
+
+    const seed = {
+      settings: { schoolName: "Madarkaci Model School" },
+      users: [
+        { id: "u1", username: "admin",      password: "admin123",   role: "Administrator" },
+        { id: "u2", username: "teacher",    password: "teacher",    role: "Teacher" },
+        { id: "u3", username: "accountant", password: "account123", role: "Accountant" },
+        { id: "u4", username: "parent",     password: "parent123",  role: "Parent" },
+        { id: "u5", username: "student",    password: "student123", role: "Student" },
+        { id: "u6", username: "exam_officer", password: "exam123",  role: "Exam Officer" }
+      ],
+      staff: [
+        { id: "s1", staffNo: "MMS/STF/001", firstName: "Amina",  middleName: "", lastName: "Yusuf", role: "Teacher" },
+        { id: "s2", staffNo: "MMS/STF/002", firstName: "Kabiru", middleName: "Muhammad", lastName: "Sani", role: "Teacher" },
+        { id: "s3", staffNo: "MMS/STF/003", firstName: "Maryam", middleName: "", lastName: "Ali", role: "Accountant" }
+      ],
+      students: [
+        { id: "st1", regNo: "MMS/2026/001", firstName: "Aisha", lastName: "Abdullahi", parentPhone: "08000000001" }
+      ]
+    };
+
+    function fullName(s) { return [s.firstName, s.middleName, s.lastName].filter(Boolean).join(" ").trim(); }
+
+    function toast(msg, isError) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.style.background = isError ? "#b91c1c" : "#1a1a2e";
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2800);
+    }
+
+    function togglePassword() {
+      const inp = document.getElementById("loginPassword");
+      const icon = document.getElementById("pwEyeIcon");
+      if (inp.type === "password") {
+        inp.type = "text";
+        icon.className = "bi bi-eye-slash-fill";
+      } else {
+        inp.type = "password";
+        icon.className = "bi bi-eye-fill";
+      }
+    }
+
+    function setRole(role) {
+      document.getElementById("loginRole").value = role;
+      syncRoleCards();
+    }
+
+    function syncRoleCards() {
+      const role = document.getElementById("loginRole").value;
+      document.querySelectorAll(".role-card").forEach(card => {
+        card.classList.toggle("active", card.textContent.trim() === role);
+      });
+    }
+
+    function fillDemo(user, pass, role) {
+      document.getElementById("loginUsername").value = user;
+      document.getElementById("loginPassword").value = pass;
+      setRole(role);
+    }
+
+    async function loadDB() {
+      try {
+        const res = await fetch(API_URL);
+        if (res.ok) db = await res.json();
+        else db = seed;
+      } catch {
+        db = seed;
+      }
+    }
+
+    function doLogin() {
+      const role     = document.getElementById("loginRole").value;
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      if (!username || !password) return toast("Please enter username and password.", true);
+
+      const data = db || seed;
+      const lowerUser = username.toLowerCase();
+      let user = null;
+
+      user = data.users.find(u =>
+        u.username.toLowerCase() === lowerUser &&
+        u.password === password &&
+        u.role === role
+      );
+
+      if (!user && role === "Student") {
+        const s = data.students.find(s => s.regNo.toLowerCase() === lowerUser);
+        if (s && password === "student123") user = { id: s.id, username: s.regNo, role: "Student", studentId: s.id };
+      }
+
+      if (!user && role === "Parent") {
+        const s = data.students.find(s => s.parentPhone === username);
+        if (s && password === "parent123") user = { id: s.id, username: s.parentPhone, role: "Parent", studentId: s.id };
+      }
+
+      if (!user && (role === "Teacher" || role === "Accountant" || role === "Exam Officer")) {
+        const s = data.staff.find(s => s.staffNo.toLowerCase() === lowerUser && s.role === role);
+        if (s) {
+          const demos = { "Teacher": "teacher", "Accountant": "account123", "Exam Officer": "exam123" };
+          if (password === demos[role]) user = { id: s.id, username: fullName(s), role, staffId: s.id };
         }
-        
-        async function load() {
-            try {
-                const response = await fetch(API_URL);
-                if (response.ok) db = await response.json();
-            } catch (err) {
-                console.error("Using local seed data", err);
-            }
-        }
-        
-        function login() {
-            const role = document.getElementById("loginRole").value;
-            const username = document.getElementById("loginUsername").value.trim();
-            const password = document.getElementById("loginPassword").value;
+      }
 
-            if (!username || !password) {
-                return toast("Username da password ya kamata a sanya.");
-            }
+      if (!user) return toast("Login failed. Check your credentials.", true);
 
-            let user = db.users.find((item) => item.username === username && item.password === password && item.role === role);
+      localStorage.setItem("mms_user", JSON.stringify(user));
+      toast("Login successful! Redirecting...");
+      setTimeout(() => { window.location.href = "madarkaci_school_management.html"; }, 1000);
+    }
 
-            if (!user && role === "Student") {
-                const studentRecord = db.students.find((s) => s.regNo === username || s.firstName.toLowerCase() === username.toLowerCase());
-                if (studentRecord && password === "student123") {
-                    user = { id: studentRecord.id, username: studentRecord.regNo, password, role: "Student", studentId: studentRecord.id };
-                }
-            }
+    function recoverPassword() {
+      const username = document.getElementById("loginUsername").value.trim();
+      if (!username) return toast("Enter your username first.", true);
+      const data = db || seed;
+      const user = data.users.find(u => u.username === username);
+      toast(user ? `Password hint: ${user.password}` : "User not found.");
+    }
 
-            if (!user && role === "Parent") {
-                const studentRecord = db.students.find((s) => s.parentPhone === username);
-                if (studentRecord && password === "parent123") {
-                    user = { id: studentRecord.id, username: studentRecord.parentPhone, password, role: "Parent", studentId: studentRecord.id };
-                }
-            }
+    const urlParams = new URLSearchParams(window.location.search);
+    const preRole = urlParams.get("role");
+    if (preRole) { document.getElementById("loginRole").value = preRole; }
 
-            if (!user && role === "Teacher") {
-                const staffRecord = db.staff.find((s) => s.staffNo === username || (s.firstName.toLowerCase() === username.toLowerCase() && s.role === "Teacher"));
-                if (staffRecord && password === "teacher") {
-                    user = { id: staffRecord.id, username: fullName(staffRecord), password, role: "Teacher", staffId: staffRecord.id };
-                }
-            }
-
-            if (!user) return toast("Login failed. Check username, password, and login type.");
-            
-            // Store user in localStorage and redirect to main system
-            localStorage.setItem("mms_user", JSON.stringify(user));
-            toast("Login successful! redirecting...");
-            setTimeout(() => {
-                window.location.href = "madarkaci_school_management.html";
-            }, 1000);
-        }
-        
-        function recoverPassword() {
-            const username = document.getElementById("loginUsername").value.trim();
-            if (!username) return toast("Enter username to recover password");
-            const user = db.users.find((item) => item.username === username);
-            if (user) {
-                toast(`Recovery hint: password is ${user.password}`);
-            } else {
-                toast("User not found");
-            }
-        }
-        
-        // Check for pre-selected role from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const preselectedRole = urlParams.get('role');
-        if (preselectedRole && document.getElementById("loginRole")) {
-            document.getElementById("loginRole").value = preselectedRole;
-        }
-        
-        load();
-    </script>
+    syncRoleCards();
+    loadDB();
+  </script>
 </body>
 </html>
