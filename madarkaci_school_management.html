@@ -1863,77 +1863,254 @@ function renderAttendance() {
     }
 
     function studentReportCard(s) {
-      const scores = db.scores.filter((score) => score.studentId === s.id);
-      const total = scores.reduce((sum, score) => sum + score.total, 0);
-      const avg = scores.length ? total / scores.length : 0;
-      const rankData = rankedStudents(s.classId);
-      const rank = rankData.find((item) => item.id === s.id)?.position || "";
-      const classSize = rankData.length;
-      const fee = db.fees.find((item) => item.studentId === s.id);
-      const balance = fee ? Math.max(0, fee.amountDue - fee.amountPaid) : 0;
-      const att = db.attendance.filter((item) => item.studentId === s.id);
-      const photoHtml = s.photo ? `<img src="${s.photo}" style="width:90px;height:100px;object-fit:cover;border:1px solid var(--line);border-radius:4px">` : `<div class="photo">PHOTO</div>`;
-      
-      return `<div class="report-box" style="font-family: inherit;">
-        <div class="report-head">
-          <div class="report-brand">
-            <img class="report-logo" src="assets/mms-logo.jpg" alt="Logo">
+      // ── helpers (local) ──────────────────────────────────────────────────
+      function gradeNg(t) {
+        t = Math.max(0, Math.min(100, Number(t || 0)));
+        if (t >= 75) return { grade: "A1", remark: "Excellent",  color: "#0d47a1" };
+        if (t >= 70) return { grade: "B2", remark: "V. Good",    color: "#1b5e20" };
+        if (t >= 65) return { grade: "B3", remark: "Good",       color: "#2e7d32" };
+        if (t >= 60) return { grade: "C4", remark: "Good",       color: "#e65100" };
+        if (t >= 55) return { grade: "C5", remark: "Credit",     color: "#bf360c" };
+        if (t >= 50) return { grade: "C6", remark: "Credit",     color: "#6d4c41" };
+        if (t >= 45) return { grade: "D7", remark: "Pass",       color: "#4a148c" };
+        if (t >= 40) return { grade: "E8", remark: "Pass",       color: "#880e4f" };
+        return            { grade: "F9", remark: "Fail",         color: "#b71c1c" };
+      }
+      function ordinal(n) {
+        n = Number(n) || 0;
+        const s2 = ["th","st","nd","rd"], v = n % 100;
+        return n + (s2[(v - 20) % 10] || s2[v] || s2[0]);
+      }
+      function splitCA(ca) {
+        const a = Math.round(ca / 3);
+        const b = Math.round((ca - a) / 2);
+        return [a, b, ca - a - b];
+      }
+      function subjectStats(subjectId) {
+        const ids = db.students.filter(st => st.classId === s.classId).map(st => st.id);
+        const vals = db.scores.filter(sc => sc.subjectId === subjectId && ids.includes(sc.studentId)).map(sc => sc.total);
+        if (!vals.length) return { high: "—", low: "—", avg: "—" };
+        return { high: Math.max(...vals), low: Math.min(...vals), avg: (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) };
+      }
+      function subjectPos(subjectId) {
+        const ids = db.students.filter(st => st.classId === s.classId).map(st => st.id);
+        const sorted = db.scores.filter(sc => sc.subjectId === subjectId && ids.includes(sc.studentId)).sort((a,b)=>b.total-a.total);
+        const i = sorted.findIndex(sc => sc.studentId === s.id);
+        return i >= 0 ? ordinal(i + 1) : "—";
+      }
+
+      // ── data ─────────────────────────────────────────────────────────────
+      const scores     = db.scores.filter(sc => sc.studentId === s.id);
+      const totalScore = scores.reduce((sum, sc) => sum + sc.total, 0);
+      const avg        = scores.length ? totalScore / scores.length : 0;
+      const rankData   = rankedStudents(s.classId);
+      const rank       = rankData.find(item => item.id === s.id)?.position || 0;
+      const classSize  = rankData.length;
+      const fee        = db.fees.find(item => item.studentId === s.id);
+      const mandatory  = fee?.amountDue || 0;
+      const paid       = fee?.amountPaid || 0;
+      const payable    = Math.max(0, mandatory - paid);
+      const attPresent = db.attendance.filter(a => a.studentId === s.id && a.status === "Present").length;
+      const avgG       = gradeNg(avg);
+      const totalObtainable = scores.length * 100;
+
+      // Grade tally
+      const tally = { A1:0, B2:0, B3:0, C4:0, C5:0, C6:0, D7:0, E8:0, F9:0 };
+      scores.forEach(sc => { const g = gradeNg(sc.total).grade; if (g in tally) tally[g]++; });
+
+      // Photo
+      const photoHtml = s.photo
+        ? `<img src="${s.photo}" style="width:76px;height:88px;object-fit:cover;border:2px solid #bbb;border-radius:3px">`
+        : `<div style="width:76px;height:88px;background:#e8edf2;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999;border:2px dashed #bbb;border-radius:3px">PHOTO</div>`;
+
+      // Form teacher auto-comment
+      const formComment = avg >= 70
+        ? `${s.firstName} is performing excellently. Keep up the outstanding work!`
+        : avg >= 60 ? `${s.firstName} had a very good result. Continued hard work will yield even better outcomes.`
+        : avg >= 50 ? `${s.firstName} showed good effort this term. More dedication is encouraged.`
+        : avg >= 40 ? `${s.firstName} needs to put in more effort. Regular revision is strongly advised.`
+        : `${s.firstName} must improve significantly. Extra lessons and teacher guidance are recommended.`;
+
+      // Score rows
+      const GRADES_ORDER = ["A1","B2","B3","C4","C5","C6","D7","E8","F9"];
+      const scoreRows = scores.map(sc => {
+        const [ca1, ca2, ca3] = splitCA(sc.ca);
+        const st = subjectStats(sc.subjectId);
+        const pos = subjectPos(sc.subjectId);
+        const gObj = gradeNg(sc.total);
+        return `<tr style="border-bottom:1px solid #ddd">
+          <td style="padding:4px 6px;text-align:left;font-weight:600;border-right:1px solid #ddd">${esc(subject(sc.subjectId).name)}</td>
+          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${ca1}</td>
+          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${ca2}</td>
+          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${ca3}</td>
+          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${sc.exam}</td>
+          <td style="padding:4px 3px;text-align:center;font-weight:800;border-right:1px solid #ddd">${sc.total}</td>
+          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${st.high}</td>
+          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${st.low}</td>
+          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${st.avg}</td>
+          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${pos}</td>
+          <td style="padding:4px 3px;text-align:center"><span style="background:${gObj.color};color:#fff;padding:2px 5px;border-radius:3px;font-weight:800;font-size:10px;white-space:nowrap">${gObj.grade}</span></td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="11" style="text-align:center;padding:10px;color:#999;font-style:italic">No scores recorded for this term</td></tr>`;
+
+      const thStyle = "padding:4px 3px;text-align:center;border:1px solid #bbb;font-size:10px;font-weight:700;background:#dce8f7";
+
+      return `<div style="background:#fff;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;width:100%;max-width:820px;margin:0 auto;border:1px solid #aaa">
+
+        <!-- HEADER -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:2px solid #1565c0">
+          <div style="display:flex;align-items:center;gap:10px">
+            <img src="assets/mms-logo.jpg" style="width:62px;height:62px;object-fit:contain;border-radius:4px">
             <div>
-              <h2 style="color:var(--green); margin-bottom:2px">${esc(db.settings.schoolName)}</h2>
-              <div style="font-weight:bold; font-size:14px">Student Terminal Progress Report Card</div>
-              <div style="font-size:11px; color:var(--muted); line-height:1.2; margin-top:2px;">${esc(db.settings.address)}</div>
-              <div style="font-size:11px; color:var(--blue); font-weight:bold;">Email: ${esc(db.settings.email)}</div>
+              <div style="font-size:19px;font-weight:900;color:#1565c0;line-height:1.1">${esc(db.settings.schoolName)}</div>
+              <div style="font-size:10px;color:#555;margin-top:1px">${esc(db.settings.address)}</div>
+              <div style="font-size:10px;color:#c66b00;font-style:italic;margin-top:1px">Motto: Learning For Brighter Future</div>
             </div>
           </div>
-          <div style="text-align:right">
-            ${photoHtml}
-            <div style="margin-top:8px"><strong>Session:</strong> ${esc(db.settings.session)}</div>
-            <div><strong>Term:</strong> ${esc(db.settings.term)}</div>
+          <div style="text-align:right;font-size:10px;color:#555;line-height:1.9">
+            ${db.settings.email ? `<div>EMAIL: ${esc(db.settings.email)}</div>` : ""}
+            ${db.settings.phone ? `<div>TEL: ${esc(db.settings.phone)}</div>` : ""}
           </div>
         </div>
 
-        <div style="margin-bottom:15px">
-          ${table(["Student Name", "Admission No", "Class", "Gender", "Position", "Attendance"], [
-            [esc(fullName(s)), esc(s.regNo), esc(cls(s.classId).name), esc(s.gender), `${rank} of ${classSize}`, `${att.filter((a) => a.status === "Present").length} / ${db.settings.daysOpen}`]
-          ])}
+        <!-- BLUE BANNER -->
+        <div style="background:#1565c0;color:#fff;text-align:center;padding:5px 8px;font-size:11px;font-weight:800;letter-spacing:0.8px">
+          TERMINAL ACADEMIC PROGRESS REPORT &bull; ${esc(db.settings.term).toUpperCase()} ${esc(db.settings.session)} SESSION
         </div>
 
-        <div class="table-wrap">
-          ${table(["Subject", "CA (40)", "Exam (60)", "Total (100)", "Grade", "Remark"], scores.map((score) => [
-            esc(subject(score.subjectId).name), score.ca, score.exam, score.total, `<strong>${score.grade}</strong>`, esc(score.remark)
-          ]))}
-        </div>
-
-        <div style="margin-top:12px; font-size:11px; color:var(--muted); text-align:center">
-          <strong>Grading Scale:</strong> 70-100: A (Excellent) | 60-69: B (Very Good) | 50-59: C (Good) | 45-49: D (Pass) | 40-44: E (Fair) | 0-39: F (Fail)
-        </div>
-
-        <div style="margin-top:20px">
-          ${table(["Aggregate Score", "Average Score", "Final Grade", "Fees Status"], [
-            [total, avg.toFixed(2), `<strong>${gradeFor(avg).grade}</strong>`, balance === 0 ? '<span class="pill">Paid</span>' : `<span class="pill bad">Balance: ${money(balance)}</span>`]
-          ])}
-        </div>
-
-        <div class="grid" style="margin-top:25px; gap:20px">
-          <div class="panel span-6" style="box-shadow:none; border:1px solid var(--line)">
-            <label>Class Teacher's Comment</label>
-            <p style="margin:5px 0 15px; min-height:20px">${avg >= 60 ? "A very good performance, keep it up." : avg >= 45 ? "A fair result. You need to work harder." : "Poor performance. Significant improvement required."}</p>
-          </div>
-          <div class="panel span-6" style="box-shadow:none; border:1px solid var(--line)">
-            <label>Principal's Comment</label>
-            <p style="margin:5px 0 15px; min-height:20px">${esc(db.settings.principalComment)}</p>
+        <!-- STUDENT INFO STRIP -->
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 14px;background:#f0f4f9;border-bottom:1px solid #c8d8ea">
+          ${photoHtml}
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:900;color:#1565c0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">${esc(fullName(s))}</div>
+            <div style="display:flex;gap:0;flex-wrap:wrap">
+              <div style="margin-right:20px"><div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase">Admission No.</div><div style="font-weight:700;font-size:11px">${esc(s.regNo)}</div></div>
+              <div style="margin-right:20px"><div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase">Gender</div><div style="font-weight:700;font-size:11px">${esc(s.gender || "—")}</div></div>
+              <div style="margin-right:20px"><div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase">Parent / Guardian</div><div style="font-weight:700;font-size:11px">${esc(s.parentPhone || "—")}</div></div>
+              <div style="margin-right:20px"><div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase">Class</div><div style="font-weight:700;font-size:11px">${esc(cls(s.classId).name)}</div></div>
+              <div><div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase">Attendance</div><div style="font-weight:700;font-size:11px">${attPresent} / ${db.settings.daysOpen}</div></div>
+            </div>
           </div>
         </div>
-        
-        <div style="text-align:center; margin-top:25px; padding:15px; border:1px solid var(--line); border-radius:8px; background:var(--soft)">
-          <div style="font-size:10px; font-weight:bold; margin-bottom:5px; color:var(--muted); letter-spacing:1px">DIGITAL VERIFICATION QR CODE</div>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(s.regNo + ' | ' + db.settings.schoolName + ' | ' + db.settings.session + ' | ' + db.settings.term + ' | Avg: ' + avg.toFixed(2))}" style="width:100px; height:100px; margin:5px 0; border:2px solid #fff; border-radius:4px;">
-          <div style="font-family:monospace; font-size:11px; margin-top:5px; font-weight:bold;">${s.regNo} // ${db.settings.session} // ${db.settings.term.toUpperCase()}</div>
-          <div style="font-size:9px; color:var(--muted); margin-top:3px;">Digitally Generated by MMS Management System</div>
-        </div>
-        
-        <div style="text-align:center; margin-top:20px; font-style:italic" class="hint">
-          Next Term Begins: ${esc(db.settings.nextTermBegins || "To Be Announced")}
+
+        <!-- BODY: LEFT + RIGHT -->
+        <div style="display:flex;align-items:flex-start">
+
+          <!-- LEFT MAIN -->
+          <div style="flex:1;min-width:0;padding:8px 10px;border-right:1px solid #ddd">
+
+            <!-- COGNITIVE ASSESSMENT SUMMARY -->
+            <div style="background:#1565c0;color:#fff;padding:3px 7px;font-size:10px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">COGNITIVE ASSESSMENT SUMMARY</div>
+            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px">
+              <thead>
+                <tr>
+                  <th style="padding:4px 6px;text-align:left;border:1px solid #bbb;font-size:10px;font-weight:700;background:#dce8f7">Subject</th>
+                  <th style="${thStyle}">CA1</th>
+                  <th style="${thStyle}">CA2</th>
+                  <th style="${thStyle}">CA3</th>
+                  <th style="${thStyle}">Exams</th>
+                  <th style="${thStyle}">Total</th>
+                  <th style="${thStyle}">High</th>
+                  <th style="${thStyle}">Low</th>
+                  <th style="${thStyle}">Avg</th>
+                  <th style="${thStyle}">Pos</th>
+                  <th style="${thStyle}">Grd</th>
+                </tr>
+              </thead>
+              <tbody>${scoreRows}</tbody>
+            </table>
+
+            <!-- GRADE ANALYSIS -->
+            <div style="background:#1565c0;color:#fff;padding:3px 7px;font-size:10px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">GRADE ANALYSIS</div>
+            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px">
+              <tr style="background:#dce8f7">
+                <td style="padding:4px 6px;border:1px solid #bbb;font-weight:700;font-size:10px">Grade</td>
+                ${GRADES_ORDER.map(g=>`<td style="text-align:center;padding:4px 3px;border:1px solid #bbb;font-weight:700;font-size:10px">${g}</td>`).join("")}
+              </tr>
+              <tr>
+                <td style="padding:4px 6px;border:1px solid #bbb;font-weight:700;font-size:10px">Count</td>
+                ${GRADES_ORDER.map(g=>`<td style="text-align:center;padding:4px 3px;border:1px solid #bbb;font-size:11px">${tally[g]}</td>`).join("")}
+              </tr>
+            </table>
+
+            <!-- PERFORMANCE SUMMARY -->
+            <div style="background:#1565c0;color:#fff;padding:3px 7px;font-size:10px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">PERFORMANCE SUMMARY</div>
+            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px">
+              <tr>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:600;width:30%">Total Obtained</td>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:800;width:20%">${totalScore}</td>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:600;width:30%">Avg. Grade</td>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:800;width:20%">${avgG.grade}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:600">Total Obtainable</td>
+                <td style="padding:4px 8px;border:1px solid #bbb">${totalObtainable}</td>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:600">Avg. Remarks</td>
+                <td style="padding:4px 8px;border:1px solid #bbb">${avgG.remark}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:600">Class Population</td>
+                <td style="padding:4px 8px;border:1px solid #bbb">${classSize}</td>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:600">Position</td>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:800">${ordinal(rank)}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:600">Average Score</td>
+                <td style="padding:4px 8px;border:1px solid #bbb;font-weight:800" colspan="3">${avg.toFixed(2)}</td>
+              </tr>
+            </table>
+
+            <!-- COMMENTS -->
+            <div style="border:1px solid #bbb;padding:5px 9px;margin-bottom:7px">
+              <div style="font-weight:800;font-size:10px;margin-bottom:2px">Form Master's Comment:</div>
+              <div style="font-style:italic;font-size:11px;color:#333">${formComment}</div>
+            </div>
+            <div style="border:1px solid #bbb;padding:5px 9px;margin-bottom:8px">
+              <div style="font-weight:800;font-size:10px;margin-bottom:2px">Principal's Comment:</div>
+              <div style="font-style:italic;font-size:11px;color:#333">${esc(db.settings.principalComment)}</div>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#1565c0">
+              Next Term Begins: <span style="color:#c62828">${esc(db.settings.nextTermBegins || "To Be Announced")}</span>
+            </div>
+          </div>
+
+          <!-- RIGHT SIDEBAR -->
+          <div style="width:172px;min-width:172px;padding:8px 7px;font-size:10px">
+
+            <!-- AFFECTIVE DOMAIN -->
+            <div style="background:#1565c0;color:#fff;padding:3px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">AFFECTIVE DOMAIN</div>
+            <div style="font-size:10px;color:#999;margin-bottom:7px;padding:2px 2px 4px;border-bottom:1px solid #eee">NO DATA</div>
+
+            <!-- PSYCHOMOTOR SKILLS -->
+            <div style="background:#1565c0;color:#fff;padding:3px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">PSYCHOMOTOR SKILLS</div>
+            <div style="font-size:10px;color:#999;margin-bottom:7px;padding:2px 2px 4px;border-bottom:1px solid #eee">NO DATA</div>
+
+            <!-- RATING KEY -->
+            <div style="background:#1565c0;color:#fff;padding:3px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">RATING KEY</div>
+            <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:7px">
+              ${[["5","Excellent"],["4","V. Good"],["3","Good"],["2","Fair"],["1","Poor"]].map(([n,r])=>`<tr><td style="padding:2px 4px;border:1px solid #ddd;font-weight:700">${n}</td><td style="padding:2px 4px;border:1px solid #ddd">${r}</td></tr>`).join("")}
+            </table>
+
+            <!-- NEXT TERM FEE -->
+            <div style="background:#1565c0;color:#fff;padding:3px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">NEXT TERM FEE</div>
+            <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:7px">
+              <tr><td style="padding:2px 4px;border:1px solid #ddd">TOTAL MANDATORY</td><td style="padding:2px 4px;border:1px solid #ddd;text-align:right;font-weight:700">&#8358;${money(mandatory)}</td></tr>
+              <tr><td style="padding:2px 4px;border:1px solid #ddd">TOTAL OPTIONAL</td><td style="padding:2px 4px;border:1px solid #ddd;text-align:right">&#8358;0</td></tr>
+              <tr style="background:#fff3e0"><td style="padding:2px 4px;border:1px solid #ddd;font-weight:700">TOTAL PAYABLE</td><td style="padding:2px 4px;border:1px solid #ddd;text-align:right;font-weight:800">&#8358;${money(payable)}</td></tr>
+            </table>
+
+            <!-- GRADING LEGEND -->
+            <div style="background:#1565c0;color:#fff;padding:3px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">GRADING LEGEND</div>
+            <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:8px">
+              ${[["A1","75-100","Excellent"],["B2","70-74","V. Good"],["B3","65-69","Good"],["C4","60-64","Good"],["C5","55-59","Credit"],["C6","50-54","Credit"],["D7","45-49","Pass"],["E8","40-44","Pass"],["F9","0-39","Fail"]].map(([g,r,l])=>`<tr><td style="padding:2px 3px;border:1px solid #ddd;font-weight:800">${g}</td><td style="padding:2px 3px;border:1px solid #ddd">${r}</td><td style="padding:2px 3px;border:1px solid #ddd">${l}</td></tr>`).join("")}
+            </table>
+
+            <!-- QR CODE -->
+            <div style="text-align:center;margin-top:4px">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(s.regNo+'|'+db.settings.schoolName+'|'+db.settings.session+'|'+db.settings.term)}" style="width:88px;height:88px;border:2px solid #ddd;border-radius:3px">
+              <div style="font-size:9px;color:#999;margin-top:2px;font-weight:700">SCAN TO VERIFY</div>
+            </div>
+          </div>
         </div>
       </div>`;
     }
