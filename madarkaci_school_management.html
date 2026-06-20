@@ -2126,6 +2126,120 @@ function renderAttendance() {
     function certificate(s) {
       return `<div class="report-box" style="text-align:center;min-height:360px;display:grid;place-items:center"><div><img class="report-logo" src="assets/mms-logo.jpg" alt="Madarkaci Model School logo"><h2>${esc(db.settings.schoolName)}</h2><h3>Certificate of Student Record</h3><p>Motto: Learning For Brighter Future</p><p>This certifies that</p><h2>${esc(fullName(s))}</h2><p>with admission number <strong>${esc(s.regNo)}</strong> is a registered student of ${esc(cls(s.classId).name)}.</p><p>Session: ${esc(db.settings.session)}</p><br><p>Principal Signature __________________</p></div></div>`;
     }
+function classBroadsheet(classId) {
+      if (!classId) return `<p class="hint">Please select a class to view the broadsheet.</p>`;
+      const subjects = db.subjects.filter(sub => sub.classId === classId);
+      const students = db.students.filter(st => st.classId === classId);
+      if (!students.length) return `<p class="hint">No students found in this class.</p>`;
+      if (!subjects.length) return `<p class="hint">No subjects found for this class.</p>`;
+
+      // Compute totals per student for ranking
+      const studentTotals = students.map(st => {
+        const scores = db.scores.filter(sc => sc.studentId === st.id);
+        const tot = scores.reduce((s, sc) => s + sc.total, 0);
+        return { id: st.id, tot };
+      }).sort((a, b) => b.tot - a.tot);
+      const posMap = {};
+      studentTotals.forEach((x, i) => { posMap[x.id] = i + 1; });
+
+      function gradeNg(t) {
+        t = Math.max(0, Math.min(100, Number(t || 0)));
+        if (t >= 75) return "A1"; if (t >= 70) return "B2"; if (t >= 65) return "B3";
+        if (t >= 60) return "C4"; if (t >= 55) return "C5"; if (t >= 50) return "C6";
+        if (t >= 45) return "D7"; if (t >= 40) return "E8"; return "F9";
+      }
+
+      const cell  = "padding:3px 5px;border:1px solid #bbb;text-align:center;white-space:nowrap";
+      const hCell = "padding:4px 5px;border:1px solid #999;text-align:center;font-size:10px;font-weight:700;background:#dce8f7";
+      const hTop  = "padding:4px 5px;border:1px solid #999;text-align:center;font-size:10px;font-weight:800;background:#1565c0;color:#fff";
+      const lCell = "padding:3px 5px;border:1px solid #bbb;text-align:left;font-weight:600";
+
+      // Header row 1: S/N | Reg No | Name | [Subject colspan=4 each] | Tot | Avg | Pos | Grd
+      const hRow1 = `
+        <th style="${hCell}" rowspan="2">S/N</th>
+        <th style="${hCell}" rowspan="2">Reg No</th>
+        <th style="${hCell};text-align:left" rowspan="2">Student Name</th>
+        ${subjects.map(sub => `<th style="${hTop}" colspan="4">${esc(sub.name)}</th>`).join("")}
+        <th style="${hCell}" rowspan="2">Total</th>
+        <th style="${hCell}" rowspan="2">Avg</th>
+        <th style="${hCell}" rowspan="2">Pos</th>
+        <th style="${hCell}" rowspan="2">Grd</th>`;
+
+      // Header row 2: CA1 | CA2 | Exam | Tot (repeated per subject)
+      const hRow2 = subjects.map(() =>
+        `<th style="${hCell}">CA1</th><th style="${hCell}">CA2</th><th style="${hCell}">Exam</th><th style="${hCell}">Tot</th>`
+      ).join("");
+
+      // Data rows
+      const dataRows = students.map((st, idx) => {
+        const scores = db.scores.filter(sc => sc.studentId === st.id);
+        let grandTotal = 0;
+        const subCells = subjects.map(sub => {
+          const sc = scores.find(s => s.subjectId === sub.id);
+          const ca1 = sc?.ca1 ?? (sc ? Math.round((sc.ca || 0) / 2) : "—");
+          const ca2 = sc?.ca2 ?? (sc ? (sc.ca || 0) - Math.round((sc.ca || 0) / 2) : "—");
+          const exam = sc?.exam ?? "—";
+          const tot = sc?.total ?? "—";
+          if (sc) grandTotal += sc.total;
+          return `<td style="${cell}">${ca1}</td><td style="${cell}">${ca2}</td><td style="${cell}">${exam}</td><td style="${cell};font-weight:700">${tot}</td>`;
+        }).join("");
+        const avg = scores.length ? grandTotal / scores.length : 0;
+        const pos = posMap[st.id] || "—";
+        const grd = scores.length ? gradeNg(avg) : "—";
+        const rowBg = idx % 2 === 0 ? "#fff" : "#f5f8fc";
+        return `<tr style="background:${rowBg};font-size:11px">
+          <td style="${cell}">${idx + 1}</td>
+          <td style="${cell}">${esc(st.regNo)}</td>
+          <td style="${lCell}">${esc(fullName(st))}</td>
+          ${subCells}
+          <td style="${cell};font-weight:800">${grandTotal}</td>
+          <td style="${cell}">${avg.toFixed(1)}</td>
+          <td style="${cell};font-weight:800">${pos}</td>
+          <td style="${cell};font-weight:800">${grd}</td>
+        </tr>`;
+      }).join("");
+
+      // Class average footer row
+      const footCells = subjects.map(sub => {
+        const vals = db.scores.filter(sc => sc.subjectId === sub.id && students.map(st=>st.id).includes(sc.studentId));
+        const avgCA1 = vals.length ? (vals.reduce((s,v)=>(s + (v.ca1 ?? Math.round((v.ca||0)/2))), 0) / vals.length).toFixed(1) : "—";
+        const avgCA2 = vals.length ? (vals.reduce((s,v)=>(s + (v.ca2 ?? ((v.ca||0) - Math.round((v.ca||0)/2)))), 0) / vals.length).toFixed(1) : "—";
+        const avgEx  = vals.length ? (vals.reduce((s,v)=>s+(v.exam||0), 0) / vals.length).toFixed(1) : "—";
+        const avgTot = vals.length ? (vals.reduce((s,v)=>s+(v.total||0), 0) / vals.length).toFixed(1) : "—";
+        return `<td style="${cell};background:#f0f4f9">${avgCA1}</td><td style="${cell};background:#f0f4f9">${avgCA2}</td><td style="${cell};background:#f0f4f9">${avgEx}</td><td style="${cell};background:#f0f4f9;font-weight:700">${avgTot}</td>`;
+      }).join("");
+
+      const allScores = db.scores.filter(sc => students.map(st=>st.id).includes(sc.studentId));
+      const overallAvg = allScores.length ? (allScores.reduce((s,sc)=>s+sc.total,0)/allScores.length).toFixed(1) : "—";
+
+      return `
+        <h3 style="text-align:center;margin:10px 0 4px;font-size:14px;color:#1565c0">CLASS BROADSHEET</h3>
+        <p style="text-align:center;font-size:12px;margin:0 0 10px">
+          Class: <strong>${esc(cls(classId).name)}</strong> &nbsp;|&nbsp;
+          Session: <strong>${esc(db.settings.session)}</strong> &nbsp;|&nbsp;
+          Term: <strong>${esc(db.settings.term)}</strong>
+        </p>
+        <div style="overflow-x:auto">
+        <table style="border-collapse:collapse;font-size:11px;width:100%">
+          <thead>
+            <tr>${hRow1}</tr>
+            <tr>${hRow2}</tr>
+          </thead>
+          <tbody>${dataRows}</tbody>
+          <tfoot>
+            <tr style="font-size:11px;background:#e8f0fe">
+              <td colspan="3" style="${lCell};background:#e8f0fe;font-weight:800">Class Average</td>
+              ${footCells}
+              <td style="${cell};background:#e8f0fe;font-weight:800">${overallAvg}</td>
+              <td style="${cell};background:#e8f0fe">${overallAvg}</td>
+              <td style="${cell};background:#e8f0fe">—</td>
+              <td style="${cell};background:#e8f0fe">—</td>
+            </tr>
+          </tfoot>
+        </table>
+        </div>`;
+    }
+
 function renderReports() {
        const type = document.getElementById("reportType").value;
        const studentId = document.getElementById("reportStudent").value;
@@ -2152,7 +2266,7 @@ function renderReports() {
        }
 
        if (type === "Student Report Card") html = studentReportCard(s);
-       if (type === "Class Broadsheet") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Class Broadsheet: ${esc(cls(classId).name)}</h3>` + table(["Position", "Reg No", "Name", "Total", "Average", "Grade"], rankedStudents(classId).map((x) => [x.position, esc(x.regNo), esc(fullName(x)), x.total, x.avg.toFixed(2), x.grade]));
+       if (type === "Class Broadsheet") html = schoolHeader + classBroadsheet(classId);
        if (type === "Academic Performance") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Academic Performance Report</h3>` + table(["Class", "Students", "Class Average"], db.classes.map((c) => { const r = rankedStudents(c.id); const avg = r.length ? r.reduce((sum, x) => sum + x.avg, 0) / r.length : 0; return [esc(c.name), r.length, avg.toFixed(2)]; }));
        if (type === "Attendance Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Attendance Report</h3>` + document.getElementById("attendanceTable").innerHTML;
        if (type === "Fee Payment Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Fee Payment Report</h3>` + document.getElementById("feeTable").innerHTML;
