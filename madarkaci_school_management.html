@@ -727,7 +727,8 @@
             <div class="form-grid">
               <div class="full"><label>Student</label><select id="scoreStudent"></select></div>
               <div class="full"><label>Subject</label><select id="scoreSubject"></select></div>
-              <div><label>CA / 40</label><input id="scoreCa" type="number" min="0" max="40" value="35" oninput="previewScore()"></div>
+              <div><label>CA1 / 20</label><input id="scoreCa1" type="number" min="0" max="20" value="17" oninput="previewScore()"></div>
+              <div><label>CA2 / 20</label><input id="scoreCa2" type="number" min="0" max="20" value="18" oninput="previewScore()"></div>
               <div><label>Exam / 60</label><input id="scoreExam" type="number" min="0" max="60" value="52" oninput="previewScore()"></div>
               <div><label>Total</label><input id="scoreTotal" readonly></div>
               <div><label>Grade</label><input id="scoreGrade" readonly></div>
@@ -1683,13 +1684,17 @@ function fillSelects() {
     }
 
     function previewScore() {
-      const caEl = document.getElementById("scoreCa");
+      const ca1El = document.getElementById("scoreCa1");
+      const ca2El = document.getElementById("scoreCa2");
       const examEl = document.getElementById("scoreExam");
-      const ca = Math.min(40, Math.max(0, Number(caEl.value || 0)));
+      const ca1 = Math.min(20, Math.max(0, Number(ca1El.value || 0)));
+      const ca2 = Math.min(20, Math.max(0, Number(ca2El.value || 0)));
       const exam = Math.min(60, Math.max(0, Number(examEl.value || 0)));
+      const ca = ca1 + ca2;
       const total = ca + exam;
       const result = gradeFor(total);
-      caEl.value = ca;
+      ca1El.value = ca1;
+      ca2El.value = ca2;
       examEl.value = exam;
       document.getElementById("scoreTotal").value = total;
       document.getElementById("scoreGrade").value = result.grade;
@@ -1702,14 +1707,16 @@ function fillSelects() {
       const stu = student(studentId);
       if (!stu || !subjectId) return toast("Select student and subject.");
       const existing = db.scores.find((item) => item.studentId === stu.id && item.subjectId === subjectId);
-      const data = { 
-        id: existing?.id || id(), studentId: stu.id, subjectId: subjectId, 
-        ca: Number(document.getElementById("scoreCa").value), 
-        exam: Number(document.getElementById("scoreExam").value), 
-        total: Number(document.getElementById("scoreTotal").value), 
-        grade: document.getElementById("scoreGrade").value, 
-        remark: document.getElementById("scoreRemark").value, 
-        approved: false 
+      const ca1 = Number(document.getElementById("scoreCa1").value);
+      const ca2 = Number(document.getElementById("scoreCa2").value);
+      const data = {
+        id: existing?.id || id(), studentId: stu.id, subjectId: subjectId,
+        ca1, ca2, ca: ca1 + ca2,
+        exam: Number(document.getElementById("scoreExam").value),
+        total: Number(document.getElementById("scoreTotal").value),
+        grade: document.getElementById("scoreGrade").value,
+        remark: document.getElementById("scoreRemark").value,
+        approved: false
       };
       existing ? Object.assign(existing, data) : db.scores.push(data);
       save();
@@ -1881,10 +1888,10 @@ function renderAttendance() {
         const s2 = ["th","st","nd","rd"], v = n % 100;
         return n + (s2[(v - 20) % 10] || s2[v] || s2[0]);
       }
-      function splitCA(ca) {
-        const a = Math.round(ca / 3);
-        const b = Math.round((ca - a) / 2);
-        return [a, b, ca - a - b];
+      function splitCA(sc) {
+        if (sc.ca1 != null && sc.ca2 != null) return [sc.ca1, sc.ca2, "—"];
+        const a = Math.round((sc.ca || 0) / 2);
+        return [a, (sc.ca || 0) - a, "—"];
       }
       function subjectStats(subjectId) {
         const ids = db.students.filter(st => st.classId === s.classId).map(st => st.id);
@@ -1934,7 +1941,7 @@ function renderAttendance() {
       // Score rows
       const GRADES_ORDER = ["A1","B2","B3","C4","C5","C6","D7","E8","F9"];
       const scoreRows = scores.map(sc => {
-        const [ca1, ca2, ca3] = splitCA(sc.ca);
+        const [ca1, ca2, ca3] = splitCA(sc);
         const st = subjectStats(sc.subjectId);
         const pos = subjectPos(sc.subjectId);
         const gObj = gradeNg(sc.total);
@@ -1942,7 +1949,6 @@ function renderAttendance() {
           <td style="padding:4px 6px;text-align:left;font-weight:600;border-right:1px solid #ddd">${esc(subject(sc.subjectId).name)}</td>
           <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${ca1}</td>
           <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${ca2}</td>
-          <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${ca3}</td>
           <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${sc.exam}</td>
           <td style="padding:4px 3px;text-align:center;font-weight:800;border-right:1px solid #ddd">${sc.total}</td>
           <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${st.high}</td>
@@ -1951,7 +1957,7 @@ function renderAttendance() {
           <td style="padding:4px 3px;text-align:center;border-right:1px solid #ddd">${pos}</td>
           <td style="padding:4px 3px;text-align:center"><span style="background:${gObj.color};color:#fff;padding:2px 5px;border-radius:3px;font-weight:800;font-size:10px;white-space:nowrap">${gObj.grade}</span></td>
         </tr>`;
-      }).join("") || `<tr><td colspan="11" style="text-align:center;padding:10px;color:#999;font-style:italic">No scores recorded for this term</td></tr>`;
+      }).join("") || `<tr><td colspan="10" style="text-align:center;padding:10px;color:#999;font-style:italic">No scores recorded for this term</td></tr>`;
 
       const thStyle = "padding:4px 3px;text-align:center;border:1px solid #bbb;font-size:10px;font-weight:700;background:#dce8f7";
 
@@ -2007,7 +2013,6 @@ function renderAttendance() {
                   <th style="padding:4px 6px;text-align:left;border:1px solid #bbb;font-size:10px;font-weight:700;background:#dce8f7">Subject</th>
                   <th style="${thStyle}">CA1</th>
                   <th style="${thStyle}">CA2</th>
-                  <th style="${thStyle}">CA3</th>
                   <th style="${thStyle}">Exams</th>
                   <th style="${thStyle}">Total</th>
                   <th style="${thStyle}">High</th>
