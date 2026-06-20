@@ -720,8 +720,10 @@
       </div>
 
       <div id="scores" class="page hide">
-        <div class="toolbar"><h2>Result Management</h2><div class="actions"><button class="primary" onclick="saveScore()">Save Score</button><button class="secondary" onclick="publishResults()">Approve / Publish</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
-        <div class="grid">
+        <div class="toolbar"><h2>Result Management</h2><div class="actions"><button id="btnSingleEntry" class="primary" onclick="setScoreMode('single')">Single Entry</button><button id="btnBulkEntry" class="secondary" onclick="setScoreMode('bulk')">Bulk Entry</button><button class="secondary" onclick="publishResults()">Approve / Publish</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+
+        <!-- SINGLE ENTRY MODE -->
+        <div id="singleEntryPanel" class="grid">
           <div class="panel span-4">
             <h3>Score Entry</h3>
             <div class="form-grid">
@@ -734,8 +736,27 @@
               <div><label>Grade</label><input id="scoreGrade" readonly></div>
               <div class="full"><label>Remark</label><input id="scoreRemark" readonly></div>
             </div>
+            <button class="primary" style="width:100%;margin-top:10px" onclick="saveScore()">Save Score</button>
           </div>
           <div class="panel span-8"><h3>Class Broadsheet / Position Ranking</h3><div class="table-wrap" id="scoreTable"></div></div>
+        </div>
+
+        <!-- BULK ENTRY MODE -->
+        <div id="bulkEntryPanel" class="hide">
+          <div class="panel" style="margin-bottom:12px">
+            <h3>Bulk Score Entry</h3>
+            <div class="form-grid" style="max-width:600px">
+              <div><label>Class</label><select id="bulkClass" onchange="loadBulkEntry()"></select></div>
+              <div><label>Subject</label><select id="bulkSubject" onchange="loadBulkEntry()"></select></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <h3 style="margin:0" id="bulkTableTitle">Select class and subject above</h3>
+              <button class="primary" onclick="saveBulkScores()">Save All Scores</button>
+            </div>
+            <div class="table-wrap" id="bulkEntryTable"></div>
+          </div>
         </div>
       </div>
 
@@ -1728,6 +1749,142 @@ function fillSelects() {
       save();
       toast("Results approved and published");
     }
+
+    function setScoreMode(mode) {
+      const isBulk = mode === "bulk";
+      document.getElementById("singleEntryPanel").classList.toggle("hide", isBulk);
+      document.getElementById("bulkEntryPanel").classList.toggle("hide", !isBulk);
+      document.getElementById("btnSingleEntry").className = isBulk ? "secondary" : "primary";
+      document.getElementById("btnBulkEntry").className = isBulk ? "primary" : "secondary";
+      if (isBulk) {
+        populateBulkSelects();
+        loadBulkEntry();
+      }
+    }
+
+    function populateBulkSelects() {
+      const classEl = document.getElementById("bulkClass");
+      const subjEl  = document.getElementById("bulkSubject");
+      if (!classEl || !subjEl) return;
+
+      // Populate classes (respect teacher role)
+      let classes = db.classes;
+      if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+        const teacherClassIds = [...new Set(db.subjects.filter(s => s.teacherId === currentUser.staffId).map(s => s.classId))];
+        classes = db.classes.filter(c => teacherClassIds.includes(c.id));
+      }
+      classEl.innerHTML = classes.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+
+      // Populate subjects for selected class
+      const updateSubjects = () => {
+        const cId = classEl.value;
+        let subjects = db.subjects.filter(s => s.classId === cId);
+        if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+          subjects = subjects.filter(s => s.teacherId === currentUser.staffId);
+        }
+        subjEl.innerHTML = subjects.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
+      };
+      classEl.removeEventListener("change", classEl._subjectUpdater);
+      classEl._subjectUpdater = updateSubjects;
+      classEl.addEventListener("change", updateSubjects);
+      updateSubjects();
+    }
+
+    function gradeNgLabel(t) {
+      t = Math.max(0, Math.min(100, Number(t || 0)));
+      if (t >= 75) return "A1"; if (t >= 70) return "B2"; if (t >= 65) return "B3";
+      if (t >= 60) return "C4"; if (t >= 55) return "C5"; if (t >= 50) return "C6";
+      if (t >= 45) return "D7"; if (t >= 40) return "E8"; return "F9";
+    }
+
+    function loadBulkEntry() {
+      const classId   = document.getElementById("bulkClass")?.value;
+      const subjectId = document.getElementById("bulkSubject")?.value;
+      const container = document.getElementById("bulkEntryTable");
+      const title     = document.getElementById("bulkTableTitle");
+      if (!classId || !subjectId || !container) return;
+
+      const students = db.students.filter(st => st.classId === classId);
+      const subj     = db.subjects.find(s => s.id === subjectId);
+      if (title) title.textContent = `${subj ? esc(subj.name) : ""} — ${esc(cls(classId).name)}`;
+
+      if (!students.length) {
+        container.innerHTML = `<p class="hint">No students in this class.</p>`;
+        return;
+      }
+
+      const rows = students.map((st, idx) => {
+        const existing = db.scores.find(sc => sc.studentId === st.id && sc.subjectId === subjectId);
+        const ca1  = existing?.ca1  ?? (existing ? Math.round((existing.ca || 0) / 2) : "");
+        const ca2  = existing?.ca2  ?? (existing ? (existing.ca || 0) - Math.round((existing.ca || 0) / 2) : "");
+        const exam = existing?.exam ?? "";
+        const tot  = existing?.total ?? "";
+        const grd  = existing ? gradeNgLabel(existing.total) : "";
+        const bg   = idx % 2 === 0 ? "#fff" : "#f5f8fc";
+        return `<tr style="background:${bg}" data-student-id="${st.id}">
+          <td style="padding:5px 8px;border:1px solid #ddd;font-size:11px">${idx + 1}</td>
+          <td style="padding:5px 8px;border:1px solid #ddd;font-size:11px;white-space:nowrap">${esc(st.regNo)}</td>
+          <td style="padding:5px 8px;border:1px solid #ddd;font-size:11px;font-weight:600">${esc(fullName(st))}</td>
+          <td style="padding:3px;border:1px solid #ddd"><input type="number" min="0" max="20" value="${ca1}" placeholder="0" style="width:52px;text-align:center;border:1px solid #ccc;border-radius:4px;padding:3px" class="bulk-ca1" oninput="updateBulkRow(this)"></td>
+          <td style="padding:3px;border:1px solid #ddd"><input type="number" min="0" max="20" value="${ca2}" placeholder="0" style="width:52px;text-align:center;border:1px solid #ccc;border-radius:4px;padding:3px" class="bulk-ca2" oninput="updateBulkRow(this)"></td>
+          <td style="padding:3px;border:1px solid #ddd"><input type="number" min="0" max="60" value="${exam}" placeholder="0" style="width:52px;text-align:center;border:1px solid #ccc;border-radius:4px;padding:3px" class="bulk-exam" oninput="updateBulkRow(this)"></td>
+          <td style="padding:5px 8px;border:1px solid #ddd;text-align:center;font-weight:800;font-size:12px" class="bulk-total">${tot}</td>
+          <td style="padding:5px 8px;border:1px solid #ddd;text-align:center;font-weight:700;font-size:12px" class="bulk-grade">${grd}</td>
+        </tr>`;
+      }).join("");
+
+      container.innerHTML = `
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="background:#1565c0;color:#fff">
+              <th style="padding:6px 8px;border:1px solid #0d47a1;text-align:center">#</th>
+              <th style="padding:6px 8px;border:1px solid #0d47a1;text-align:left">Reg No</th>
+              <th style="padding:6px 8px;border:1px solid #0d47a1;text-align:left">Student Name</th>
+              <th style="padding:6px 8px;border:1px solid #0d47a1;text-align:center">CA1 /20</th>
+              <th style="padding:6px 8px;border:1px solid #0d47a1;text-align:center">CA2 /20</th>
+              <th style="padding:6px 8px;border:1px solid #0d47a1;text-align:center">Exam /60</th>
+              <th style="padding:6px 8px;border:1px solid #0d47a1;text-align:center">Total</th>
+              <th style="padding:6px 8px;border:1px solid #0d47a1;text-align:center">Grade</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    function updateBulkRow(input) {
+      const row  = input.closest("tr");
+      const ca1  = Math.min(20, Math.max(0, Number(row.querySelector(".bulk-ca1").value) || 0));
+      const ca2  = Math.min(20, Math.max(0, Number(row.querySelector(".bulk-ca2").value) || 0));
+      const exam = Math.min(60, Math.max(0, Number(row.querySelector(".bulk-exam").value) || 0));
+      const tot  = ca1 + ca2 + exam;
+      row.querySelector(".bulk-total").textContent = tot;
+      row.querySelector(".bulk-grade").textContent = tot > 0 ? gradeNgLabel(tot) : "";
+    }
+
+    function saveBulkScores() {
+      const subjectId = document.getElementById("bulkSubject")?.value;
+      if (!subjectId) return toast("Select a subject first.");
+      const rows = document.querySelectorAll("#bulkEntryTable tbody tr");
+      let saved = 0;
+      rows.forEach(row => {
+        const studentId = row.dataset.studentId;
+        const ca1  = Math.min(20, Math.max(0, Number(row.querySelector(".bulk-ca1").value) || 0));
+        const ca2  = Math.min(20, Math.max(0, Number(row.querySelector(".bulk-ca2").value) || 0));
+        const exam = Math.min(60, Math.max(0, Number(row.querySelector(".bulk-exam").value) || 0));
+        if (ca1 === 0 && ca2 === 0 && exam === 0) return;
+        const total = ca1 + ca2 + exam;
+        const g = gradeFor(total);
+        const existing = db.scores.find(sc => sc.studentId === studentId && sc.subjectId === subjectId);
+        const data = { id: existing?.id || id(), studentId, subjectId, ca1, ca2, ca: ca1 + ca2, exam, total, grade: g.grade, remark: g.remark, approved: false };
+        existing ? Object.assign(existing, data) : db.scores.push(data);
+        saved++;
+      });
+      if (!saved) return toast("No scores to save (all fields empty).");
+      save();
+      loadBulkEntry();
+      toast(`${saved} score${saved > 1 ? "s" : ""} saved successfully.`);
+    }
+
     function rankedStudents(classId) {
       return db.students.filter((s) => !classId || s.classId === classId).map((s) => {
         const scores = db.scores.filter((score) => score.studentId === s.id);
