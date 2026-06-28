@@ -76,11 +76,9 @@ app.post('/api/db', async (req, res) => {
   }
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`School Management System ready at http://0.0.0.0:${PORT}`);
-    console.log(`Mode: ${isVercel ? 'Vercel KV' : 'Local File'}`);
-  });
-}
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`School Management System ready at http://0.0.0.0:${PORT}`);
+  console.log(`Mode: Local File`);
+});
 
 module.exports = app;
