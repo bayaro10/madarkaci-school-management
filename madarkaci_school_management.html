@@ -761,14 +761,30 @@
       </div>
 
       <div id="fees" class="page hide">
-        <div class="toolbar"><h2>Fee Management</h2><div class="actions"><button class="primary" onclick="saveFee()">Record Payment</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="toolbar"><h2>Fee Management</h2><div class="actions"><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
         <div class="grid">
           <div class="panel span-4">
             <h3>Fee and Payment Tracking</h3>
             <div class="form-grid">
-              <div class="full"><label>Student</label><select id="feeStudent"></select></div>
-              <div><label>Amount Due</label><input id="feeDue" type="number" value="25000"></div>
-              <div><label>Amount Paid</label><input id="feePaid" type="number" value="0"></div>
+              <div class="full">
+                <label>Search Student (Reg. No. or Name)</label>
+                <input id="feeSearch" type="text" placeholder="Type reg. no. or student name..." oninput="searchFeeStudent()" autocomplete="off">
+                <div id="feeSearchResults" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;max-height:180px;overflow-y:auto;display:none;background:#fff;position:relative;z-index:10;"></div>
+              </div>
+              <div id="feeStudentInfo" class="full" style="display:none;background:var(--surface,#f8f9fa);border-radius:6px;padding:10px 12px;font-size:.95em;">
+                <span id="feeStudentLabel" style="font-weight:600;"></span>
+                <button type="button" style="float:right;background:none;border:none;color:#888;cursor:pointer;font-size:1em;" onclick="clearFeeStudent()">✕ Clear</button>
+              </div>
+              <input type="hidden" id="feeStudent">
+              <div id="feeAmountFields" style="display:none;width:100%;">
+                <div class="form-grid" style="width:100%">
+                  <div><label>Amount Due</label><input id="feeDue" type="number" value="25000"></div>
+                  <div><label>Amount Paid</label><input id="feePaid" type="number" value="0"></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <button class="primary" onclick="saveFee()" style="display:none;" id="feeSubmitBtn">Record Payment</button>
             </div>
           </div>
           <div class="panel span-8"><h3>Fee Payment Reports</h3><div class="table-wrap" id="feeTable"></div></div>
@@ -1492,7 +1508,7 @@ function fillSelects() {
          if (el) el.innerHTML = studentOptions.length ? options(studentOptions, "", (s) => `${s.regNo} - ${fullName(s)}`) : "";
        });
 
-       ["feeStudent", "reportStudent"].forEach((idName) => {
+       ["reportStudent"].forEach((idName) => {
          const el = document.getElementById(idName);
          if (el) el.innerHTML = options(db.students, "", (s) => `${s.regNo} - ${fullName(s)}`);
        });
@@ -1932,13 +1948,61 @@ function renderScores() {
        document.getElementById("scoreTable").innerHTML = table(["Position", "Reg No", "Name", "Class", "Total", "Average", "Grade"], rankedStudents(targetClassId).map((s) => [s.position, esc(s.regNo), esc(fullName(s)), esc(cls(s.classId).name), s.total, s.avg.toFixed(2), s.grade]));
      }
 
+    function searchFeeStudent() {
+      const query = document.getElementById("feeSearch").value.trim().toLowerCase();
+      const resultsEl = document.getElementById("feeSearchResults");
+      if (!query) { resultsEl.style.display = "none"; resultsEl.innerHTML = ""; return; }
+      const matches = db.students.filter(s =>
+        (s.regNo && s.regNo.toLowerCase().includes(query)) ||
+        fullName(s).toLowerCase().includes(query)
+      ).slice(0, 10);
+      if (!matches.length) {
+        resultsEl.innerHTML = `<div style="padding:10px 12px;color:#888;font-size:.9em;">No student found</div>`;
+      } else {
+        resultsEl.innerHTML = matches.map(s =>
+          `<div onclick="selectFeeStudent('${s.id}')" style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:.93em;" onmouseover="this.style.background='#f5f7ff'" onmouseout="this.style.background=''">`+
+          `<strong>${esc(s.regNo || "—")}</strong> &nbsp; ${esc(fullName(s))} <span style="color:#888;font-size:.88em;">(${esc(cls(s.classId).name)})</span></div>`
+        ).join("");
+      }
+      resultsEl.style.display = "block";
+    }
+
+    function selectFeeStudent(studentId) {
+      const s = db.students.find(st => st.id === studentId);
+      if (!s) return;
+      document.getElementById("feeStudent").value = studentId;
+      document.getElementById("feeSearch").value = "";
+      document.getElementById("feeSearchResults").style.display = "none";
+      document.getElementById("feeStudentLabel").innerHTML =
+        `<span style="color:var(--primary,#1a56db)">Reg: ${esc(s.regNo || "—")}</span> &nbsp; ${esc(fullName(s))} &nbsp; <span style="color:#888;font-size:.88em;">${esc(cls(s.classId).name)}</span>`;
+      document.getElementById("feeStudentInfo").style.display = "block";
+      // Pre-fill existing fee data if available
+      const existing = db.fees.find(f => f.studentId === studentId);
+      document.getElementById("feeDue").value = existing ? existing.amountDue : 25000;
+      document.getElementById("feePaid").value = existing ? existing.amountPaid : 0;
+      document.getElementById("feeAmountFields").style.display = "block";
+      document.getElementById("feeSubmitBtn").style.display = "inline-block";
+    }
+
+    function clearFeeStudent() {
+      document.getElementById("feeStudent").value = "";
+      document.getElementById("feeSearch").value = "";
+      document.getElementById("feeSearchResults").style.display = "none";
+      document.getElementById("feeStudentInfo").style.display = "none";
+      document.getElementById("feeAmountFields").style.display = "none";
+      document.getElementById("feeSubmitBtn").style.display = "none";
+    }
+
     function saveFee() {
       const studentId = document.getElementById("feeStudent").value;
+      if (!studentId) { toast("Please search and select a student first."); return; }
       const existing = db.fees.find((fee) => fee.studentId === studentId);
       const data = { id: existing?.id || id(), studentId: studentId, amountDue: Number(document.getElementById("feeDue").value || 0), amountPaid: Number(document.getElementById("feePaid").value || 0), date: today };
       existing ? Object.assign(existing, data) : db.fees.push(data);
       save();
       toast("Fee payment saved");
+      clearFeeStudent();
+      renderFees();
     }
     function renderFees() {
       let filteredFees = db.fees;
