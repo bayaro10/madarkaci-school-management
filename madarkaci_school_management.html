@@ -1085,16 +1085,45 @@
       });
     });
 
-    let db = seed; // Fallback to seed while loading
+    let db = null; // Will be loaded from server
+    let dbLoaded = false;
 
     function id() { return "id" + Math.random().toString(36).slice(2, 10); }
+
+    async function fetchWithRetry(url, retries = 5, delay = 1000) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) return response;
+        } catch (err) {
+          if (i < retries - 1) {
+            await new Promise(res => setTimeout(res, delay));
+          }
+        }
+      }
+      return null;
+    }
     
     async function load() {
       try {
-        const response = await fetch(API_URL);
-        if (response.ok) db = await response.json();
+        const response = await fetchWithRetry(API_URL);
+        if (response) {
+          const serverData = await response.json();
+          // Only use server data if it's a real database (has the expected structure)
+          if (serverData && serverData.students) {
+            db = serverData;
+            dbLoaded = true;
+          }
+        }
       } catch (err) {
-        console.error("Failed to load from API, using local seed.", err);
+        console.error("Failed to load from API.", err);
+      }
+
+      // Only fall back to seed if server truly has no data yet (first run)
+      if (!db) {
+        console.warn("No server data found. Initializing with seed data.");
+        db = seed;
+        dbLoaded = true;
       }
 
       // Check for existing session or auto-login credentials
