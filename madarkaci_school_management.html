@@ -870,6 +870,18 @@
         </div>
       </div>
 
+      <div id="activity" class="page hide">
+        <div class="toolbar"><h2>Activity Log</h2><div class="actions"><button class="secondary" onclick="renderActivityLog()">Refresh</button><button class="danger" onclick="clearActivityLog()">Clear Log</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="panel">
+          <div class="form-grid" style="margin-bottom:14px">
+            <div><label>Filter by User</label><select id="logFilterUser" onchange="renderActivityLog()"><option value="">All Users</option></select></div>
+            <div><label>Filter by Action</label><select id="logFilterAction" onchange="renderActivityLog()"><option value="">All Actions</option></select></div>
+            <div><label>Search Details</label><input id="logFilterSearch" oninput="renderActivityLog()" placeholder="Name, reg no, class…"></div>
+          </div>
+          <div class="table-wrap" id="activityLogTable"></div>
+        </div>
+      </div>
+
       <div id="reports" class="page hide print-page">
         <div class="toolbar"><h2>Reports</h2><div class="actions"><button class="secondary" onclick="printCurrentReport()">Print / PDF</button><button class="secondary" onclick="downloadCsv()">Download Excel CSV</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
         <div class="grid">
@@ -1170,6 +1182,7 @@
               if (!sc.session) sc.session = defaultSession;
             });
             if (!db.classApprovals) db.classApprovals = [];
+            if (!db.auditLog) db.auditLog = [];
           }
         }
       } catch (err) {
@@ -1213,6 +1226,20 @@
         showPage("login");
       }
       renderAll();
+    }
+
+    function logActivity(action, details) {
+      if (!db.auditLog) db.auditLog = [];
+      db.auditLog.unshift({
+        id: id(),
+        timestamp: new Date().toISOString(),
+        username: currentUser?.username || "System",
+        role: currentUser?.role || "System",
+        action,
+        details: details || ""
+      });
+      if (db.auditLog.length > 1000) db.auditLog = db.auditLog.slice(0, 1000);
+      fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(db) }).catch(() => {});
     }
 
     async function save() {
@@ -1374,10 +1401,12 @@
        currentUser = user;
        localStorage.setItem("mms_user", JSON.stringify(user));
        document.getElementById("activeUser").textContent = `${user.role}: ${user.username}`;
+       logActivity("Login", `Logged in as ${user.role}`);
        toast("Login successful");
        showPage(user.role === "Teacher" ? "scores" : "dashboard");
      }
      function logout() {
+       logActivity("Logout", "Logged out");
        currentUser = null;
        localStorage.removeItem("mms_user");
        document.getElementById("activeUser").textContent = "Not logged in";
@@ -1402,11 +1431,13 @@
       document.getElementById("metricBalance").textContent = money(db.fees.reduce((sum, fee) => sum + Math.max(0, fee.amountDue - fee.amountPaid), 0));
       document.getElementById("metricResults").textContent = db.scores.filter((score) => score.approved).length;
       document.getElementById("recentStudents").innerHTML = table(["Reg No", "Name", "Class"], db.students.slice(-5).reverse().map((s) => [esc(s.regNo), esc(fullName(s)), esc(cls(s.classId).name)]));
+      const adminLink = currentUser?.role === "Administrator" ? `<button class="secondary" onclick="showPage('activity')" style="margin-top:8px;font-size:.85em">📋 View Activity Log</button>` : "";
       document.getElementById("moduleStatus").innerHTML = table(["Module", "Status"], [
         ["Student / Staff / Class / Subject Management", '<span class="pill">Functional</span>'],
         ["Score Entry, Grade, Position, Publishing", '<span class="pill">Functional</span>'],
         ["Reports, Print PDF, CSV Download", '<span class="pill">Functional</span>'],
-        ["Portals, Calendar, Backup / Restore", '<span class="pill">Functional</span>']
+        ["Portals, Calendar, Backup / Restore", '<span class="pill">Functional</span>'],
+        ["Login & Activity Audit Log", `<span class="pill">Functional</span> ${adminLink}`]
       ]);
       renderRolePanels();
     }
@@ -1643,8 +1674,10 @@ function fillSelects() {
       };
       if (!data.regNo || !data.firstName || !data.classId) return toast("Admission no, first name, and class are required.");
       const existing = db.students.findIndex((item) => item.id === data.id);
-      existing >= 0 ? db.students.splice(existing, 1, data) : db.students.push(data);
+      const isEdit = existing >= 0;
+      isEdit ? db.students.splice(existing, 1, data) : db.students.push(data);
       save();
+      logActivity(isEdit ? "Student Edited" : "Student Added", `${data.firstName} ${data.lastName} (${data.regNo})`);
       toast("Student saved");
     }
     function editStudent(studentId) {
@@ -1671,17 +1704,22 @@ function fillSelects() {
     }
     function deleteStudent(studentId) {
       if (!confirm("Delete this student and related scores, fees, and attendance?")) return;
+      const s = student(studentId);
+      const name = s ? `${fullName(s)} (${s.regNo})` : studentId;
       db.students = db.students.filter((item) => item.id !== studentId);
       db.scores = db.scores.filter((item) => item.studentId !== studentId);
       db.fees = db.fees.filter((item) => item.studentId !== studentId);
       db.attendance = db.attendance.filter((item) => item.studentId !== studentId);
       save();
+      logActivity("Student Deleted", name);
     }
     function promoteStudent(studentId) {
       const s = student(studentId);
+      const fromClass = cls(s.classId).name;
       const index = db.classes.findIndex((item) => item.id === s.classId);
       if (index >= 0 && db.classes[index + 1]) s.classId = db.classes[index + 1].id;
       save();
+      logActivity("Student Promoted", `${fullName(s)} from ${fromClass} → ${cls(s.classId).name}`);
       toast("Student promoted to next class");
     }
 
@@ -1747,6 +1785,7 @@ function fillSelects() {
       });
 
       save();
+      logActivity("Bulk Promotion", `${moved} students promoted, ${graduated} graduated — ${db.settings.term} ${db.settings.session}`);
       hidePromotionPanel();
       renderStudents();
       toast(`Promotion complete: ${moved} promoted, ${graduated} graduated.`);
@@ -1784,8 +1823,10 @@ function fillSelects() {
         phone: get("staffPhone"), subjectIds: selectedSubjects, address: get("staffAddress") 
       };
       const index = db.staff.findIndex((item) => item.id === data.id);
-      index >= 0 ? db.staff.splice(index, 1, data) : db.staff.push(data);
+      const isStaffEdit = index >= 0;
+      isStaffEdit ? db.staff.splice(index, 1, data) : db.staff.push(data);
       save();
+      logActivity(isStaffEdit ? "Staff Edited" : "Staff Added", `${data.firstName} ${data.lastName} (${data.role})`);
       toast("Staff saved");
     }
     function editStaff(staffIdValue) {
@@ -1807,8 +1848,10 @@ function fillSelects() {
       if (db.classes.some((item) => item.teacherId === staffIdValue) || db.subjects.some((item) => item.teacherId === staffIdValue)) {
         return toast("Remove this staff member from assigned classes/subjects first.");
       }
+      const sName = db.staff.find(x => x.id === staffIdValue);
       db.staff = db.staff.filter((item) => item.id !== staffIdValue);
       save();
+      logActivity("Staff Deleted", sName ? `${fullName(sName)} (${sName.role})` : staffIdValue);
     }
     function renderStaff() {
       document.getElementById("staffTable").innerHTML = table(["Staff No", "Name", "Role", "Phone", "Subjects", "Action"], db.staff.map((s) => {
@@ -1922,6 +1965,7 @@ function fillSelects() {
       };
       existing ? Object.assign(existing, data) : db.scores.push(data);
       save();
+      logActivity("Score Saved", `${fullName(stu)} — ${subject(subjectId).name} (${db.settings.term} ${db.settings.session})`);
       toast("Score saved");
     }
     function isClassApproved(classId, term, session) {
@@ -1935,6 +1979,7 @@ function fillSelects() {
       const existing = db.classApprovals.find(a => a.classId === classId && a.term === term && a.session === session);
       const entry = { classId, term, session, approved: true, approvedBy: currentUser?.username || "admin", approvedAt: new Date().toISOString() };
       existing ? Object.assign(existing, entry) : db.classApprovals.push(entry);
+      logActivity("Class Approved", `${cls(classId).name} — ${term} ${session}`);
       // Mark individual scores as approved
       db.scores.filter(sc => {
         const stu = db.students.find(st => st.id === sc.studentId);
@@ -2022,6 +2067,7 @@ function fillSelects() {
       db.scores.filter(sc => sc.term === term && sc.session === session).forEach(sc => sc.approved = true);
       db.published = true;
       save();
+      logActivity("All Classes Approved", `${term} ${session} — results published`);
       toast("All classes approved and results published.");
       renderApprovalPanel();
     }
@@ -2336,8 +2382,63 @@ function renderAttendance() {
       const get = (id) => document.getElementById(id).value;
       db.settings = { schoolName: get("setSchoolName"), phone: get("setPhone"), email: get("setEmail"), session: get("setSession"), term: get("setTerm"), daysOpen: Number(get("setDaysOpen") || 0), nextTermBegins: get("setNextTerm"), address: get("setAddress"), principalComment: get("setPrincipalComment"), directorName: get("setDirectorName"), directorPhone: get("setDirectorPhone") };
       save();
+      logActivity("Settings Updated", `Term: ${db.settings.term}, Session: ${db.settings.session}`);
       toast("Settings saved");
     }
+    function renderActivityLog() {
+      if (!db.auditLog) db.auditLog = [];
+      const logs = db.auditLog;
+
+      // Populate filter dropdowns
+      const userSel = document.getElementById("logFilterUser");
+      const actionSel = document.getElementById("logFilterAction");
+      if (userSel && actionSel) {
+        const currentUserFilter = userSel.value;
+        const currentActionFilter = actionSel.value;
+        const users = [...new Set(logs.map(l => l.username))].sort();
+        const actions = [...new Set(logs.map(l => l.action))].sort();
+        userSel.innerHTML = `<option value="">All Users</option>` + users.map(u => `<option${u === currentUserFilter ? " selected" : ""}>${esc(u)}</option>`).join("");
+        actionSel.innerHTML = `<option value="">All Actions</option>` + actions.map(a => `<option${a === currentActionFilter ? " selected" : ""}>${esc(a)}</option>`).join("");
+      }
+
+      const filterUser = userSel?.value || "";
+      const filterAction = actionSel?.value || "";
+      const filterSearch = (document.getElementById("logFilterSearch")?.value || "").toLowerCase();
+
+      const filtered = logs.filter(l =>
+        (!filterUser || l.username === filterUser) &&
+        (!filterAction || l.action === filterAction) &&
+        (!filterSearch || `${l.details} ${l.username} ${l.action}`.toLowerCase().includes(filterSearch))
+      );
+
+      const rows = filtered.slice(0, 300).map(l => {
+        const d = new Date(l.timestamp);
+        const dateStr = isNaN(d) ? l.timestamp : `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`;
+        const actionColor = l.action.includes("Delet") ? "#c62828" : l.action.includes("Login") || l.action.includes("Logout") ? "#1565c0" : l.action.includes("Approved") ? "#2e7d32" : "#555";
+        return [
+          esc(dateStr),
+          esc(l.username),
+          esc(l.role),
+          `<span style="color:${actionColor};font-weight:600">${esc(l.action)}</span>`,
+          esc(l.details)
+        ];
+      });
+      const tableEl = document.getElementById("activityLogTable");
+      if (tableEl) {
+        tableEl.innerHTML = rows.length
+          ? `<p style="color:#888;font-size:.85em;margin-bottom:8px">Showing ${rows.length} of ${filtered.length} entries (max 300 displayed)</p>` + table(["Time", "User", "Role", "Action", "Details"], rows)
+          : `<p class="hint">No log entries found.</p>`;
+      }
+    }
+
+    function clearActivityLog() {
+      if (!confirm("Clear all activity log entries? This cannot be undone.")) return;
+      db.auditLog = [];
+      save();
+      renderActivityLog();
+      toast("Activity log cleared.");
+    }
+
     function renderSettings() {
       const set = (id, val) => document.getElementById(id).value = val;
       set("setSchoolName", db.settings.schoolName);
@@ -3101,6 +3202,7 @@ function renderReports() {
       renderTools();
       renderReports();
       renderWebsite();
+      if (currentUser?.role === "Administrator") renderActivityLog();
     }
 
     attendanceDate.value = today;
