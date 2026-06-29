@@ -1757,7 +1757,7 @@ function fillSelects() {
         .filter((s) => `${s.regNo} ${fullName(s)} ${s.parentPhone}`.toLowerCase().includes(search))
         .map((s) => [
           esc(s.regNo), esc(fullName(s)), esc(s.gender), esc(cls(s.classId).name), esc(s.parentPhone),
-          `<button class="secondary" onclick="editStudent('${s.id}')">Edit</button> <button class="secondary" onclick="promoteStudent('${s.id}')">Promote</button> <button class="danger" onclick="deleteStudent('${s.id}')">Delete</button>`
+          `<button class="secondary" onclick="editStudent('${s.id}')">Edit</button> <button class="secondary" onclick="promoteStudent('${s.id}')">Promote</button>${currentUser?.role === "Administrator" ? ` <button class="secondary" onclick="printStudentIdCard('${s.id}')">🪪 ID Card</button>` : ""} <button class="danger" onclick="deleteStudent('${s.id}')">Delete</button>`
         ]);
       document.getElementById("studentTable").innerHTML = table(["Reg No", "Name", "Gender", "Class", "Parent Phone", "Action"], rows);
     }
@@ -1818,7 +1818,7 @@ function fillSelects() {
         esc(s.role),
         esc(s.phone),
         esc(names || "None"),
-        `<button class="secondary" onclick="editStaff('${s.id}')">Edit</button> <button class="danger" onclick="deleteStaff('${s.id}')">Delete</button>`
+        `<button class="secondary" onclick="editStaff('${s.id}')">Edit</button>${currentUser?.role === "Administrator" ? ` <button class="secondary" onclick="printStaffIdCard('${s.id}')">🪪 ID Card</button>` : ""} <button class="danger" onclick="deleteStaff('${s.id}')">Delete</button>`
         ];
       }));
     }
@@ -2609,6 +2609,67 @@ function renderAttendance() {
     function idCard(s) {
       const photoHtml = s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover">` : "PHOTO";
       return `<div class="id-card"><div style="display:flex;justify-content:space-between;gap:10px"><div style="display:flex;gap:8px;align-items:center"><img class="id-logo" src="assets/mms-logo.jpg" alt="Madarkaci Model School logo"><div><strong>${esc(db.settings.schoolName)}</strong><br><span class="hint">Student Identity Card</span></div></div><div class="photo">${photoHtml}</div></div><hr><strong>${esc(fullName(s))}</strong><br>Reg No: ${esc(s.regNo)}<br>Class: ${esc(cls(s.classId).name)}<br>Gender: ${esc(s.gender)}<br>Parent Phone: ${esc(s.parentPhone)}</div>`;
+    }
+
+    function printIdCardWindow(cardHtml, title) {
+      const w = window.open("", "_blank", "width=420,height=320");
+      w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><style>
+        body{margin:0;padding:20px;font-family:Arial,sans-serif;font-size:12px;background:#fff}
+        .id-card{border:2px solid #1565c0;border-radius:10px;padding:14px;width:300px;margin:0 auto;page-break-inside:avoid}
+        .id-card hr{border:none;border-top:1px solid #ccc;margin:8px 0}
+        .id-logo{width:44px;height:44px;object-fit:contain;border-radius:4px}
+        .photo{width:72px;height:80px;border:1px solid #ccc;border-radius:5px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;overflow:hidden;flex-shrink:0}
+        .photo img{width:100%;height:100%;object-fit:cover}
+        .hint{font-size:10px;color:#666}
+        .badge{display:inline-block;background:#1565c0;color:#fff;border-radius:4px;padding:2px 7px;font-size:10px;margin-top:4px}
+        @media print{body{padding:4px}}
+      </style></head><body>${cardHtml}<script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script></body></html>`);
+      w.document.close();
+    }
+
+    function printStudentIdCard(studentId) {
+      const s = student(studentId);
+      if (!s) return toast("Student not found");
+      const photoHtml = s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover">` : "PHOTO";
+      const cardHtml = `<div class="id-card">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+          <div style="display:flex;gap:8px;align-items:center">
+            <img class="id-logo" src="assets/mms-logo.jpg" alt="logo">
+            <div><strong>${esc(db.settings.schoolName)}</strong><br><span class="hint">Student Identity Card</span></div>
+          </div>
+          <div class="photo">${photoHtml}</div>
+        </div>
+        <hr>
+        <strong>${esc(fullName(s))}</strong><br>
+        Reg No: ${esc(s.regNo)}<br>
+        Class: ${esc(cls(s.classId).name)}<br>
+        Gender: ${esc(s.gender)}<br>
+        Parent Phone: ${esc(s.parentPhone)}<br>
+        Session: ${esc(db.settings.session)}
+      </div>`;
+      printIdCardWindow(cardHtml, `ID Card — ${fullName(s)}`);
+    }
+
+    function printStaffIdCard(staffId) {
+      const s = db.staff.find(x => x.id === staffId);
+      if (!s) return toast("Staff not found");
+      const photoHtml = s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover">` : "PHOTO";
+      const cardHtml = `<div class="id-card">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+          <div style="display:flex;gap:8px;align-items:center">
+            <img class="id-logo" src="assets/mms-logo.jpg" alt="logo">
+            <div><strong>${esc(db.settings.schoolName)}</strong><br><span class="hint">Staff Identity Card</span></div>
+          </div>
+          <div class="photo">${photoHtml}</div>
+        </div>
+        <hr>
+        <strong>${esc(fullName(s))}</strong><br>
+        Staff No: ${esc(s.staffNo)}<br>
+        Role: ${esc(s.role)}<br>
+        Phone: ${esc(s.phone)}<br>
+        <span class="badge">${esc(s.role)}</span>
+      </div>`;
+      printIdCardWindow(cardHtml, `ID Card — ${fullName(s)}`);
     }
     function certificate(s) {
       return `<div class="report-box" style="text-align:center;min-height:360px;display:grid;place-items:center"><div><img class="report-logo" src="assets/mms-logo.jpg" alt="Madarkaci Model School logo"><h2>${esc(db.settings.schoolName)}</h2><h3>Certificate of Student Record</h3><p>Motto: Learning For Brighter Future</p><p>This certifies that</p><h2>${esc(fullName(s))}</h2><p>with admission number <strong>${esc(s.regNo)}</strong> is a registered student of ${esc(cls(s.classId).name)}.</p><p>Session: ${esc(db.settings.session)}</p><br><p>Principal Signature __________________</p></div></div>`;
