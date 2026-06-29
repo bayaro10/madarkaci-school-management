@@ -720,7 +720,7 @@
       </div>
 
       <div id="scores" class="page hide">
-        <div class="toolbar"><h2>Result Management</h2><div class="actions"><button id="btnSingleEntry" class="primary" onclick="setScoreMode('single')">Single Entry</button><button id="btnBulkEntry" class="secondary" onclick="setScoreMode('bulk')">Bulk Entry</button><button class="secondary" onclick="publishResults()">Approve / Publish</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="toolbar"><h2>Result Management</h2><div class="actions"><button id="btnSingleEntry" class="primary" onclick="setScoreMode('single')">Single Entry</button><button id="btnBulkEntry" class="secondary" onclick="setScoreMode('bulk')">Bulk Entry</button><button id="btnApproveAll" class="secondary" onclick="publishResults()" style="display:none">Approve All Classes</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
 
         <!-- SINGLE ENTRY MODE -->
         <div id="singleEntryPanel" class="grid">
@@ -739,6 +739,17 @@
             <button class="primary" style="width:100%;margin-top:10px" onclick="saveScore()">Save Score</button>
           </div>
           <div class="panel span-8"><h3>Class Broadsheet / Position Ranking</h3><div class="table-wrap" id="scoreTable"></div></div>
+        </div>
+
+        <!-- APPROVAL PANEL (Exam Officer / Admin only) -->
+        <div id="approvalPanel" class="hide" style="margin-top:14px">
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <h3 style="margin:0" id="approvalPanelTitle">Class Approval Status</h3>
+              <span id="approvalTermLabel" style="font-size:.88em;color:#666"></span>
+            </div>
+            <div class="table-wrap" id="approvalTable"></div>
+          </div>
         </div>
 
         <!-- BULK ENTRY MODE -->
@@ -1138,6 +1149,7 @@
               if (!sc.term) sc.term = defaultTerm;
               if (!sc.session) sc.session = defaultSession;
             });
+            if (!db.classApprovals) db.classApprovals = [];
           }
         }
       } catch (err) {
@@ -1824,11 +1836,106 @@ function fillSelects() {
       save();
       toast("Score saved");
     }
+    function isClassApproved(classId, term, session) {
+      if (!db.classApprovals) return false;
+      return db.classApprovals.some(a => a.classId === classId && a.term === term && a.session === session && a.approved);
+    }
+
+    function approveClass(classId) {
+      if (!db.classApprovals) db.classApprovals = [];
+      const term = db.settings.term, session = db.settings.session;
+      const existing = db.classApprovals.find(a => a.classId === classId && a.term === term && a.session === session);
+      const entry = { classId, term, session, approved: true, approvedBy: currentUser?.username || "admin", approvedAt: new Date().toISOString() };
+      existing ? Object.assign(existing, entry) : db.classApprovals.push(entry);
+      // Mark individual scores as approved
+      db.scores.filter(sc => {
+        const stu = db.students.find(st => st.id === sc.studentId);
+        return stu && stu.classId === classId && sc.term === term && sc.session === session;
+      }).forEach(sc => sc.approved = true);
+      save();
+      toast("Class approved — report cards are now printable.");
+      renderApprovalPanel();
+    }
+
+    function revokeClass(classId) {
+      if (!db.classApprovals) db.classApprovals = [];
+      const term = db.settings.term, session = db.settings.session;
+      const existing = db.classApprovals.find(a => a.classId === classId && a.term === term && a.session === session);
+      if (existing) existing.approved = false;
+      // Un-approve individual scores too
+      db.scores.filter(sc => {
+        const stu = db.students.find(st => st.id === sc.studentId);
+        return stu && stu.classId === classId && sc.term === term && sc.session === session;
+      }).forEach(sc => sc.approved = false);
+      save();
+      toast("Approval revoked — scores returned for correction.");
+      renderApprovalPanel();
+    }
+
+    function renderApprovalPanel() {
+      const panel = document.getElementById("approvalPanel");
+      const table_el = document.getElementById("approvalTable");
+      const labelEl = document.getElementById("approvalTermLabel");
+      if (!panel || !table_el) return;
+      const term = db.settings.term, session = db.settings.session;
+      if (labelEl) labelEl.textContent = `${term} — ${session}`;
+
+      const role = currentUser?.role;
+      if (role !== "Exam Officer" && role !== "Administrator") {
+        panel.classList.add("hide");
+        return;
+      }
+      panel.classList.remove("hide");
+      const btnApproveAll = document.getElementById("btnApproveAll");
+      if (btnApproveAll) btnApproveAll.style.display = (role === "Administrator") ? "" : "none";
+
+      const rows = db.classes.map(c => {
+        const students = db.students.filter(s => s.classId === c.id);
+        const classScores = db.scores.filter(sc => {
+          const stu = db.students.find(st => st.id === sc.studentId);
+          return stu && stu.classId === c.id && sc.term === term && sc.session === session;
+        });
+        const expectedScores = students.length * db.subjects.filter(s => s.classId === c.id).length;
+        const approved = isClassApproved(c.id, term, session);
+        const statusBadge = approved
+          ? `<span class="pill" style="background:#1b5e20;color:#fff">✓ Approved</span>`
+          : classScores.length === 0
+            ? `<span class="pill warn">No Scores</span>`
+            : `<span class="pill bad">Pending</span>`;
+        const actions = approved
+          ? `<button class="danger" style="padding:3px 10px;font-size:.8em" onclick="revokeClass('${c.id}')">Revoke</button>`
+          : classScores.length > 0
+            ? `<button class="primary" style="padding:3px 10px;font-size:.8em" onclick="approveClass('${c.id}')">Approve</button>`
+            : `—`;
+        return `<tr><td>${esc(c.name)}</td><td>${students.length}</td><td>${classScores.length} / ${expectedScores || "—"}</td><td>${statusBadge}</td><td>${actions}</td></tr>`;
+      }).join("");
+
+      table_el.innerHTML = `<table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f0f4f9">
+          <th style="text-align:left;padding:7px 10px;border-bottom:2px solid #c8d8ea">Class</th>
+          <th style="padding:7px 10px;border-bottom:2px solid #c8d8ea">Students</th>
+          <th style="padding:7px 10px;border-bottom:2px solid #c8d8ea">Scores Entered</th>
+          <th style="padding:7px 10px;border-bottom:2px solid #c8d8ea">Status</th>
+          <th style="padding:7px 10px;border-bottom:2px solid #c8d8ea">Action</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    }
+
     function publishResults() {
-      db.scores.forEach((score) => score.approved = true);
+      if (!confirm("Approve ALL classes for " + db.settings.term + " " + db.settings.session + "?")) return;
+      if (!db.classApprovals) db.classApprovals = [];
+      const term = db.settings.term, session = db.settings.session;
+      db.classes.forEach(c => {
+        const existing = db.classApprovals.find(a => a.classId === c.id && a.term === term && a.session === session);
+        const entry = { classId: c.id, term, session, approved: true, approvedBy: currentUser?.username || "admin", approvedAt: new Date().toISOString() };
+        existing ? Object.assign(existing, entry) : db.classApprovals.push(entry);
+      });
+      db.scores.filter(sc => sc.term === term && sc.session === session).forEach(sc => sc.approved = true);
       db.published = true;
       save();
-      toast("Results approved and published");
+      toast("All classes approved and results published.");
+      renderApprovalPanel();
     }
 
     function setScoreMode(mode) {
@@ -1956,7 +2063,7 @@ function fillSelects() {
         const total = ca1 + ca2 + exam;
         const g = gradeFor(total);
         const existing = db.scores.find(sc => sc.studentId === studentId && sc.subjectId === subjectId);
-        const data = { id: existing?.id || id(), studentId, subjectId, ca1, ca2, ca: ca1 + ca2, exam, total, grade: g.grade, remark: g.remark, approved: false };
+        const data = { id: existing?.id || id(), studentId, subjectId, ca1, ca2, ca: ca1 + ca2, exam, total, grade: g.grade, remark: g.remark, approved: false, term: db.settings.term, session: db.settings.session };
         existing ? Object.assign(existing, data) : db.scores.push(data);
         saved++;
       });
@@ -1982,6 +2089,7 @@ function renderScores() {
          targetClassId = assignedClasses.length === 1 ? assignedClasses[0] : "";
        }
        document.getElementById("scoreTable").innerHTML = table(["Position", "Reg No", "Name", "Class", "Total", "Average", "Grade"], rankedStudents(targetClassId).map((s) => [s.position, esc(s.regNo), esc(fullName(s)), esc(cls(s.classId).name), s.total, s.avg.toFixed(2), s.grade]));
+       renderApprovalPanel();
      }
 
     function searchFeeStudent() {
@@ -2568,7 +2676,19 @@ function renderReports() {
 
        const selTerm    = document.getElementById("reportTerm")?.value    || db.settings.term;
        const selSession = document.getElementById("reportSession")?.value || db.settings.session;
-       if (type === "Student Report Card") html = studentReportCard(s, selTerm, selSession);
+       if (type === "Student Report Card") {
+         const role = currentUser?.role;
+         const classApproved = isClassApproved(s?.classId, selTerm, selSession);
+         if (!classApproved && role !== "Administrator" && role !== "Exam Officer") {
+           html = `<div style="text-align:center;padding:60px 20px;color:#c62828">
+             <div style="font-size:48px;margin-bottom:12px">🔒</div>
+             <h3 style="color:#c62828;margin-bottom:8px">Report Card Not Yet Approved</h3>
+             <p style="color:#555;max-width:340px;margin:0 auto">The Exam Officer has not yet approved scores for <strong>${esc(cls(s?.classId).name)}</strong> for ${esc(selTerm)}, ${esc(selSession)}.<br><br>Please check back after approval.</p>
+           </div>`;
+         } else {
+           html = studentReportCard(s, selTerm, selSession);
+         }
+       }
        if (type === "Class Broadsheet") html = schoolHeader + classBroadsheet(classId);
        if (type === "Academic Performance") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Academic Performance Report</h3>` + table(["Class", "Students", "Class Average"], db.classes.map((c) => { const r = rankedStudents(c.id); const avg = r.length ? r.reduce((sum, x) => sum + x.avg, 0) / r.length : 0; return [esc(c.name), r.length, avg.toFixed(2)]; }));
        if (type === "Attendance Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Attendance Report</h3>` + document.getElementById("attendanceTable").innerHTML;
