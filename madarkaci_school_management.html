@@ -861,6 +861,8 @@
             <div><label>Term</label><select id="setTerm"><option>First Term</option><option>Second Term</option><option>Third Term</option></select></div>
             <div><label>Days Open</label><input id="setDaysOpen" type="number"></div>
             <div><label>Next Term Begins</label><input id="setNextTerm" type="date"></div>
+            <div><label>Director Name</label><input id="setDirectorName" placeholder="e.g. Alhaji Musa Bello"></div>
+            <div><label>Director Phone</label><input id="setDirectorPhone" placeholder="e.g. 0801 234 5678"></div>
             <div class="full"><label>School Email</label><input id="setEmail"></div>
             <div class="full"><label>Address</label><textarea id="setAddress"></textarea></div>
             <div class="full"><label>Principal Comment</label><textarea id="setPrincipalComment"></textarea></div>
@@ -874,7 +876,7 @@
           <div class="panel span-4 no-print">
             <h3>Report Options</h3>
             <div class="form-grid">
-              <div class="full"><label>Report Type</label><select id="reportType" onchange="renderReports()"><option>Student Report Card</option><option>Class Broadsheet</option><option>Academic Performance</option><option>Attendance Report</option><option>Fee Payment Report</option><option>Staff Report</option><option>Admission Report</option><option>Student ID Card</option><option>Certificate</option><option>Class List Report</option></select></div>
+              <div class="full"><label>Report Type</label><select id="reportType" onchange="renderReports()"><option>Student Report Card</option><option>Class Broadsheet</option><option>Academic Performance</option><option>Attendance Report</option><option>Fee Payment Report</option><option>Staff Report</option><option>Admission Report</option><option>Student ID Card</option><option>Class ID Cards (Bulk)</option><option>Certificate</option><option>Class List Report</option></select></div>
               <div class="full"><label>Student</label><select id="reportStudent" onchange="renderReports()"></select></div>
               <div class="full"><label>Class</label><select id="reportClass" onchange="renderReports()"></select></div>
               <div class="full"><label>Session</label><select id="reportSession" onchange="renderReports()"></select></div>
@@ -1516,7 +1518,7 @@ function fillSelects() {
          const allOptions = [
            "Student Report Card", "Class Broadsheet", "Academic Performance",
            "Attendance Report", "Fee Payment Report", "Staff Report",
-           "Admission Report", "Student ID Card", "Certificate", "Class List Report"
+           "Admission Report", "Student ID Card", "Class ID Cards (Bulk)", "Certificate", "Class List Report"
          ];
          const teacherAllowed = ["Student Report Card", "Class Broadsheet", "Fee Payment Report", "Class List Report"];
          
@@ -2332,7 +2334,7 @@ function renderAttendance() {
 
     function saveSettings() {
       const get = (id) => document.getElementById(id).value;
-      db.settings = { schoolName: get("setSchoolName"), phone: get("setPhone"), email: get("setEmail"), session: get("setSession"), term: get("setTerm"), daysOpen: Number(get("setDaysOpen") || 0), nextTermBegins: get("setNextTerm"), address: get("setAddress"), principalComment: get("setPrincipalComment") };
+      db.settings = { schoolName: get("setSchoolName"), phone: get("setPhone"), email: get("setEmail"), session: get("setSession"), term: get("setTerm"), daysOpen: Number(get("setDaysOpen") || 0), nextTermBegins: get("setNextTerm"), address: get("setAddress"), principalComment: get("setPrincipalComment"), directorName: get("setDirectorName"), directorPhone: get("setDirectorPhone") };
       save();
       toast("Settings saved");
     }
@@ -2347,6 +2349,8 @@ function renderAttendance() {
       set("setNextTerm", db.settings.nextTermBegins);
       set("setAddress", db.settings.address);
       set("setPrincipalComment", db.settings.principalComment);
+      set("setDirectorName", db.settings.directorName || "");
+      set("setDirectorPhone", db.settings.directorPhone || "");
     }
 
     function studentReportCard(s, filterTerm, filterSession) {
@@ -2611,31 +2615,55 @@ function renderAttendance() {
       return `<div class="id-card"><div style="display:flex;justify-content:space-between;gap:10px"><div style="display:flex;gap:8px;align-items:center"><img class="id-logo" src="assets/mms-logo.jpg" alt="Madarkaci Model School logo"><div><strong>${esc(db.settings.schoolName)}</strong><br><span class="hint">Student Identity Card</span></div></div><div class="photo">${photoHtml}</div></div><hr><strong>${esc(fullName(s))}</strong><br>Reg No: ${esc(s.regNo)}<br>Class: ${esc(cls(s.classId).name)}<br>Gender: ${esc(s.gender)}<br>Parent Phone: ${esc(s.parentPhone)}</div>`;
     }
 
-    function printIdCardWindow(cardHtml, title) {
-      const w = window.open("", "_blank", "width=420,height=320");
+    function idCardBack() {
+      const st = db.settings;
+      return `<div class="id-card id-back">
+        <div style="text-align:center;margin-bottom:6px">
+          <img class="id-logo" src="assets/mms-logo.jpg" alt="logo" style="display:block;margin:0 auto 4px">
+          <strong style="font-size:11px">${esc(st.schoolName)}</strong><br>
+          <span class="hint" style="font-style:italic">Learning For Brighter Future</span>
+        </div>
+        <hr>
+        <div style="font-size:10px;line-height:1.7;color:#333">
+          ${st.address ? `📍 ${esc(st.address)}<br>` : ""}
+          ${st.phone ? `📞 ${esc(st.phone)}<br>` : ""}
+          ${st.email ? `✉️ ${esc(st.email)}<br>` : ""}
+          ${(st.directorName || st.directorPhone) ? `<hr style="margin:5px 0;border-color:#ddd">
+          <strong>Director:</strong> ${esc(st.directorName || "")}${st.directorPhone ? `<br>📞 ${esc(st.directorPhone)}` : ""}` : ""}
+        </div>
+        <hr>
+        <div style="font-size:9px;color:#777;text-align:center;margin-top:4px">If found, please return to school.</div>
+      </div>`;
+    }
+
+    function printIdCardWindow(pairs, title) {
+      const w = window.open("", "_blank", "width=780,height=500");
+      const rowsHtml = pairs.map(([front, back]) =>
+        `<div class="card-row">${front}${back}</div>`
+      ).join("");
       w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><style>
-        body{margin:0;padding:20px;font-family:Arial,sans-serif;font-size:12px;background:#fff}
-        .id-card{border:2px solid #1565c0;border-radius:10px;padding:14px;width:300px;margin:0 auto;page-break-inside:avoid}
-        .id-card hr{border:none;border-top:1px solid #ccc;margin:8px 0}
-        .id-logo{width:44px;height:44px;object-fit:contain;border-radius:4px}
-        .photo{width:72px;height:80px;border:1px solid #ccc;border-radius:5px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;overflow:hidden;flex-shrink:0}
+        body{margin:0;padding:16px;font-family:Arial,sans-serif;font-size:12px;background:#fff}
+        .card-row{display:flex;gap:18px;margin-bottom:16px;page-break-inside:avoid}
+        .id-card{border:2px solid #1565c0;border-radius:10px;padding:12px;width:280px;box-sizing:border-box;flex-shrink:0}
+        .id-back{border-color:#0d47a1;background:#f5f8ff}
+        .id-card hr{border:none;border-top:1px solid #ccc;margin:7px 0}
+        .id-logo{width:42px;height:42px;object-fit:contain;border-radius:4px}
+        .photo{width:68px;height:76px;border:1px solid #ccc;border-radius:5px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;overflow:hidden;flex-shrink:0}
         .photo img{width:100%;height:100%;object-fit:cover}
         .hint{font-size:10px;color:#666}
-        .badge{display:inline-block;background:#1565c0;color:#fff;border-radius:4px;padding:2px 7px;font-size:10px;margin-top:4px}
-        @media print{body{padding:4px}}
-      </style></head><body>${cardHtml}<script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script></body></html>`);
+        .badge{display:inline-block;background:#1565c0;color:#fff;border-radius:4px;padding:2px 6px;font-size:10px;margin-top:3px}
+        @media print{body{padding:4px}.card-row{break-inside:avoid}}
+      </style></head><body>${rowsHtml}<script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script></body></html>`);
       w.document.close();
     }
 
-    function printStudentIdCard(studentId) {
-      const s = student(studentId);
-      if (!s) return toast("Student not found");
+    function buildStudentFront(s) {
       const photoHtml = s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover">` : "PHOTO";
-      const cardHtml = `<div class="id-card">
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-          <div style="display:flex;gap:8px;align-items:center">
+      return `<div class="id-card">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+          <div style="display:flex;gap:7px;align-items:center">
             <img class="id-logo" src="assets/mms-logo.jpg" alt="logo">
-            <div><strong>${esc(db.settings.schoolName)}</strong><br><span class="hint">Student Identity Card</span></div>
+            <div><strong style="font-size:11px">${esc(db.settings.schoolName)}</strong><br><span class="hint">Student Identity Card</span></div>
           </div>
           <div class="photo">${photoHtml}</div>
         </div>
@@ -2647,18 +2675,23 @@ function renderAttendance() {
         Parent Phone: ${esc(s.parentPhone)}<br>
         Session: ${esc(db.settings.session)}
       </div>`;
-      printIdCardWindow(cardHtml, `ID Card — ${fullName(s)}`);
+    }
+
+    function printStudentIdCard(studentId) {
+      const s = student(studentId);
+      if (!s) return toast("Student not found");
+      printIdCardWindow([[buildStudentFront(s), idCardBack()]], `ID Card — ${fullName(s)}`);
     }
 
     function printStaffIdCard(staffId) {
       const s = db.staff.find(x => x.id === staffId);
       if (!s) return toast("Staff not found");
       const photoHtml = s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover">` : "PHOTO";
-      const cardHtml = `<div class="id-card">
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-          <div style="display:flex;gap:8px;align-items:center">
+      const front = `<div class="id-card">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+          <div style="display:flex;gap:7px;align-items:center">
             <img class="id-logo" src="assets/mms-logo.jpg" alt="logo">
-            <div><strong>${esc(db.settings.schoolName)}</strong><br><span class="hint">Staff Identity Card</span></div>
+            <div><strong style="font-size:11px">${esc(db.settings.schoolName)}</strong><br><span class="hint">Staff Identity Card</span></div>
           </div>
           <div class="photo">${photoHtml}</div>
         </div>
@@ -2669,8 +2702,47 @@ function renderAttendance() {
         Phone: ${esc(s.phone)}<br>
         <span class="badge">${esc(s.role)}</span>
       </div>`;
-      printIdCardWindow(cardHtml, `ID Card — ${fullName(s)}`);
+      printIdCardWindow([[front, idCardBack()]], `ID Card — ${fullName(s)}`);
     }
+    function renderClassIdCards(classId) {
+      if (!classId) return `<p class="hint">Please select a class to view bulk ID cards.</p>`;
+      const students = db.students.filter(st => st.classId === classId && st.status !== "Graduated");
+      if (!students.length) return `<p class="hint">No active students found in this class.</p>`;
+      const back = idCardBack();
+      const rows = students.map(s => {
+        const photoHtml = s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover">` : "PHOTO";
+        return `<div style="display:inline-flex;gap:10px;margin:0 0 12px 0;vertical-align:top;page-break-inside:avoid">
+          <div class="id-card">
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+              <div style="display:flex;gap:7px;align-items:center">
+                <img class="id-logo" src="assets/mms-logo.jpg" alt="logo">
+                <div><strong style="font-size:10px">${esc(db.settings.schoolName)}</strong><br><span class="hint">Student Identity Card</span></div>
+              </div>
+              <div class="photo">${photoHtml}</div>
+            </div>
+            <hr>
+            <strong style="font-size:11px">${esc(fullName(s))}</strong><br>
+            Reg No: ${esc(s.regNo)}<br>
+            Class: ${esc(cls(s.classId).name)}<br>
+            Gender: ${esc(s.gender)}<br>
+            Parent: ${esc(s.parentPhone)}<br>
+            Session: ${esc(db.settings.session)}
+          </div>${back}
+        </div>`;
+      }).join("");
+      return `<style>
+        .id-card{border:2px solid #1565c0;border-radius:9px;padding:10px;width:250px;box-sizing:border-box;font-size:11px;display:inline-block;vertical-align:top}
+        .id-back{border-color:#0d47a1;background:#f5f8ff}
+        .id-card hr{border:none;border-top:1px solid #ccc;margin:6px 0}
+        .id-logo{width:38px;height:38px;object-fit:contain;border-radius:4px}
+        .photo{width:62px;height:70px;border:1px solid #ccc;border-radius:4px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:9px;color:#aaa;overflow:hidden;flex-shrink:0}
+        .photo img{width:100%;height:100%;object-fit:cover}
+        .hint{font-size:9px;color:#666}
+      </style>
+      <h3 style="text-align:center;margin-bottom:14px">ID Cards — ${esc(cls(classId).name)} (${students.length} students)</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">${rows}</div>`;
+    }
+
     function certificate(s) {
       return `<div class="report-box" style="text-align:center;min-height:360px;display:grid;place-items:center"><div><img class="report-logo" src="assets/mms-logo.jpg" alt="Madarkaci Model School logo"><h2>${esc(db.settings.schoolName)}</h2><h3>Certificate of Student Record</h3><p>Motto: Learning For Brighter Future</p><p>This certifies that</p><h2>${esc(fullName(s))}</h2><p>with admission number <strong>${esc(s.regNo)}</strong> is a registered student of ${esc(cls(s.classId).name)}.</p><p>Session: ${esc(db.settings.session)}</p><br><p>Principal Signature __________________</p></div></div>`;
     }
@@ -2843,6 +2915,7 @@ function renderReports() {
        if (type === "Staff Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Staff Directory Report</h3>` + document.getElementById("staffTable").innerHTML;
        if (type === "Admission Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Admission List</h3>` + table(["Reg No", "Name", "Class", "Parent", "Phone"], db.students.map((x) => [esc(x.regNo), esc(fullName(x)), esc(cls(x.classId).name), esc(x.parentName), esc(x.parentPhone)]));
        if (type === "Student ID Card") html = idCard(s);
+       if (type === "Class ID Cards (Bulk)") html = renderClassIdCards(classId);
        if (type === "Certificate") html = certificate(s);
        if (type === "Class List Report") {
          // Filter class list for teachers
