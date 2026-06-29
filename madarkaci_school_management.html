@@ -1597,7 +1597,8 @@ function fillSelects() {
     }
     function generateAdmissionNo() {
       const next = String(db.students.length + 1).padStart(3, "0");
-      document.getElementById("studentRegNo").value = `MMS/2026/${next}`;
+      const yr = String(new Date().getFullYear()).slice(-2);
+      document.getElementById("studentRegNo").value = `MMS/${yr}/${next}`;
     }
     function saveStudent() {
       const data = {
