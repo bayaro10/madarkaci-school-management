@@ -628,7 +628,7 @@
       </div>
 
       <div id="students" class="page hide">
-        <div class="toolbar"><h2>Student Management</h2><div class="actions"><button class="primary" onclick="saveStudent()">Save Student</button><button class="secondary" onclick="newStudent()">New</button><button class="secondary" onclick="generateAdmissionNo()">Generate Admission No</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="toolbar"><h2>Student Management</h2><div class="actions"><button class="primary" onclick="saveStudent()">Save Student</button><button class="secondary" onclick="newStudent()">New</button><button class="secondary" onclick="generateAdmissionNo()">Generate Admission No</button><button class="secondary" onclick="showPromotionPanel()">🎓 Promote All Students</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
         <div class="grid">
           <div class="panel span-5">
             <h3>Add / Edit Student</h3>
@@ -661,6 +661,24 @@
               <div><label>Filter Class</label><select id="studentFilterClass" onchange="renderStudents()"></select></div>
             </div>
             <div class="table-wrap" id="studentTable"></div>
+          </div>
+        </div>
+
+        <!-- PROMOTION PANEL OVERLAY -->
+        <div id="promotionOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center">
+          <div style="background:#fff;border-radius:10px;width:min(700px,95vw);max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3)">
+            <div style="padding:18px 22px 12px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0;color:#1565c0">🎓 Bulk Student Promotion</h3>
+              <button onclick="hidePromotionPanel()" style="background:none;border:none;font-size:1.4em;cursor:pointer;color:#888">✕</button>
+            </div>
+            <div style="padding:16px 22px">
+              <p style="color:#555;margin:0 0 14px;font-size:.93em">Set the destination class for each class. Students marked <strong>Graduated</strong> will be set to inactive and removed from class lists.</p>
+              <div id="promotionMappingTable"></div>
+            </div>
+            <div style="padding:12px 22px 18px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:flex-end">
+              <button class="secondary" onclick="hidePromotionPanel()">Cancel</button>
+              <button class="primary" onclick="runBulkPromotion()">✓ Run Promotion</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1663,6 +1681,73 @@ function fillSelects() {
       if (index >= 0 && db.classes[index + 1]) s.classId = db.classes[index + 1].id;
       save();
       toast("Student promoted to next class");
+    }
+
+    function showPromotionPanel() {
+      const overlay = document.getElementById("promotionOverlay");
+      const tableEl = document.getElementById("promotionMappingTable");
+      const classOpts = db.classes.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+      const rows = db.classes.map(c => {
+        const count = db.students.filter(s => s.classId === c.id && s.status !== "Graduated").length;
+        return `<tr style="border-bottom:1px solid #f0f0f0">
+          <td style="padding:9px 10px;font-weight:600">${esc(c.name)}</td>
+          <td style="padding:9px 10px;color:#666;text-align:center">${count} student${count !== 1 ? "s" : ""}</td>
+          <td style="padding:9px 10px;font-size:1.2em;color:#aaa;text-align:center">→</td>
+          <td style="padding:9px 10px">
+            <select data-from="${c.id}" style="width:100%;padding:5px 8px;border:1px solid #ccc;border-radius:5px">
+              <option value="">— Stay in current class —</option>
+              ${classOpts.replace(`value="${c.id}"`, `value="${c.id}" disabled`)}
+              <option value="GRADUATED">🎓 Graduated (set inactive)</option>
+            </select>
+          </td>
+        </tr>`;
+      }).join("");
+      tableEl.innerHTML = `<table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f0f4f9">
+          <th style="text-align:left;padding:8px 10px;font-size:.88em;color:#555">Current Class</th>
+          <th style="padding:8px 10px;font-size:.88em;color:#555">Students</th>
+          <th style="padding:8px 10px"></th>
+          <th style="text-align:left;padding:8px 10px;font-size:.88em;color:#555">Promote To</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+      overlay.style.display = "flex";
+    }
+
+    function hidePromotionPanel() {
+      document.getElementById("promotionOverlay").style.display = "none";
+    }
+
+    function runBulkPromotion() {
+      const selects = document.querySelectorAll("#promotionMappingTable select[data-from]");
+      const mapping = {};
+      selects.forEach(sel => { if (sel.value) mapping[sel.dataset.from] = sel.value; });
+
+      if (!Object.keys(mapping).length) return toast("No promotion mapping set — nothing to do.");
+
+      const lines = Object.entries(mapping).map(([from, to]) => {
+        const fromName = cls(from).name;
+        const count = db.students.filter(s => s.classId === from && s.status !== "Graduated").length;
+        return to === "GRADUATED"
+          ? `• ${count} student(s) from ${fromName} → Graduated`
+          : `• ${count} student(s) from ${fromName} → ${cls(to).name}`;
+      }).join("\n");
+
+      if (!confirm(`This will move students as follows:\n\n${lines}\n\nThis action cannot be undone. Continue?`)) return;
+
+      let moved = 0, graduated = 0;
+      db.students.forEach(s => {
+        if (s.status === "Graduated") return;
+        const target = mapping[s.classId];
+        if (!target) return;
+        if (target === "GRADUATED") { s.status = "Graduated"; s.classId = ""; graduated++; }
+        else { s.classId = target; moved++; }
+      });
+
+      save();
+      hidePromotionPanel();
+      renderStudents();
+      toast(`Promotion complete: ${moved} promoted, ${graduated} graduated.`);
     }
     function renderStudents() {
       const search = document.getElementById("studentSearch")?.value.toLowerCase() || "";
