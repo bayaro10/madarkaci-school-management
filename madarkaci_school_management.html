@@ -848,6 +848,8 @@
               <div class="full"><label>Report Type</label><select id="reportType" onchange="renderReports()"><option>Student Report Card</option><option>Class Broadsheet</option><option>Academic Performance</option><option>Attendance Report</option><option>Fee Payment Report</option><option>Staff Report</option><option>Admission Report</option><option>Student ID Card</option><option>Certificate</option><option>Class List Report</option></select></div>
               <div class="full"><label>Student</label><select id="reportStudent" onchange="renderReports()"></select></div>
               <div class="full"><label>Class</label><select id="reportClass" onchange="renderReports()"></select></div>
+              <div class="full"><label>Session</label><select id="reportSession" onchange="renderReports()"></select></div>
+              <div class="full"><label>Term</label><select id="reportTerm" onchange="renderReports()"><option>First Term</option><option>Second Term</option><option>Third Term</option></select></div>
             </div>
           </div>
           <div class="panel span-8"><div id="reportOutput"></div></div>
@@ -1129,6 +1131,13 @@
           if (serverData && serverData.students) {
             db = serverData;
             dbLoaded = true;
+            // Migrate existing scores that have no term/session tag
+            const defaultTerm = db.settings?.term || "First Term";
+            const defaultSession = db.settings?.session || "2025/2026";
+            db.scores.forEach(sc => {
+              if (!sc.term) sc.term = defaultTerm;
+              if (!sc.session) sc.session = defaultSession;
+            });
           }
         }
       } catch (err) {
@@ -1525,6 +1534,19 @@ function fillSelects() {
          if (el) el.innerHTML = options(studentOptions, "", (s) => `${s.regNo} - ${fullName(s)}`);
        });
 
+       // Populate session dropdown from all scored sessions + current setting
+       const reportSessionEl = document.getElementById("reportSession");
+       if (reportSessionEl) {
+         const allSessions = [...new Set([db.settings.session, ...db.scores.map(sc => sc.session).filter(Boolean)])].sort().reverse();
+         const currentVal = reportSessionEl.value || db.settings.session;
+         reportSessionEl.innerHTML = allSessions.map(sess => `<option${sess === currentVal ? " selected" : ""}>${esc(sess)}</option>`).join("");
+       }
+       // Set term dropdown to current term by default
+       const reportTermEl = document.getElementById("reportTerm");
+       if (reportTermEl && !reportTermEl.dataset.userChanged) {
+         reportTermEl.value = db.settings.term;
+       }
+
        // Filter subjects based on role
        let subjectOptions = db.subjects;
        if (currentUser?.role === "Teacher" && currentUser?.staffId) {
@@ -1794,7 +1816,9 @@ function fillSelects() {
         total: Number(document.getElementById("scoreTotal").value),
         grade: document.getElementById("scoreGrade").value,
         remark: document.getElementById("scoreRemark").value,
-        approved: false
+        approved: false,
+        term: db.settings.term,
+        session: db.settings.session
       };
       existing ? Object.assign(existing, data) : db.scores.push(data);
       save();
@@ -2131,7 +2155,14 @@ function renderAttendance() {
       set("setPrincipalComment", db.settings.principalComment);
     }
 
-    function studentReportCard(s) {
+    function studentReportCard(s, filterTerm, filterSession) {
+      // Scores scoped to the selected term/session (or all if not specified)
+      const termScores = db.scores.filter(sc =>
+        (!filterTerm || sc.term === filterTerm) &&
+        (!filterSession || sc.session === filterSession)
+      );
+      const reportLabel = { term: filterTerm || db.settings.term, session: filterSession || db.settings.session };
+
       // ── helpers (local) ──────────────────────────────────────────────────
       function gradeNg(t) {
         t = Math.max(0, Math.min(100, Number(t || 0)));
@@ -2157,19 +2188,19 @@ function renderAttendance() {
       }
       function subjectStats(subjectId) {
         const ids = db.students.filter(st => st.classId === s.classId).map(st => st.id);
-        const vals = db.scores.filter(sc => sc.subjectId === subjectId && ids.includes(sc.studentId)).map(sc => sc.total);
+        const vals = termScores.filter(sc => sc.subjectId === subjectId && ids.includes(sc.studentId)).map(sc => sc.total);
         if (!vals.length) return { high: "—", low: "—", avg: "—" };
         return { high: Math.max(...vals), low: Math.min(...vals), avg: (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) };
       }
       function subjectPos(subjectId) {
         const ids = db.students.filter(st => st.classId === s.classId).map(st => st.id);
-        const sorted = db.scores.filter(sc => sc.subjectId === subjectId && ids.includes(sc.studentId)).sort((a,b)=>b.total-a.total);
+        const sorted = termScores.filter(sc => sc.subjectId === subjectId && ids.includes(sc.studentId)).sort((a,b)=>b.total-a.total);
         const i = sorted.findIndex(sc => sc.studentId === s.id);
         return i >= 0 ? ordinal(i + 1) : "—";
       }
 
       // ── data ─────────────────────────────────────────────────────────────
-      const scores     = db.scores.filter(sc => sc.studentId === s.id);
+      const scores     = termScores.filter(sc => sc.studentId === s.id);
       const totalScore = scores.reduce((sum, sc) => sum + sc.total, 0);
       const avg        = scores.length ? totalScore / scores.length : 0;
       const rankData   = rankedStudents(s.classId);
@@ -2243,7 +2274,7 @@ function renderAttendance() {
 
         <!-- BLUE BANNER -->
         <div style="background:#1565c0;color:#fff;text-align:center;padding:5px 8px;font-size:11px;font-weight:800;letter-spacing:0.8px">
-          TERMINAL ACADEMIC PROGRESS REPORT &bull; ${esc(db.settings.term).toUpperCase()} ${esc(db.settings.session)} SESSION
+          TERMINAL ACADEMIC PROGRESS REPORT &bull; ${esc(reportLabel.term).toUpperCase()} ${esc(reportLabel.session)} SESSION
         </div>
 
         <!-- STUDENT INFO STRIP -->
@@ -2535,7 +2566,9 @@ function renderReports() {
          }
        }
 
-       if (type === "Student Report Card") html = studentReportCard(s);
+       const selTerm    = document.getElementById("reportTerm")?.value    || db.settings.term;
+       const selSession = document.getElementById("reportSession")?.value || db.settings.session;
+       if (type === "Student Report Card") html = studentReportCard(s, selTerm, selSession);
        if (type === "Class Broadsheet") html = schoolHeader + classBroadsheet(classId);
        if (type === "Academic Performance") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Academic Performance Report</h3>` + table(["Class", "Students", "Class Average"], db.classes.map((c) => { const r = rankedStudents(c.id); const avg = r.length ? r.reduce((sum, x) => sum + x.avg, 0) / r.length : 0; return [esc(c.name), r.length, avg.toFixed(2)]; }));
        if (type === "Attendance Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Attendance Report</h3>` + document.getElementById("attendanceTable").innerHTML;
