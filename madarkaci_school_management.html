@@ -1491,10 +1491,22 @@ function fillSelects() {
        }
 
        const classOpts = `<option value="">All Classes</option>${options(db.classes)}`;
-       ["studentClass", "studentFilterClass", "reportClass"].forEach((idName) => {
+       ["studentClass", "studentFilterClass"].forEach((idName) => {
          const el = document.getElementById(idName);
          if (el) el.innerHTML = classOpts;
        });
+
+       // For reportClass, teachers only see their assigned classes
+       const reportClassEl = document.getElementById("reportClass");
+       if (reportClassEl) {
+         if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+           const assignedClassIds = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
+           const assignedClasses = db.classes.filter((c) => assignedClassIds.includes(c.id));
+           reportClassEl.innerHTML = options(assignedClasses);
+         } else {
+           reportClassEl.innerHTML = classOpts;
+         }
+       }
 
        // Filter students based on role
        let studentOptions = db.students;
@@ -1510,7 +1522,7 @@ function fillSelects() {
 
        ["reportStudent"].forEach((idName) => {
          const el = document.getElementById(idName);
-         if (el) el.innerHTML = options(db.students, "", (s) => `${s.regNo} - ${fullName(s)}`);
+         if (el) el.innerHTML = options(studentOptions, "", (s) => `${s.regNo} - ${fullName(s)}`);
        });
 
        // Filter subjects based on role
@@ -2493,7 +2505,15 @@ function classBroadsheet(classId) {
 function renderReports() {
        const type = document.getElementById("reportType").value;
        const studentId = document.getElementById("reportStudent").value;
-       const s = student(studentId) || db.students[0];
+
+       // Determine which students this user is allowed to see
+       let allowedStudents = db.students;
+       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+         const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
+         allowedStudents = db.students.filter((st) => assignedClasses.includes(st.classId));
+       }
+
+       const s = (studentId ? student(studentId) : null) || allowedStudents[0] || db.students[0];
        let classId = document.getElementById("reportClass").value || s?.classId || "";
        let html = "";
 
