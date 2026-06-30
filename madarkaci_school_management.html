@@ -2541,62 +2541,64 @@ function renderScores() {
       if (!s || !fee) { toast("No fee data available for receipt."); return; }
       const balance = Math.max(0, fee.amountDue - fee.amountPaid);
       const receiptNo = "RCP-" + fee.id.slice(-6).toUpperCase();
-      const statusClass = balance === 0 ? "paid" : fee.amountPaid > 0 ? "part" : "unpaid";
-      const statusText = balance === 0 ? "FULLY PAID" : fee.amountPaid > 0 ? "PART PAYMENT" : "NOT PAID";
-      const w = window.open("", "_blank", "width=620,height=760");
-      w.document.write(`<!DOCTYPE html><html><head><title>Fee Receipt — ${esc(fullName(s))}</title><style>
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:28px;background:#fff}
-        .header{text-align:center;margin-bottom:16px}
-        .logo{width:68px;height:68px;object-fit:contain;display:block;margin:0 auto 8px}
-        h1{font-size:19px;color:#1565c0;margin-bottom:3px}
-        .sub{color:#666;font-size:12px;margin:2px 0}
-        .title-bar{margin:14px 0 10px;font-size:15px;font-weight:700;color:#1565c0;text-align:center;text-transform:uppercase;letter-spacing:1.5px;border-top:2px dashed #1565c0;border-bottom:2px dashed #1565c0;padding:7px 0}
-        .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dotted #e0e0e0}
-        .row:last-child{border-bottom:none}
-        .lbl{color:#555;font-size:12px}
-        .val{font-weight:600}
-        .section{background:#f5f8ff;border-radius:8px;padding:12px 16px;margin:12px 0}
-        .section h3{font-size:12px;color:#1565c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-        .totals{background:#e8f4fd;border-radius:8px;padding:12px 16px;margin:12px 0}
-        .balance{color:${balance > 0 ? "#c62828" : "#2e7d32"};font-size:15px;font-weight:700}
-        .badge{display:inline-block;padding:5px 18px;border-radius:20px;font-size:13px;font-weight:700;margin-top:4px}
-        .paid{background:#d4edda;color:#155724}
-        .part{background:#fff3cd;color:#856404}
-        .unpaid{background:#f8d7da;color:#721c24}
-        .footer{text-align:center;color:#888;font-size:11px;margin-top:20px;border-top:1px solid #eee;padding-top:12px;line-height:1.7}
-        @media print{body{padding:10px}}
+      const statusText = balance === 0 ? "*** FULLY PAID ***" : fee.amountPaid > 0 ? "*** PART PAYMENT ***" : "*** NOT PAID ***";
+      const dash = "--------------------------------";
+      const eq   = "================================";
+      function posRow(label, value) {
+        const maxW = 32;
+        const gap = maxW - label.length - String(value).length;
+        return label + (gap > 0 ? " ".repeat(gap) : " ") + value;
+      }
+      const w = window.open("", "_blank", "width=360,height=700");
+      w.document.write(`<!DOCTYPE html><html><head><title>Receipt ${receiptNo}</title><style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Courier New',Courier,monospace;font-size:12.5px;color:#000;background:#fff;
+             width:76mm;margin:0 auto;padding:6mm 4mm 10mm;line-height:1.55}
+        .center{text-align:center}
+        .bold{font-weight:700}
+        .logo{width:52px;height:52px;object-fit:contain;display:block;margin:0 auto 4px}
+        .school{font-size:13.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+        pre{font-family:inherit;font-size:inherit;white-space:pre-wrap;margin:0}
+        .status{font-weight:700;font-size:13px;text-align:center;margin:4px 0}
+        .footer{font-size:10.5px;text-align:center;margin-top:6px;line-height:1.6}
+        @media print{
+          @page{size:80mm auto;margin:0}
+          body{width:80mm;padding:4mm 3mm 12mm}
+        }
       </style></head><body>
-      <div class="header">
+      <div class="center">
         <img class="logo" src="${window.location.origin}/assets/mms-logo.jpg" onerror="this.style.display='none'" alt="">
-        <h1>${esc(db.settings.schoolName)}</h1>
-        ${db.settings.address ? `<div class="sub">${esc(db.settings.address)}</div>` : ""}
-        <div class="sub">${db.settings.phone ? "📞 " + esc(db.settings.phone) : ""}${db.settings.email ? " &nbsp;|&nbsp; ✉️ " + esc(db.settings.email) : ""}</div>
+        <div class="school">${esc(db.settings.schoolName)}</div>
+        ${db.settings.address ? `<div style="font-size:11px">${esc(db.settings.address)}</div>` : ""}
+        ${db.settings.phone ? `<div style="font-size:11px">Tel: ${esc(db.settings.phone)}</div>` : ""}
       </div>
-      <div class="title-bar">Fee Payment Receipt</div>
-      <div class="section">
-        <h3>Receipt Info</h3>
-        <div class="row"><span class="lbl">Receipt No.</span><span class="val">${receiptNo}</span></div>
-        <div class="row"><span class="lbl">Date</span><span class="val">${fee.date || today}</span></div>
-        <div class="row"><span class="lbl">Session / Term</span><span class="val">${esc(db.settings.session)} &nbsp;|&nbsp; ${esc(db.settings.term)}</span></div>
-        <div class="row"><span class="lbl">Cashier</span><span class="val">${esc(currentUser?.username || "—")}</span></div>
-      </div>
-      <div class="section">
-        <h3>Student Details</h3>
-        <div class="row"><span class="lbl">Name</span><span class="val">${esc(fullName(s))}</span></div>
-        <div class="row"><span class="lbl">Reg. No.</span><span class="val">${esc(s.regNo || "—")}</span></div>
-        <div class="row"><span class="lbl">Class</span><span class="val">${esc(cls(s.classId).name)}</span></div>
-        ${fee.label ? `<div class="row"><span class="lbl">Fee Type</span><span class="val">${esc(fee.label)}</span></div>` : ""}
-      </div>
-      <div class="totals">
-        <div class="row"><span class="lbl">Amount Due</span><span class="val">₦${money(fee.amountDue)}</span></div>
-        <div class="row"><span class="lbl">Amount Paid</span><span class="val" style="color:#2e7d32">₦${money(fee.amountPaid)}</span></div>
-        <div class="row"><span class="lbl">Balance</span><span class="val balance">₦${money(balance)}</span></div>
-        <div style="text-align:center;margin-top:10px"><span class="badge ${statusClass}">${statusText}</span></div>
-      </div>
+      <pre>
+${dash}
+      FEE PAYMENT RECEIPT
+${dash}
+${posRow("Receipt No:", receiptNo)}
+${posRow("Date:", fee.date || today)}
+${posRow("Session:", esc(db.settings.session))}
+${posRow("Term:", esc(db.settings.term))}
+${posRow("Cashier:", esc(currentUser?.username || "—"))}
+${dash}
+${posRow("Student:", esc(fullName(s)))}
+${posRow("Reg No:", esc(s.regNo || "—"))}
+${posRow("Class:", esc(cls(s.classId).name))}
+${fee.label ? posRow("Fee Type:", esc(fee.label)) : ""}
+${eq}
+${posRow("Amount Due:  N", money(fee.amountDue))}
+${posRow("Amount Paid: N", money(fee.amountPaid))}
+${dash}
+${posRow("Balance:     N", money(balance))}
+${eq}</pre>
+      <div class="status">${statusText}</div>
+      <pre>${dash}</pre>
       <div class="footer">
-        This receipt is computer-generated and is valid without a physical signature.<br>
-        ${esc(db.settings.schoolName)} &mdash; ${esc(db.settings.session)}
+        Computer-generated receipt.<br>
+        Valid without physical signature.<br>
+        ${esc(db.settings.schoolName)}<br>
+        ${esc(db.settings.session)}
       </div>
       <script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script>
       </body></html>`);
@@ -3319,7 +3321,7 @@ function renderReports() {
        if (type === "Attendance Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Attendance Report</h3>` + document.getElementById("attendanceTable").innerHTML;
        if (type === "Fee Payment Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Fee Payment Report</h3>` + document.getElementById("feeTable").innerHTML;
        if (type === "Staff Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Staff Directory Report</h3>` + document.getElementById("staffTable").innerHTML;
-       if (type === "Admission Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Admission List</h3>` + table(["Reg No", "Name", "Class", "Parent", "Phone"], db.students.map((x) => [esc(x.regNo), esc(fullName(x)), esc(cls(x.classId).name), esc(x.parentName), esc(x.parentPhone)]));
+       if (type === "Admission Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Admission List</h3>` + table(["S/N", "Reg No", "Name", "Class", "Parent", "Phone"], db.students.map((x, i) => [i + 1, esc(x.regNo), esc(fullName(x)), esc(cls(x.classId).name), esc(x.parentName), esc(x.parentPhone)]));
        if (type === "Student ID Card") html = idCard(s);
        if (type === "Class ID Cards (Bulk)") html = renderClassIdCards(classId);
        if (type === "Certificate") html = certificate(s);
@@ -3331,7 +3333,8 @@ function renderReports() {
          }
          const studentsInClass = db.students
              .filter((std) => std.classId === classId)
-             .map((std) => [
+             .map((std, i) => [
+                 i + 1,
                  esc(std.regNo),
                  esc(fullName(std)),
                  esc(std.gender),
@@ -3339,7 +3342,7 @@ function renderReports() {
                  esc(std.parentPhone || "N/A")
              ]);
          if (classId && studentsInClass.length > 0) {
-           html = schoolHeader + `<h3 style="margin-top: 15px; text-align:center; border-bottom: 1px solid var(--ink); padding-bottom: 10px;">Class List for ${esc(cls(classId).name)}</h3>` + table(["Reg No", "Student Name", "Gender", "Date of Birth", "Parent Phone"], studentsInClass);
+           html = schoolHeader + `<h3 style="margin-top: 15px; text-align:center; border-bottom: 1px solid var(--ink); padding-bottom: 10px;">Class List for ${esc(cls(classId).name)}</h3>` + table(["S/N", "Reg No", "Student Name", "Gender", "Date of Birth", "Parent Phone"], studentsInClass);
          } else {
            html = `<p class="hint">No students found for the selected class or class not selected.</p>`;
          }
