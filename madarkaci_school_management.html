@@ -799,16 +799,42 @@
               <input type="hidden" id="feeStudent">
               <div id="feeAmountFields" style="display:none;width:100%;">
                 <div class="form-grid" style="width:100%">
-                  <div><label>Amount Due</label><input id="feeDue" type="number" value="25000"></div>
+                  <div>
+                    <label>Amount Due</label>
+                    <input id="feeDue" type="number" value="0">
+                    <div id="feeLabelInfo" style="font-size:.8em;color:#1565c0;margin-top:3px;"></div>
+                  </div>
                   <div><label>Amount Paid</label><input id="feePaid" type="number" value="0"></div>
                 </div>
               </div>
             </div>
-            <div style="margin-top:12px;">
-              <button class="primary" onclick="saveFee()" style="display:none;" id="feeSubmitBtn">Record Payment</button>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="primary" onclick="saveFee()" style="display:none;" id="feeSubmitBtn">💾 Record Payment</button>
             </div>
           </div>
           <div class="panel span-8"><h3>Fee Payment Reports</h3><div class="table-wrap" id="feeTable"></div></div>
+        </div>
+
+        <!-- Fee Structure Section (admin/accountant only) -->
+        <div id="feeStructSection" style="display:none;">
+          <div class="grid" style="margin-top:0;">
+            <div class="panel span-4">
+              <h3>⚙️ Fee Structure Setup</h3>
+              <p style="font-size:.85em;color:#666;margin-bottom:10px">Define expected fees per class per term. These auto-fill "Amount Due" when a student is selected.</p>
+              <div class="form-grid">
+                <div class="full"><label>Class</label><select id="feeStructClass"></select></div>
+                <div><label>Term</label><input id="feeStructTerm" placeholder="e.g. First Term"></div>
+                <div><label>Session</label><input id="feeStructSession" placeholder="e.g. 2025/2026"></div>
+                <div class="full"><label>Fee Label</label><input id="feeStructLabel" placeholder="e.g. School Fees, Dev. Levy"></div>
+                <div class="full"><label>Amount (₦)</label><input id="feeStructAmount" type="number" placeholder="e.g. 25000"></div>
+              </div>
+              <button class="primary" onclick="saveFeeStructure()" style="margin-top:12px;width:100%">Save Fee Structure</button>
+            </div>
+            <div class="panel span-8">
+              <h3>Configured Fee Structures</h3>
+              <div class="table-wrap" id="feeStructTable"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1175,6 +1201,7 @@
             });
             if (!db.classApprovals) db.classApprovals = [];
             if (!db.auditLog) db.auditLog = [];
+            if (!db.feeStructure) db.feeStructure = [];
           }
         }
       } catch (err) {
@@ -2388,10 +2415,21 @@ function renderScores() {
       document.getElementById("feeStudentLabel").innerHTML =
         `<span style="color:var(--primary,#1a56db)">Reg: ${esc(s.regNo || "—")}</span> &nbsp; ${esc(fullName(s))} &nbsp; <span style="color:#888;font-size:.88em;">${esc(cls(s.classId).name)}</span>`;
       document.getElementById("feeStudentInfo").style.display = "block";
-      // Pre-fill existing fee data if available
       const existing = db.fees.find(f => f.studentId === studentId);
-      document.getElementById("feeDue").value = existing ? existing.amountDue : 25000;
-      document.getElementById("feePaid").value = existing ? existing.amountPaid : 0;
+      const infoEl = document.getElementById("feeLabelInfo");
+      if (existing) {
+        document.getElementById("feeDue").value = existing.amountDue;
+        document.getElementById("feePaid").value = existing.amountPaid;
+        if (infoEl) infoEl.textContent = existing.label ? `Fee type: ${existing.label}` : "";
+      } else {
+        const structs = lookupFeeStructure(s.classId);
+        const totalDue = structs.reduce((sum, fs) => sum + (fs.amount || 0), 0);
+        document.getElementById("feeDue").value = totalDue;
+        document.getElementById("feePaid").value = 0;
+        if (infoEl) infoEl.textContent = structs.length
+          ? structs.map(fs => `${fs.label}: ₦${money(fs.amount)}`).join(" | ")
+          : "No fee structure defined for this class/term.";
+      }
       document.getElementById("feeAmountFields").style.display = "block";
       document.getElementById("feeSubmitBtn").style.display = "inline-block";
     }
@@ -2409,13 +2447,17 @@ function renderScores() {
       const studentId = document.getElementById("feeStudent").value;
       if (!studentId) { toast("Please search and select a student first."); return; }
       const existing = db.fees.find((fee) => fee.studentId === studentId);
-      const data = { id: existing?.id || id(), studentId: studentId, amountDue: Number(document.getElementById("feeDue").value || 0), amountPaid: Number(document.getElementById("feePaid").value || 0), date: today };
+      const structs = lookupFeeStructure((db.students.find(st => st.id === studentId) || {}).classId);
+      const label = structs.length ? structs.map(fs => fs.label).join(", ") : (existing?.label || "");
+      const data = { id: existing?.id || id(), studentId, label, amountDue: Number(document.getElementById("feeDue").value || 0), amountPaid: Number(document.getElementById("feePaid").value || 0), date: today };
       existing ? Object.assign(existing, data) : db.fees.push(data);
       save();
-      toast("Fee payment saved");
+      toast("Fee payment saved — printing receipt…");
       clearFeeStudent();
       renderFees();
+      printFeeReceipt(studentId, db.fees.find(f => f.studentId === studentId) || data);
     }
+
     function renderFees() {
       let filteredFees = db.fees;
       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
@@ -2425,11 +2467,140 @@ function renderScores() {
           return s && assignedClasses.includes(s.classId);
         });
       }
-      document.getElementById("feeTable").innerHTML = table(["Student", "Amount Due", "Amount Paid", "Balance", "Remark"], filteredFees.map((fee) => {
-        const balance = Math.max(0, fee.amountDue - fee.amountPaid);
-        const label = balance === 0 ? '<span class="pill">Paid</span>' : fee.amountPaid > 0 ? '<span class="pill warn">Part Payment</span>' : '<span class="pill bad">Not Paid</span>';
-        return [esc(fullName(student(fee.studentId) || {})), money(fee.amountDue), money(fee.amountPaid), money(balance), label];
-      }));
+      const canPrint = ["Administrator","Accountant"].includes(currentUser?.role);
+      document.getElementById("feeTable").innerHTML = table(
+        ["Student", "Fee Type", "Amount Due", "Amount Paid", "Balance", "Status", canPrint ? "Receipt" : ""],
+        filteredFees.map((fee) => {
+          const balance = Math.max(0, fee.amountDue - fee.amountPaid);
+          const status = balance === 0 ? '<span class="pill">Paid</span>' : fee.amountPaid > 0 ? '<span class="pill warn">Part Payment</span>' : '<span class="pill bad">Not Paid</span>';
+          const receiptBtn = canPrint ? `<button class="secondary" style="padding:3px 8px;font-size:.82em;" onclick="printFeeReceipt('${fee.studentId}', db.fees.find(f=>f.studentId==='${fee.studentId}'))">🧾 Receipt</button>` : "";
+          return [esc(fullName(student(fee.studentId) || {})), esc(fee.label || "—"), money(fee.amountDue), money(fee.amountPaid), money(balance), status, receiptBtn];
+        })
+      );
+    }
+
+    function lookupFeeStructure(classId) {
+      if (!classId || !db.feeStructure) return [];
+      return db.feeStructure.filter(fs => fs.classId === classId && fs.term === db.settings.term && fs.session === db.settings.session);
+    }
+
+    function saveFeeStructure() {
+      const classId = document.getElementById("feeStructClass").value;
+      const term = document.getElementById("feeStructTerm").value.trim();
+      const session = document.getElementById("feeStructSession").value.trim();
+      const label = document.getElementById("feeStructLabel").value.trim();
+      const amount = Number(document.getElementById("feeStructAmount").value || 0);
+      if (!classId || !term || !session || !label || !amount) { toast("Please fill all fee structure fields."); return; }
+      if (!db.feeStructure) db.feeStructure = [];
+      const existing = db.feeStructure.find(fs => fs.classId === classId && fs.term === term && fs.session === session && fs.label === label);
+      if (existing) { existing.amount = amount; } else { db.feeStructure.push({ id: id(), classId, term, session, label, amount }); }
+      save();
+      toast("Fee structure saved");
+      document.getElementById("feeStructLabel").value = "";
+      document.getElementById("feeStructAmount").value = "";
+      renderFeeStructures();
+    }
+
+    function deleteFeeStructure(fsId) {
+      if (!confirm("Delete this fee structure entry?")) return;
+      db.feeStructure = (db.feeStructure || []).filter(fs => fs.id !== fsId);
+      save();
+      renderFeeStructures();
+    }
+
+    function renderFeeStructures() {
+      const el = document.getElementById("feeStructSection");
+      if (!el) return;
+      const role = currentUser?.role;
+      if (role !== "Administrator" && role !== "Accountant") { el.style.display = "none"; return; }
+      el.style.display = "";
+      const feeStructClassEl = document.getElementById("feeStructClass");
+      if (feeStructClassEl) feeStructClassEl.innerHTML = `<option value="">— Select Class —</option>${options(db.classes)}`;
+      const termEl = document.getElementById("feeStructTerm");
+      if (termEl && !termEl.value) termEl.value = db.settings.term || "";
+      const sessEl = document.getElementById("feeStructSession");
+      if (sessEl && !sessEl.value) sessEl.value = db.settings.session || "";
+      const structs = db.feeStructure || [];
+      document.getElementById("feeStructTable").innerHTML = structs.length
+        ? table(
+            ["Class", "Term", "Session", "Fee Label", "Amount (₦)", "Action"],
+            structs.map(fs => [
+              esc(cls(fs.classId).name),
+              esc(fs.term),
+              esc(fs.session),
+              esc(fs.label),
+              "₦" + money(fs.amount),
+              `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteFeeStructure('${fs.id}')">Delete</button>`
+            ])
+          )
+        : "<p class='hint'>No fee structures defined yet. Use the form to add one.</p>";
+    }
+
+    function printFeeReceipt(studentId, fee) {
+      const s = db.students.find(st => st.id === studentId);
+      if (!s || !fee) { toast("No fee data available for receipt."); return; }
+      const balance = Math.max(0, fee.amountDue - fee.amountPaid);
+      const receiptNo = "RCP-" + fee.id.slice(-6).toUpperCase();
+      const statusClass = balance === 0 ? "paid" : fee.amountPaid > 0 ? "part" : "unpaid";
+      const statusText = balance === 0 ? "FULLY PAID" : fee.amountPaid > 0 ? "PART PAYMENT" : "NOT PAID";
+      const w = window.open("", "_blank", "width=620,height=760");
+      w.document.write(`<!DOCTYPE html><html><head><title>Fee Receipt — ${esc(fullName(s))}</title><style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:28px;background:#fff}
+        .header{text-align:center;margin-bottom:16px}
+        .logo{width:68px;height:68px;object-fit:contain;display:block;margin:0 auto 8px}
+        h1{font-size:19px;color:#1565c0;margin-bottom:3px}
+        .sub{color:#666;font-size:12px;margin:2px 0}
+        .title-bar{margin:14px 0 10px;font-size:15px;font-weight:700;color:#1565c0;text-align:center;text-transform:uppercase;letter-spacing:1.5px;border-top:2px dashed #1565c0;border-bottom:2px dashed #1565c0;padding:7px 0}
+        .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dotted #e0e0e0}
+        .row:last-child{border-bottom:none}
+        .lbl{color:#555;font-size:12px}
+        .val{font-weight:600}
+        .section{background:#f5f8ff;border-radius:8px;padding:12px 16px;margin:12px 0}
+        .section h3{font-size:12px;color:#1565c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+        .totals{background:#e8f4fd;border-radius:8px;padding:12px 16px;margin:12px 0}
+        .balance{color:${balance > 0 ? "#c62828" : "#2e7d32"};font-size:15px;font-weight:700}
+        .badge{display:inline-block;padding:5px 18px;border-radius:20px;font-size:13px;font-weight:700;margin-top:4px}
+        .paid{background:#d4edda;color:#155724}
+        .part{background:#fff3cd;color:#856404}
+        .unpaid{background:#f8d7da;color:#721c24}
+        .footer{text-align:center;color:#888;font-size:11px;margin-top:20px;border-top:1px solid #eee;padding-top:12px;line-height:1.7}
+        @media print{body{padding:10px}}
+      </style></head><body>
+      <div class="header">
+        <img class="logo" src="${window.location.origin}/assets/mms-logo.jpg" onerror="this.style.display='none'" alt="">
+        <h1>${esc(db.settings.schoolName)}</h1>
+        ${db.settings.address ? `<div class="sub">${esc(db.settings.address)}</div>` : ""}
+        <div class="sub">${db.settings.phone ? "📞 " + esc(db.settings.phone) : ""}${db.settings.email ? " &nbsp;|&nbsp; ✉️ " + esc(db.settings.email) : ""}</div>
+      </div>
+      <div class="title-bar">Fee Payment Receipt</div>
+      <div class="section">
+        <h3>Receipt Info</h3>
+        <div class="row"><span class="lbl">Receipt No.</span><span class="val">${receiptNo}</span></div>
+        <div class="row"><span class="lbl">Date</span><span class="val">${fee.date || today}</span></div>
+        <div class="row"><span class="lbl">Session / Term</span><span class="val">${esc(db.settings.session)} &nbsp;|&nbsp; ${esc(db.settings.term)}</span></div>
+        <div class="row"><span class="lbl">Cashier</span><span class="val">${esc(currentUser?.username || "—")}</span></div>
+      </div>
+      <div class="section">
+        <h3>Student Details</h3>
+        <div class="row"><span class="lbl">Name</span><span class="val">${esc(fullName(s))}</span></div>
+        <div class="row"><span class="lbl">Reg. No.</span><span class="val">${esc(s.regNo || "—")}</span></div>
+        <div class="row"><span class="lbl">Class</span><span class="val">${esc(cls(s.classId).name)}</span></div>
+        ${fee.label ? `<div class="row"><span class="lbl">Fee Type</span><span class="val">${esc(fee.label)}</span></div>` : ""}
+      </div>
+      <div class="totals">
+        <div class="row"><span class="lbl">Amount Due</span><span class="val">₦${money(fee.amountDue)}</span></div>
+        <div class="row"><span class="lbl">Amount Paid</span><span class="val" style="color:#2e7d32">₦${money(fee.amountPaid)}</span></div>
+        <div class="row"><span class="lbl">Balance</span><span class="val balance">₦${money(balance)}</span></div>
+        <div style="text-align:center;margin-top:10px"><span class="badge ${statusClass}">${statusText}</span></div>
+      </div>
+      <div class="footer">
+        This receipt is computer-generated and is valid without a physical signature.<br>
+        ${esc(db.settings.schoolName)} &mdash; ${esc(db.settings.session)}
+      </div>
+      <script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script>
+      </body></html>`);
+      w.document.close();
     }
 
     function saveAttendance() {
@@ -3330,6 +3501,7 @@ function renderReports() {
       renderSubjects();
       renderScores();
       renderFees();
+      renderFeeStructures();
       renderAttendance();
       renderUsers();
       renderSettings();
