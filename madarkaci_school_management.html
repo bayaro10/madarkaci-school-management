@@ -1697,7 +1697,7 @@ function fillSelects() {
        }
 
        const classOpts = `<option value="">All Classes</option>${options(db.classes)}`;
-       ["studentClass", "studentFilterClass"].forEach((idName) => {
+       ["studentClass", "studentFilterClass", "subjectClass"].forEach((idName) => {
          const el = document.getElementById(idName);
          if (el) el.innerHTML = classOpts;
        });
