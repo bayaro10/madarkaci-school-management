@@ -2015,10 +2015,11 @@ function fillSelects() {
       logActivity("Staff Deleted", sName ? `${fullName(sName)} (${sName.role})` : staffIdValue);
     }
     function renderStaff() {
-      document.getElementById("staffTable").innerHTML = table(["Staff No", "Name", "Role", "Phone", "Subjects", "Action"], db.staff.map((s) => {
+      document.getElementById("staffTable").innerHTML = table(["S/N", "Staff No", "Name", "Role", "Phone", "Subjects", "Action"], db.staff.map((s, i) => {
         const sIds = s.subjectIds || (s.subjectId ? [s.subjectId] : []);
         const names = sIds.map(id => subject(id).name).filter(n => n !== "Unknown").join(", ");
         return [
+        i + 1,
         esc(s.staffNo),
         esc(fullName(s)),
         esc(s.role),
@@ -2469,12 +2470,12 @@ function renderScores() {
       }
       const canPrint = ["Administrator","Accountant"].includes(currentUser?.role);
       document.getElementById("feeTable").innerHTML = table(
-        ["Student", "Fee Type", "Amount Due", "Amount Paid", "Balance", "Status", canPrint ? "Receipt" : ""],
-        filteredFees.map((fee) => {
+        ["S/N", "Student", "Fee Type", "Amount Due", "Amount Paid", "Balance", "Status", canPrint ? "Receipt" : ""],
+        filteredFees.map((fee, i) => {
           const balance = Math.max(0, fee.amountDue - fee.amountPaid);
           const status = balance === 0 ? '<span class="pill">Paid</span>' : fee.amountPaid > 0 ? '<span class="pill warn">Part Payment</span>' : '<span class="pill bad">Not Paid</span>';
           const receiptBtn = canPrint ? `<button class="secondary" style="padding:3px 8px;font-size:.82em;" onclick="printFeeReceipt('${fee.studentId}', db.fees.find(f=>f.studentId==='${fee.studentId}'))">🧾 Receipt</button>` : "";
-          return [esc(fullName(student(fee.studentId) || {})), esc(fee.label || "—"), money(fee.amountDue), money(fee.amountPaid), money(balance), status, receiptBtn];
+          return [i + 1, esc(fullName(student(fee.studentId) || {})), esc(fee.label || "—"), money(fee.amountDue), money(fee.amountPaid), money(balance), status, receiptBtn];
         })
       );
     }
@@ -2536,7 +2537,7 @@ function renderScores() {
         : "<p class='hint'>No fee structures defined yet. Use the form to add one.</p>";
     }
 
-    function printFeeReceipt(studentId, fee) {
+    async function printFeeReceipt(studentId, fee) {
       const s = db.students.find(st => st.id === studentId);
       if (!s || !fee) { toast("No fee data available for receipt."); return; }
       const balance = Math.max(0, fee.amountDue - fee.amountPaid);
@@ -2549,25 +2550,35 @@ function renderScores() {
         const gap = maxW - label.length - String(value).length;
         return label + (gap > 0 ? " ".repeat(gap) : " ") + value;
       }
-      const w = window.open("", "_blank", "width=360,height=700");
+      // Fetch logo and convert to base64 so it embeds reliably in the popup
+      let logoHtml = "";
+      try {
+        const resp = await fetch("/assets/mms-logo.jpg");
+        const blob = await resp.blob();
+        const b64 = await new Promise(res => {
+          const r = new FileReader();
+          r.onload = e => res(e.target.result);
+          r.readAsDataURL(blob);
+        });
+        logoHtml = `<img style="width:60px;height:60px;object-fit:contain;display:block;margin:0 auto 6px;border-radius:50%;border:2px solid #333" src="${b64}" alt="logo">`;
+      } catch(e) {}
+      const w = window.open("", "_blank", "width=360,height=720");
       w.document.write(`<!DOCTYPE html><html><head><title>Receipt ${receiptNo}</title><style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Courier New',Courier,monospace;font-size:12.5px;color:#000;background:#fff;
-             width:76mm;margin:0 auto;padding:6mm 4mm 10mm;line-height:1.55}
+             width:76mm;margin:0 auto;padding:6mm 4mm 10mm;line-height:1.6}
         .center{text-align:center}
-        .bold{font-weight:700}
-        .logo{width:52px;height:52px;object-fit:contain;display:block;margin:0 auto 4px}
-        .school{font-size:13.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+        .school{font-size:13.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
         pre{font-family:inherit;font-size:inherit;white-space:pre-wrap;margin:0}
-        .status{font-weight:700;font-size:13px;text-align:center;margin:4px 0}
-        .footer{font-size:10.5px;text-align:center;margin-top:6px;line-height:1.6}
+        .status{font-weight:700;font-size:13px;text-align:center;margin:5px 0}
+        .footer{font-size:10.5px;text-align:center;margin-top:8px;line-height:1.7}
         @media print{
           @page{size:80mm auto;margin:0}
-          body{width:80mm;padding:4mm 3mm 12mm}
+          body{width:80mm;padding:4mm 3mm 14mm}
         }
       </style></head><body>
       <div class="center">
-        <img class="logo" src="${window.location.origin}/assets/mms-logo.jpg" onerror="this.style.display='none'" alt="">
+        ${logoHtml}
         <div class="school">${esc(db.settings.schoolName)}</div>
         ${db.settings.address ? `<div style="font-size:11px">${esc(db.settings.address)}</div>` : ""}
         ${db.settings.phone ? `<div style="font-size:11px">Tel: ${esc(db.settings.phone)}</div>` : ""}
