@@ -254,6 +254,7 @@
       .panel { box-shadow: none; border: 0; }
       body { background: #fff; }
       .login-container { display: none !important; }
+      .report-watermark { position: fixed; bottom: 20px; right: 30px; font-size: 10px; color: #999; border-top: 1px solid #ccc; padding-top: 4px; z-index: 9999; }
     }
 
     /* New Login Page Styles */
@@ -534,8 +535,14 @@
       <button data-section="subjects">Subject Management</button>
       <button data-section="scores">Result Management</button>
       <button data-section="fees">Fee Management</button>
+      <button data-section="payments">Online Payments</button>
+      <button data-section="cashbook">Cash Book</button>
+      <button data-section="expenses">Expenses</button>
+      <button data-section="income">Income</button>
+      <button data-section="payroll">Payroll</button>
       <button data-section="attendance">Attendance</button>
       <button data-section="users">User Management</button>
+      <button data-section="roles">Role Management</button>
       <button data-section="settings">School Settings</button>
       <button data-section="reports">Reports</button>
       <button data-section="portals">Portals</button>
@@ -681,6 +688,7 @@
           <div class="panel span-4">
             <h3>Add / Edit Staff</h3>
             <input id="staffId" type="hidden">
+            <input id="staffImagePath" type="hidden">
             <div class="form-grid">
               <div><label>Staff No (Auto-generated)</label><input id="staffNo" readonly placeholder="Auto-generated"></div>
               <div><label>Role</label><select id="staffRole"><option>Teacher</option><option>Accountant</option><option>Administrator</option><option>Exam Officer</option></select></div>
@@ -690,6 +698,8 @@
               <div><label>Phone</label><input id="staffPhone"></div>
               <div class="full"><label>Subjects (Hold Ctrl to select multiple)</label><select id="staffSubject" multiple style="height: 100px;"></select></div>
               <div class="full"><label>Address</label><textarea id="staffAddress"></textarea></div>
+              <div class="full"><label>Staff Photo</label><input type="file" id="staffImageFile" accept="image/*" onchange="uploadStaffImage(this, 'staffImagePreview', 'staffImagePath')"></div>
+              <div class="full"><img id="staffImagePreview" src="" alt="Staff Photo Preview" style="max-width: 200px; max-height: 200px; object-fit: cover; border-radius: 8px; display: none;"></div>
             </div>
           </div>
           <div class="panel span-8"><h3>Staff Reports</h3><div class="table-wrap" id="staffTable"></div></div>
@@ -742,13 +752,21 @@
               <div><label>CA1 / 20</label><input id="scoreCa1" type="number" min="0" max="20" value="17" oninput="previewScore()"></div>
               <div><label>CA2 / 20</label><input id="scoreCa2" type="number" min="0" max="20" value="18" oninput="previewScore()"></div>
               <div><label>Exam / 60</label><input id="scoreExam" type="number" min="0" max="60" value="52" oninput="previewScore()"></div>
+              <div><label>Psychomotor (1-5)</label><input id="scorePsychomotor" type="number" min="1" max="5" value="4" oninput="previewScore()"></div>
+              <div><label>Affective (1-5)</label><input id="scoreAffective" type="number" min="1" max="5" value="4" oninput="previewScore()"></div>
               <div><label>Total</label><input id="scoreTotal" readonly></div>
               <div><label>Grade</label><input id="scoreGrade" readonly></div>
               <div class="full"><label>Remark</label><input id="scoreRemark" readonly></div>
             </div>
             <button class="primary" style="width:100%;margin-top:10px" onclick="saveScore()">Save Score</button>
           </div>
-          <div class="panel span-8"><h3>Class Broadsheet / Position Ranking</h3><div class="table-wrap" id="scoreTable"></div></div>
+          <div class="panel span-8">
+            <h3>Class Broadsheet / Position Ranking</h3>
+            <div class="form-grid" style="max-width:300px;margin-bottom:12px">
+              <div><label>Filter Class</label><select id="scoreFilterClass" onchange="renderScores()"><option value="">Select Class</option></select></div>
+            </div>
+            <div class="table-wrap" id="scoreTable"></div>
+          </div>
         </div>
 
         <!-- APPROVAL PANEL (Exam Officer / Admin only) -->
@@ -767,7 +785,7 @@
           <div class="panel" style="margin-bottom:12px">
             <h3>Bulk Score Entry</h3>
             <div class="form-grid" style="max-width:600px">
-              <div><label>Class</label><select id="bulkClass" onchange="loadBulkEntry()"></select></div>
+              <div><label>Class</label><select id="bulkClass"></select></div>
               <div><label>Subject</label><select id="bulkSubject" onchange="loadBulkEntry()"></select></div>
             </div>
           </div>
@@ -782,41 +800,134 @@
       </div>
 
       <div id="fees" class="page hide">
-        <div class="toolbar"><h2>Fee Management</h2><div class="actions"><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
-        <div class="grid">
-          <div class="panel span-4">
-            <h3>Fee and Payment Tracking</h3>
-            <div class="form-grid">
-              <div class="full">
-                <label>Search Student (Reg. No. or Name)</label>
-                <input id="feeSearch" type="text" placeholder="Type reg. no. or student name..." oninput="searchFeeStudent()" autocomplete="off">
-                <div id="feeSearchResults" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;max-height:180px;overflow-y:auto;display:none;background:#fff;position:relative;z-index:10;"></div>
-              </div>
-              <div id="feeStudentInfo" class="full" style="display:none;background:var(--surface,#f8f9fa);border-radius:6px;padding:10px 12px;font-size:.95em;">
-                <span id="feeStudentLabel" style="font-weight:600;"></span>
-                <button type="button" style="float:right;background:none;border:none;color:#888;cursor:pointer;font-size:1em;" onclick="clearFeeStudent()">✕ Clear</button>
-              </div>
-              <input type="hidden" id="feeStudent">
-              <div id="feeAmountFields" style="display:none;width:100%;">
-                <div class="form-grid" style="width:100%">
-                  <div>
-                    <label>Amount Due</label>
-                    <input id="feeDue" type="number" value="0">
-                    <div id="feeLabelInfo" style="font-size:.8em;color:#1565c0;margin-top:3px;"></div>
-                  </div>
-                  <div><label>Amount Paid</label><input id="feePaid" type="number" value="0"></div>
-                </div>
-              </div>
-            </div>
-            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="primary" onclick="saveFee()" style="display:none;" id="feeSubmitBtn">💾 Record Payment</button>
-            </div>
-          </div>
-          <div class="panel span-8"><h3>Fee Payment Reports</h3><div class="table-wrap" id="feeTable"></div></div>
+        <div class="toolbar"><h2>Fee &amp; Accountant Management</h2><div class="actions"><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">
+          <button class="secondary active" id="feeTabBtn-payment" onclick="showFeeTab('payment')">💳 Record Payment</button>
+          <button class="secondary" id="feeTabBtn-plans" onclick="showFeeTab('plans')">📅 Payment Plans</button>
+          <button class="secondary" id="feeTabBtn-discounts" onclick="showFeeTab('discounts')">🏷️ Discounts</button>
+          <button class="secondary" id="feeTabBtn-scholarships" onclick="showFeeTab('scholarships')">🎓 Scholarships</button>
+          <button class="secondary" id="feeTabBtn-debtors" onclick="showFeeTab('debtors')">⚠️ Debtors List</button>
+          <button class="secondary" id="feeTabBtn-online" onclick="showFeeTab('online')">🌐 Online Payment</button>
+          <button class="secondary" id="feeTabBtn-structure" onclick="showFeeTab('structure')">⚙️ Fee Structure</button>
         </div>
 
-        <!-- Fee Structure Section (admin/accountant only) -->
-        <div id="feeStructSection" style="display:none;">
+        <div id="feeTabPayment">
+          <div class="grid">
+            <div class="panel span-4">
+              <h3>Fee and Payment Tracking</h3>
+              <div class="form-grid">
+                <div class="full">
+                  <label>Search Student (Reg. No. or Name)</label>
+                  <input id="feeSearch" type="text" placeholder="Type reg. no. or student name..." oninput="searchFeeStudent()" autocomplete="off">
+                  <div id="feeSearchResults" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;max-height:180px;overflow-y:auto;display:none;background:#fff;position:relative;z-index:10;"></div>
+                </div>
+                <div id="feeStudentInfo" class="full" style="display:none;background:var(--surface,#f8f9fa);border-radius:6px;padding:10px 12px;font-size:.95em;">
+                  <span id="feeStudentLabel" style="font-weight:600;"></span>
+                  <button type="button" style="float:right;background:none;border:none;color:#888;cursor:pointer;font-size:1em;" onclick="clearFeeStudent()">✕ Clear</button>
+                </div>
+                <input type="hidden" id="feeStudent">
+                <div id="feeAmountFields" style="display:none;width:100%;">
+                  <div class="form-grid" style="width:100%">
+                    <div>
+                      <label>Amount Due</label>
+                      <input id="feeDue" type="number" value="0">
+                      <div id="feeLabelInfo" style="font-size:.8em;color:#1565c0;margin-top:3px;"></div>
+                    </div>
+                    <div><label>Amount Paid</label><input id="feePaid" type="number" value="0"></div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="primary" onclick="saveFee()" style="display:none;" id="feeSubmitBtn">💾 Record Payment</button>
+                <button class="secondary" onclick="printFeeReceipt(document.getElementById('feeStudent').value, db.fees.find(f=>f.studentId===document.getElementById('feeStudent').value))">🧾 Receipt</button>
+              </div>
+            </div>
+            <div class="panel span-8">
+              <h3>Fee Payment Reports <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('payment')">🖨️ Print</button></h3>
+              <div class="form-grid" style="max-width:300px;margin-bottom:12px">
+                <div><label>Filter Class</label><select id="feeFilterClass" onchange="renderFees()"><option value="">Select Class</option></select></div>
+              </div>
+              <div class="table-wrap" id="feeTable"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="feeTabPlans" class="hide">
+          <div class="grid">
+            <div class="panel span-4">
+              <h3>Create Payment Plan</h3>
+              <div class="form-grid">
+                <div class="full"><label>Student</label><select id="planStudent"></select></div>
+                <div class="full"><label>Plan Name</label><input id="planName" placeholder="e.g. Termly Installment"></div>
+                <div><label>Total Amount (₦)</label><input id="planTotal" type="number" value="0"></div>
+                <div><label>Installments</label><input id="planInstallments" type="number" value="2" min="2"></div>
+                <div><label>Start Date</label><input id="planStart" type="date"></div>
+              </div>
+              <button class="primary" onclick="savePaymentPlan()" style="margin-top:12px;width:100%">Save Payment Plan</button>
+            </div>
+            <div class="panel span-8"><h3>Payment Plans <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('plans')">🖨️ Print</button></h3><div class="table-wrap" id="planTable"></div></div>
+          </div>
+        </div>
+
+        <div id="feeTabDiscounts" class="hide">
+          <div class="grid">
+            <div class="panel span-4">
+              <h3>Award Discount</h3>
+              <div class="form-grid">
+                <div class="full"><label>Student</label><select id="discountStudent"></select></div>
+                <div class="full"><label>Discount Label</label><input id="discountLabel" placeholder="e.g. Sibling Discount"></div>
+                <div><label>Amount (₦)</label><input id="discountAmount" type="number" value="0"></div>
+              </div>
+              <button class="primary" onclick="saveDiscount()" style="margin-top:12px;width:100%">Save Discount</button>
+            </div>
+            <div class="panel span-8"><h3>Discounts <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('discounts')">🖨️ Print</button></h3><div class="table-wrap" id="discountTable"></div></div>
+          </div>
+        </div>
+
+        <div id="feeTabScholarships" class="hide">
+          <div class="grid">
+            <div class="panel span-4">
+              <h3>Create Scholarship</h3>
+              <div class="form-grid">
+                <div class="full"><label>Student</label><select id="scholarshipStudent"></select></div>
+                <div class="full"><label>Type</label><input id="scholarshipType" placeholder="e.g. Full / Half / Sponsor"></div>
+                <div><label>Amount (₦)</label><input id="scholarshipAmount" type="number" value="0"></div>
+              </div>
+              <button class="primary" onclick="saveScholarship()" style="margin-top:12px;width:100%">Save Scholarship</button>
+            </div>
+            <div class="panel span-8"><h3>Scholarships <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('scholarships')">🖨️ Print</button></h3><div class="table-wrap" id="scholarshipTable"></div></div>
+          </div>
+        </div>
+
+        <div id="feeTabDebtors" class="hide">
+          <div class="panel span-12">
+            <h3>Debtors List <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('debtors')">🖨️ Print</button></h3>
+            <div class="table-wrap" id="debtorTable"></div>
+          </div>
+        </div>
+
+        <div id="feeTabOnline" class="hide">
+          <div class="grid">
+            <div class="panel span-6">
+              <h3>Initiate Online Payment</h3>
+              <div class="form-grid">
+                <div class="full"><label>Student</label><select id="onlineStudent"></select></div>
+                <div class="full"><label>Gateway</label><select id="onlineGateway"><option>Paystack</option><option>Flutterwave</option><option>Opay</option><option>Moniepoint</option></select></div>
+                <div><label>Amount (₦)</label><input id="onlineAmount" type="number" value="0"></div>
+                <div><label>Email</label><input id="onlineEmail" placeholder="parent@example.com"></div>
+                <div><label>Phone</label><input id="onlinePhone" placeholder="080..."></div>
+              </div>
+              <button class="primary" onclick="initOnlinePayment()" style="margin-top:12px;width:100%">Initialize Payment</button>
+              <p class="hint">This integrates with supported payment providers. Use demo mode in this build.</p>
+            </div>
+            <div class="panel span-6">
+              <h3>Payment Links / Status <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('online')">🖨️ Print</button></h3>
+              <div class="table-wrap" id="onlineTable"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="feeTabStructure" class="hide">
           <div class="grid" style="margin-top:0;">
             <div class="panel span-4">
               <h3>⚙️ Fee Structure Setup</h3>
@@ -831,10 +942,80 @@
               <button class="primary" onclick="saveFeeStructure()" style="margin-top:12px;width:100%">Save Fee Structure</button>
             </div>
             <div class="panel span-8">
-              <h3>Configured Fee Structures</h3>
+              <h3>Configured Fee Structures <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('structure')">🖨️ Print</button></h3>
               <div class="table-wrap" id="feeStructTable"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div id="payments" class="page hide">
+        <div class="toolbar"><h2>Online Payments</h2><div class="actions"><button class="secondary" onclick="showPage('fees')">Back</button></div></div>
+        <div class="panel span-12"><h3>Payment Requests &amp; Status</h3><div class="table-wrap" id="onlinePaymentTable"></div></div>
+      </div>
+
+      <div id="cashbook" class="page hide">
+        <div class="toolbar"><h2>Cash Book</h2><div class="actions"><button class="primary" onclick="saveCashbookEntry()">Add Entry</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>New Entry</h3>
+            <div class="form-grid">
+              <div><label>Date</label><input id="cbDate" type="date"></div>
+              <div class="full"><label>Type</label><select id="cbType"><option>Income</option><option>Expense</option></select></div>
+              <div class="full"><label>Category</label><input id="cbCategory" placeholder="e.g. Fees, Salary, Supplies"></div>
+              <div><label>Amount (₦)</label><input id="cbAmount" type="number" value="0"></div>
+              <div class="full"><label>Note</label><input id="cbNote"></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Cash Book Entries</h3><div class="table-wrap" id="cashbookTable"></div></div>
+        </div>
+      </div>
+
+      <div id="expenses" class="page hide">
+        <div class="toolbar"><h2>Expenses</h2><div class="actions"><button class="primary" onclick="saveExpense()">Add Expense</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Record Expense</h3>
+            <div class="form-grid">
+              <div><label>Date</label><input id="expDate" type="date"></div>
+              <div class="full"><label>Category</label><input id="expCategory" placeholder="e.g. Supplies, Maintenance"></div>
+              <div><label>Amount (₦)</label><input id="expAmount" type="number" value="0"></div>
+              <div class="full"><label>Note</label><input id="expNote"></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Expense Records</h3><div class="table-wrap" id="expenseTable"></div></div>
+        </div>
+      </div>
+
+      <div id="income" class="page hide">
+        <div class="toolbar"><h2>Income</h2><div class="actions"><button class="primary" onclick="saveIncome()">Add Income</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Record Income</h3>
+            <div class="form-grid">
+              <div><label>Date</label><input id="incDate" type="date"></div>
+              <div class="full"><label>Source</label><input id="incSource" placeholder="e.g. School Fees, Donation"></div>
+              <div><label>Amount (₦)</label><input id="incAmount" type="number" value="0"></div>
+              <div class="full"><label>Note</label><input id="incNote"></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Income Records</h3><div class="table-wrap" id="incomeTable"></div></div>
+        </div>
+      </div>
+
+      <div id="payroll" class="page hide">
+        <div class="toolbar"><h2>Payroll</h2><div class="actions"><button class="primary" onclick="savePayroll()">Add Payroll</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Run Payroll</h3>
+            <div class="form-grid">
+              <div class="full"><label>Staff</label><select id="payStaff"></select></div>
+              <div><label>Month</label><input id="payMonth" placeholder="e.g. July 2026"></div>
+              <div><label>Amount (₦)</label><input id="payAmount" type="number" value="0"></div>
+              <div class="full"><label>Status</label><select id="payStatus"><option>Pending</option><option>Paid</option></select></div>
+            </div>
+          </div>
+          <div class="panel span-8"><h3>Payroll Records</h3><div class="table-wrap" id="payrollTable"></div></div>
         </div>
       </div>
 
@@ -849,7 +1030,13 @@
               <div><label>Status</label><select id="attendanceStatus"><option>Present</option><option>Absent</option><option>Late</option></select></div>
             </div>
           </div>
-          <div class="panel span-8"><h3>Attendance Reports</h3><div class="table-wrap" id="attendanceTable"></div></div>
+          <div class="panel span-8">
+            <h3>Attendance Reports</h3>
+            <div class="form-grid" style="max-width:300px;margin-bottom:12px">
+              <div><label>Filter Class</label><select id="attendanceFilterClass" onchange="renderAttendance()"><option value="">Select Class</option></select></div>
+            </div>
+            <div class="table-wrap" id="attendanceTable"></div>
+          </div>
         </div>
       </div>
 
@@ -866,6 +1053,23 @@
             </div>
           </div>
           <div class="panel span-8"><h3>System Users</h3><div class="table-wrap" id="userTable"></div></div>
+        </div>
+      </div>
+
+      <div id="roles" class="page hide">
+        <div class="toolbar"><h2>Role & Permission Management</h2><div class="actions"><button class="primary" onclick="saveRole()">Save Role</button><button class="secondary" onclick="newRole()">New Role</button><button class="secondary" onclick="showPage('dashboard')">Back</button></div></div>
+        <div class="grid">
+          <div class="panel span-4">
+            <h3>Create / Edit Role</h3>
+            <input id="roleId" type="hidden">
+            <div class="form-grid">
+              <div class="full"><label>Role Name</label><input id="roleName"></div>
+              <div class="full"><label>Description</label><input id="roleDescription"></div>
+              <div class="full"><label>Permissions</label><select id="rolePermissions" multiple style="height:200px;"></select></div>
+            </div>
+            <p class="hint">Hold Ctrl to select multiple permissions. System roles cannot be deleted.</p>
+          </div>
+          <div class="panel span-8"><h3>System Roles</h3><div class="table-wrap" id="roleTable"></div></div>
         </div>
       </div>
 
@@ -1041,6 +1245,14 @@
         { id: "u5", username: "student", password: "student123", role: "Student" },
         { id: "u6", username: "exam_officer", password: "exam123", role: "Exam Officer" }
       ],
+      roles: [
+        { id: "role_admin", name: "Administrator", description: "Super Admin - Full system control", permissions: ["dashboard", "students", "staff", "classes", "subjects", "scores", "fees", "attendance", "users", "settings", "reports", "portals", "tools", "website", "roles", "activity"], isSystem: true },
+        { id: "role_teacher", name: "Teacher", description: "Class Teacher - Enter scores and attendance", permissions: ["dashboard", "scores", "attendance", "reports", "portals"], isSystem: true },
+        { id: "role_exam", name: "Exam Officer", description: "Manage exams and results", permissions: ["dashboard", "scores", "reports"], isSystem: true },
+        { id: "role_accountant", name: "Accountant", description: "Manage fees, payments, cashbook, expenses, payroll", permissions: ["dashboard", "fees", "payments", "cashbook", "expenses", "income", "payroll", "reports"], isSystem: true },
+        { id: "role_student", name: "Student", description: "View own results and attendance", permissions: ["dashboard", "portals", "reports"], isSystem: true },
+        { id: "role_parent", name: "Parent", description: "View child results and fees", permissions: ["dashboard", "portals", "reports"], isSystem: true }
+      ],
       classes: [
         { id: "c1", name: "Nursery 1", section: "Nursery", teacherId: "s1" },
         { id: "c2", name: "Primary 1", section: "Primary", teacherId: "s2" },
@@ -1148,7 +1360,10 @@
         { id: "a2", studentId: "st2", date: today, status: "Late" },
         { id: "a3", studentId: "st3", date: today, status: "Present" }
       ],
-      events: [
+      paymentPlans: [],
+      discounts: [],
+      scholarships: [],
+      fees: [
         { id: "e1", date: "2026-01-12", type: "Academic", title: "Next term begins" }
       ],
       published: true
@@ -1202,6 +1417,18 @@
             if (!db.classApprovals) db.classApprovals = [];
             if (!db.auditLog) db.auditLog = [];
             if (!db.feeStructure) db.feeStructure = [];
+            if (!db.paymentPlans) db.paymentPlans = [];
+            if (!db.discounts) db.discounts = [];
+            if (!db.scholarships) db.scholarships = [];
+            if (!db.expenses) db.expenses = [];
+            if (!db.incomes) db.incomes = [];
+            if (!db.cashbook) db.cashbook = [];
+            if (!db.payroll) db.payroll = [];
+            if (!db.onlinePayments) db.onlinePayments = [];
+            if (!db.roles || !db.roles.length) {
+              db.roles = JSON.parse(JSON.stringify(seed.roles));
+              fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(db) }).catch(() => {});
+            }
           }
         }
       } catch (err) {
@@ -1225,7 +1452,7 @@
       if (savedUser) {
         currentUser = JSON.parse(savedUser);
         document.getElementById("activeUser").textContent = `${currentUser.role}: ${currentUser.username}`;
-        showPage(currentUser.role === "Teacher" ? "scores" : "dashboard");
+        showPage(normalizeRole(currentUser.role) === "teacher" ? "scores" : "dashboard");
       } else if (autoRole && autoUser && autoPass) {
         document.getElementById("loginRole").value = autoRole;
         document.getElementById("loginUsername").value = autoUser;
@@ -1247,6 +1474,13 @@
       renderAll();
     }
 
+    function hasPermission(permission) {
+      const role = currentUser?.role;
+      if (!role || !db.roles) return false;
+      const roleDef = db.roles.find((r) => normalizeRole(r.name) === normalizeRole(role));
+      if (!roleDef) return false;
+      return roleDef.permissions.includes(permission);
+    }
     function logActivity(action, details) {
       if (!db.auditLog) db.auditLog = [];
       db.auditLog.unshift({
@@ -1318,10 +1552,13 @@
       return items.map((item) => `<option value="${item.id}" ${item.id === selected ? "selected" : ""}>${esc(typeof label === "function" ? label(item) : item[label])}</option>`).join("");
     }
 
-    function showPage(idName) {
-      document.querySelectorAll(".page").forEach((page) => {
-        if (page.id !== idName) page.classList.add("hide");
-      });
+     function showPage(idName) {
+       if (currentUser && idName !== "login" && !hasPermission(idName)) {
+         idName = "dashboard";
+       }
+       document.querySelectorAll(".page").forEach((page) => {
+         if (page.id !== idName) page.classList.add("hide");
+       });
       const buttons = document.querySelectorAll("nav button");
       buttons.forEach((button) => {
         const isActive = button.dataset.section === idName;
@@ -1339,14 +1576,15 @@
       const nav = document.getElementById("nav");
       const role = currentUser ? currentUser.role : null;
       
-      const permissions = {
-        "Administrator": ["dashboard", "students", "staff", "classes", "subjects", "scores", "fees", "attendance", "users", "settings", "reports", "portals", "tools", "website"],
-        "Teacher": ["scores", "attendance", "reports"],
-        "Exam Officer": ["dashboard", "students", "staff", "classes", "subjects", "scores", "attendance", "reports"],
-        "Accountant": ["dashboard", "students", "fees", "reports"],
-        "Student": ["dashboard", "portals", "reports"],
-        "Parent": ["dashboard", "portals", "reports"]
-      };
+      let permissions = [];
+      if (role && db.roles) {
+        const roleDef = db.roles.find((r) => normalizeRole(r.name) === normalizeRole(role));
+        if (roleDef) permissions = roleDef.permissions || [];
+      }
+      if (!permissions.length) {
+        const fallbackRole = (db.roles || []).find((r) => normalizeRole(r.name) === normalizeRole(role));
+        permissions = fallbackRole ? (fallbackRole.permissions || []) : ["dashboard"];
+      }
 
       nav.querySelectorAll("button").forEach(btn => {
         const section = btn.dataset.section;
@@ -1358,7 +1596,7 @@
           btn.classList.add("hide");
           return;
         }
-        const allowed = permissions[role] || ["dashboard"];
+        const allowed = permissions;
         btn.classList.toggle("hide", !allowed.includes(section));
       });
     }
@@ -1377,6 +1615,9 @@
       button.addEventListener("click", () => showPage(button.dataset.section));
     });
 
+    function normalizeRole(value) {
+      return String(value || "").toLowerCase().replace(/[\s_-]+/g, "").trim();
+    }
     function doLogin() {
       const role = document.getElementById("loginRole").value;
       const username = document.getElementById("loginUsername").value.trim();
@@ -1389,27 +1630,29 @@
       let user = null;
       const lowerUser = username.toLowerCase();
 
-      // 1. Check generic users (case-insensitive)
-      user = db.users.find((u) => u.username.toLowerCase() === lowerUser && u.password === password && u.role === role);
+      // 1. Check generic users (case-insensitive, role-insensitive)
+      user = db.users.find((u) => u.username.toLowerCase() === lowerUser && u.password === password && normalizeRole(u.role) === normalizeRole(role));
 
       // 2. Check Special ID Logins if not found above
       if (!user) {
-        if (role === "Student") {
+        if (normalizeRole(role) === "student") {
           const s = db.students.find((s) => s.regNo.toLowerCase() === lowerUser);
           if (s && password === "student123") {
             user = { id: s.id, username: s.regNo, role: "Student", studentId: s.id };
           }
-        } else if (role === "Parent") {
+        } else if (normalizeRole(role) === "parent") {
           const s = db.students.find((s) => s.parentPhone === username);
           if (s && password === "parent123") {
             user = { id: s.id, username: s.parentPhone, role: "Parent", studentId: s.id };
           }
-        } else if (["Teacher", "Accountant", "Exam Officer"].includes(role)) {
-          const s = db.staff.find((s) => s.staffNo.toLowerCase() === lowerUser && s.role === role);
+        } else if (["Teacher", "Accountant", "Exam Officer"].includes(role) || ["teacher", "accountant", "examofficer"].includes(normalizeRole(role))) {
+          const staffRoles = ["Teacher", "Accountant", "Exam Officer"];
+          const matchedRole = staffRoles.find(r => normalizeRole(r) === normalizeRole(role)) || role;
+          const s = db.staff.find((s) => s.staffNo.toLowerCase() === lowerUser && normalizeRole(s.role) === normalizeRole(matchedRole));
           if (s) {
-            const demoPass = role === "Teacher" ? "teacher" : (role === "Accountant" ? "account123" : "exam123");
+            const demoPass = matchedRole === "Teacher" ? "teacher" : (matchedRole === "Accountant" ? "account123" : "exam123");
             if (password === demoPass) {
-              user = { id: s.id, username: fullName(s), role: role, staffId: s.id };
+              user = { id: s.id, username: fullName(s), role: matchedRole, staffId: s.id };
             }
           }
         }
@@ -1422,7 +1665,7 @@
        document.getElementById("activeUser").textContent = `${user.role}: ${user.username}`;
        logActivity("Login", `Logged in as ${user.role}`);
        toast("Login successful");
-       showPage(user.role === "Teacher" ? "scores" : "dashboard");
+       showPage(normalizeRole(user.role) === "teacher" ? "scores" : "dashboard");
      }
      function logout() {
        logActivity("Logout", "Logged out");
@@ -1434,7 +1677,8 @@
      }
      function recoverPassword() {
        const username = document.getElementById("loginUsername").value.trim();
-       const user = db.users.find((item) => item.username === username);
+       const lowerUser = username.toLowerCase();
+       const user = db.users.find((item) => item.username.toLowerCase() === lowerUser);
        toast(user ? `Recovery hint: password is ${user.password}` : "User not found");
      }
 
@@ -1485,7 +1729,7 @@
         `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">${a}${b}</div>`;
 
       // ── ADMINISTRATOR ────────────────────────────────────────
-      if (role === "Administrator") {
+      if (hasPermission("users")) {
         const totalFeeBalance = db.fees.reduce((s, f) => s + Math.max(0, f.amountDue - f.amountPaid), 0);
         const approvedScores = db.scores.filter(sc => sc.approved).length;
         const recentStudentRows = db.students.slice(-5).reverse().map(s => [esc(s.regNo), esc(fullName(s)), esc(cls(s.classId).name)]);
@@ -1526,7 +1770,7 @@
       }
 
       // ── TEACHER ─────────────────────────────────────────────
-      if (role === "Teacher") {
+      if (normalizeRole(role) === "teacher") {
         const staffId = currentUser?.staffId;
         const staffMember = staffId ? db.staff.find(s => s.id === staffId) : null;
         const mySubjects = staffId ? db.subjects.filter(s => s.teacherId === staffId) : [];
@@ -1560,7 +1804,7 @@
       }
 
       // ── EXAM OFFICER ─────────────────────────────────────────
-      if (role === "Exam Officer") {
+      if (normalizeRole(role) === "examofficer") {
         const totalScores = db.scores.length;
         const term = db.settings.term, session = db.settings.session;
         const approvals = db.classApprovals || [];
@@ -1596,7 +1840,7 @@
       }
 
       // ── ACCOUNTANT ───────────────────────────────────────────
-      if (role === "Accountant") {
+      if (normalizeRole(role) === "accountant") {
         const totalDue = db.fees.reduce((s, f) => s + (f.amountDue || 0), 0);
         const totalPaid = db.fees.reduce((s, f) => s + (f.amountPaid || 0), 0);
         const totalBalance = totalDue - totalPaid;
@@ -1617,15 +1861,19 @@
           `<h4 style="margin:0 0 10px;color:#555;font-weight:700;font-size:.88em;text-transform:uppercase;letter-spacing:.5px">Quick Access</h4>` +
           navGrid([
             navBtn("💳","Fee Management","Record payments","fees"),
-            navBtn("📋","Reports","Fee reports","reports"),
-            navBtn("👥","Students","Student list","students"),
+            navBtn("🌐","Online Payments","Payment links","payments"),
+            navBtn("📒","Cash Book","Income/expense log","cashbook"),
+            navBtn("💸","Expenses","Record expenses","expenses"),
+            navBtn("📥","Income","Record income","income"),
+            navBtn("🧾","Payroll","Staff payments","payroll"),
+            navBtn("📋","Reports","Financial reports","reports"),
           ]) +
           panel("Recent Fee Payments", recentFees.length ? table(["Student","Paid","Balance","Date"], recentFees) : "<p class='hint'>No fee records yet.</p>");
         return;
       }
 
       // ── STUDENT ──────────────────────────────────────────────
-      if (role === "Student") {
+      if (normalizeRole(role) === "student") {
         const firstStudent = db.students[0];
         if (!firstStudent) { content.innerHTML = "<p class='hint' style='padding:40px'>No student record linked to this account.</p>"; return; }
         const myStudentScores = db.scores.filter(sc => sc.studentId === firstStudent.id);
@@ -1654,7 +1902,7 @@
       }
 
       // ── PARENT ───────────────────────────────────────────────
-      if (role === "Parent") {
+      if (normalizeRole(role) === "parent") {
         const child = db.students[0];
         if (!child) { content.innerHTML = "<p class='hint' style='padding:40px'>No child record linked to this account.</p>"; return; }
         const childScores = db.scores.filter(sc => sc.studentId === child.id);
@@ -1683,6 +1931,23 @@
       }
 
       content.innerHTML = `<p class='hint' style='padding:40px;text-align:center'>Please log in to access your dashboard.</p>`;
+      if (currentUser) renderGenericDashboard();
+    }
+
+    // Generic dashboard for custom roles
+    function renderGenericDashboard() {
+      const role = currentUser?.role || "User";
+      const perms = getCurrentPermissions();
+      content.innerHTML =
+        banner("linear-gradient(135deg,#1565c0 0%,#1976d2 60%,#42a5f5 100%)", "👤", `Welcome, ${esc(role)}`, `${esc(db.settings.schoolName)} · ${esc(db.settings.term)}, ${esc(db.settings.session)}`) +
+        `<h4 style="margin:0 0 10px;color:#555;font-weight:700;font-size:.88em;text-transform:uppercase;letter-spacing:.5px">Your Permissions</h4>` +
+        `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">${perms.map(p => `<span class="pill">${esc(p)}</span>`).join("")}</div>`;
+    }
+    function getCurrentPermissions() {
+      const role = currentUser?.role;
+      if (!role || !db.roles) return [];
+      const roleDef = db.roles.find((r) => r.name === role);
+      return roleDef ? roleDef.permissions : [];
     }
 
     function studentSummaryForPortal() {
@@ -1703,34 +1968,74 @@
 
     function renderRolePanels() {} 
 
-function fillSelects() {
-       // Filter Report Types for Teacher
-       const reportTypeSelect = document.getElementById("reportType");
-       if (reportTypeSelect) {
-         const allOptions = [
-           "Student Report Card", "Class Broadsheet", "Academic Performance",
-           "Attendance Report", "Fee Payment Report", "Staff Report",
-           "Admission Report", "Student ID Card", "Class ID Cards (Bulk)", "Certificate", "Class List Report"
-         ];
-         const teacherAllowed = ["Student Report Card", "Class Broadsheet", "Fee Payment Report", "Class List Report"];
-         
-         if (currentUser?.role === "Teacher") {
-           reportTypeSelect.innerHTML = allOptions
-             .filter(opt => teacherAllowed.includes(opt))
-             .map(opt => `<option>${opt}</option>`).join("");
-         } else {
-           reportTypeSelect.innerHTML = allOptions.map(opt => `<option>${opt}</option>`).join("");
-         }
-       }
+ function fillSelects() {
+        // Filter Report Types by role
+        const reportTypeSelect = document.getElementById("reportType");
+        if (reportTypeSelect) {
+          const allOptions = [
+            "Student Report Card", "Class Broadsheet", "Academic Performance",
+            "Attendance Report", "Fee Payment Report", "Staff Report",
+            "Admission Report", "Student ID Card", "Class ID Cards (Bulk)", "Certificate", "Class List Report"
+          ];
 
-       const classOpts = `<option value="">All Classes</option>${options(db.classes)}`;
-       ["studentClass", "studentFilterClass", "subjectClass"].forEach((idName) => {
-         const el = document.getElementById(idName);
-         if (el) el.innerHTML = classOpts;
-       });
+          const role = currentUser?.role ? normalizeRole(currentUser.role) : "";
+          const perms = getCurrentPermissions();
+          let allowed = [];
+          if (role === "administrator" || hasPermission('reports')) {
+            allowed = allOptions.slice();
+          } else if (role === "teacher") {
+            allowed = ["Student Report Card", "Class Broadsheet", "Class List Report", "Attendance Report"];
+          } else if (role === "examofficer") {
+            allowed = ["Student Report Card", "Class Broadsheet", "Academic Performance", "Class List Report"];
+          } else if (role === "accountant") {
+            allowed = ["Fee Payment Report", "Attendance Report", "Admission Report", "Class List Report", "Academic Performance"];
+          } else if (role === "student") {
+            allowed = ["Student Report Card", "Class Broadsheet", "Attendance Report"];
+          } else if (role === "parent") {
+            allowed = ["Student Report Card", "Attendance Report", "Fee Payment Report"];
+          } else {
+            allowed = perms.includes('reports') ? allOptions.slice() : [];
+          }
 
-       // For reportClass, teachers only see their assigned classes
-       const reportClassEl = document.getElementById("reportClass");
+          reportTypeSelect.innerHTML = allOptions
+            .filter(opt => allowed.includes(opt))
+            .map(opt => `<option>${opt}</option>`).join("");
+        }
+
+        const classOpts = `<option value="">All Classes</option>${options(db.classes)}`;
+        const classFilterOpts = `<option value="">Select Class</option>${options(db.classes)}`;
+        ["studentClass", "studentFilterClass", "subjectClass"].forEach((idName) => {
+          const el = document.getElementById(idName);
+          if (el) el.innerHTML = classOpts;
+        });
+         ["feeFilterClass", "attendanceFilterClass", "scoreFilterClass", "feeStructClass"].forEach((idName) => {
+           const el = document.getElementById(idName);
+           if (el) el.innerHTML = classFilterOpts;
+         });
+
+         ["planStudent", "discountStudent", "scholarshipStudent", "onlineStudent"].forEach((idName) => {
+           const el = document.getElementById(idName);
+           if (el) el.innerHTML = `<option value="">Select Student</option>` + db.students.map(s => `<option value="${s.id}">${esc(fullName(s))} (${esc(s.regNo)})</option>`).join("");
+         });
+         const staffPayrollEl = document.getElementById("payStaff");
+         if (staffPayrollEl) staffPayrollEl.innerHTML = `<option value="">Select Staff</option>` + db.staff.map(s => `<option value="${s.id}">${esc(fullName(s))}</option>`).join("");
+
+         // Populate role dropdowns from db.roles
+         const roleOpts = (db.roles && db.roles.length)
+           ? db.roles.map((r) => `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join("")
+           : `<option>Administrator</option><option>Teacher</option><option>Accountant</option><option>Exam Officer</option><option>Parent</option><option>Student</option>`;
+         ["loginRole", "userRole"].forEach((idName) => {
+           const el = document.getElementById(idName);
+           if (el) el.innerHTML = roleOpts;
+         });
+        // Populate rolePermissions multi-select
+        const rolePermsEl = document.getElementById("rolePermissions");
+        if (rolePermsEl) {
+          const allPerms = ["dashboard", "students", "staff", "classes", "subjects", "scores", "fees", "attendance", "users", "settings", "reports", "portals", "tools", "website", "roles", "activity"];
+          rolePermsEl.innerHTML = allPerms.map(p => `<option value="${p}">${p}</option>`).join("");
+        }
+        // For reportClass, teachers only see their assigned classes
+        const reportClassEl = document.getElementById("reportClass");
        if (reportClassEl) {
          if (currentUser?.role === "Teacher" && currentUser?.staffId) {
            const assignedClassIds = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
@@ -1954,22 +2259,31 @@ function fillSelects() {
     function renderStudents() {
       const search = document.getElementById("studentSearch")?.value.toLowerCase() || "";
       const classId = document.getElementById("studentFilterClass")?.value || "";
+      const tableEl = document.getElementById("studentTable");
+      if (!classId) {
+        tableEl.innerHTML = `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view students.</p>`;
+        return;
+      }
       const rows = db.students
-        .filter((s) => !classId || s.classId === classId)
+        .filter((s) => s.classId === classId)
         .filter((s) => `${s.regNo} ${fullName(s)} ${s.parentPhone}`.toLowerCase().includes(search))
         .map((s) => [
           esc(s.regNo), esc(fullName(s)), esc(s.gender), esc(cls(s.classId).name), esc(s.parentPhone),
-          `<button class="secondary" onclick="editStudent('${s.id}')">Edit</button> <button class="secondary" onclick="promoteStudent('${s.id}')">Promote</button>${currentUser?.role === "Administrator" ? ` <button class="secondary" onclick="printStudentIdCard('${s.id}')">🪪 ID Card</button>` : ""} <button class="danger" onclick="deleteStudent('${s.id}')">Delete</button>`
+           `<button class="secondary" onclick="editStudent('${s.id}')">Edit</button> <button class="secondary" onclick="promoteStudent('${s.id}')">Promote</button>${hasPermission('reports') ? ` <button class="secondary" onclick="printStudentIdCard('${s.id}')">🪪 ID Card</button>` : ""} ${hasPermission('reports') ? `<button class="secondary" onclick="printAdmissionLetter('${s.id}')">📄 Admission Letter</button>` : ""} <button class="danger" onclick="deleteStudent('${s.id}')">Delete</button>`
         ]);
-      document.getElementById("studentTable").innerHTML = table(["Reg No", "Name", "Gender", "Class", "Parent Phone", "Action"], rows);
+      tableEl.innerHTML = table(["Reg No", "Name", "Gender", "Class", "Parent Phone", "Action"], rows);
     }
 
     function newStaff() { 
-      ["staffId", "staffNo", "staffFirst", "staffMiddle", "staffLast", "staffPhone", "staffAddress"].forEach((x) => document.getElementById(x).value = ""); 
+      ["staffId", "staffNo", "staffFirst", "staffMiddle", "staffLast", "staffPhone", "staffAddress", "staffImagePath"].forEach((x) => document.getElementById(x).value = ""); 
       ["staffId", "staffFirst", "staffMiddle", "staffLast", "staffPhone", "staffAddress"].forEach((x) => document.getElementById(x).value = ""); 
       generateStaffNo();
       const subjectSelect = document.getElementById("staffSubject");
       if (subjectSelect) Array.from(subjectSelect.options).forEach(opt => opt.selected = false);
+      const preview = document.getElementById("staffImagePreview");
+      if (preview) { preview.src = ""; preview.style.display = "none"; }
+      const fileInput = document.getElementById("staffImageFile");
+      if (fileInput) fileInput.value = "";
     }
     function generateStaffNo() {
       const next = String(db.staff.length + 1).padStart(3, "0");
@@ -1981,7 +2295,8 @@ function fillSelects() {
       const data = { 
         id: get("staffId") || id(), staffNo: get("staffNo"), firstName: get("staffFirst"), 
         middleName: get("staffMiddle"), lastName: get("staffLast"), role: get("staffRole"), 
-        phone: get("staffPhone"), subjectIds: selectedSubjects, address: get("staffAddress") 
+        phone: get("staffPhone"), subjectIds: selectedSubjects, address: get("staffAddress"),
+        image: get("staffImagePath") || ""
       };
       const index = db.staff.findIndex((item) => item.id === data.id);
       const isStaffEdit = index >= 0;
@@ -2003,7 +2318,10 @@ function fillSelects() {
       const subjectSelect = document.getElementById("staffSubject");
       const sIds = s.subjectIds || (s.subjectId ? [s.subjectId] : []);
       Array.from(subjectSelect.options).forEach(opt => opt.selected = sIds.includes(opt.value));
-      document.getElementById("staffAddress").value = s.address;
+      document.getElementById("staffAddress").value = s.address || "";
+      document.getElementById("staffImagePath").value = s.image || "";
+      const preview = document.getElementById("staffImagePreview");
+      if (preview && s.image) { preview.src = s.image; preview.style.display = "block"; }
     }
     function deleteStaff(staffIdValue) {
       if (db.classes.some((item) => item.teacherId === staffIdValue) || db.subjects.some((item) => item.teacherId === staffIdValue)) {
@@ -2025,7 +2343,7 @@ function fillSelects() {
         esc(s.role),
         esc(s.phone),
         esc(names || "None"),
-        `<button class="secondary" onclick="editStaff('${s.id}')">Edit</button>${currentUser?.role === "Administrator" ? ` <button class="secondary" onclick="printStaffIdCard('${s.id}')">🪪 ID Card</button>` : ""} <button class="danger" onclick="deleteStaff('${s.id}')">Delete</button>`
+        `<button class="secondary" onclick="editStaff('${s.id}')">Edit</button>${hasPermission('reports') ? ` <button class="secondary" onclick="printStaffIdCard('${s.id}')">🪪 ID Card</button>` : ""} <button class="danger" onclick="deleteStaff('${s.id}')">Delete</button>`
         ];
       }));
     }
@@ -2114,6 +2432,8 @@ function fillSelects() {
       const existing = db.scores.find((item) => item.studentId === stu.id && item.subjectId === subjectId);
       const ca1 = Number(document.getElementById("scoreCa1").value);
       const ca2 = Number(document.getElementById("scoreCa2").value);
+      const psychomotor = Number(document.getElementById("scorePsychomotor").value);
+      const affective = Number(document.getElementById("scoreAffective").value);
       const data = {
         id: existing?.id || id(), studentId: stu.id, subjectId: subjectId,
         ca1, ca2, ca: ca1 + ca2,
@@ -2123,7 +2443,9 @@ function fillSelects() {
         remark: document.getElementById("scoreRemark").value,
         approved: false,
         term: db.settings.term,
-        session: db.settings.session
+        session: db.settings.session,
+        psychomotor,
+        affective
       };
       existing ? Object.assign(existing, data) : db.scores.push(data);
       save();
@@ -2267,6 +2589,10 @@ function fillSelects() {
           subjects = subjects.filter(s => s.teacherId === currentUser.staffId);
         }
         subjEl.innerHTML = subjects.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
+        if (subjects.length) {
+          subjEl.value = subjects[0].id;
+        }
+        loadBulkEntry();
       };
       classEl.removeEventListener("change", classEl._subjectUpdater);
       classEl._subjectUpdater = updateSubjects;
@@ -2377,14 +2703,20 @@ function fillSelects() {
         return { ...s, total, avg, grade: gradeFor(avg).grade };
       }).sort((a, b) => b.total - a.total).map((s, index) => ({ ...s, position: index + 1 }));
     }
-function renderScores() {
+    function renderScores() {
        previewScore();
-       let targetClassId = "";
-       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+       let targetClassId = document.getElementById("scoreFilterClass")?.value || "";
+       if (!targetClassId && currentUser?.role === "Teacher" && currentUser?.staffId) {
          const assignedClasses = [...new Set(db.subjects.filter((s) => s.teacherId === currentUser.staffId).map((s) => s.classId))];
          targetClassId = assignedClasses.length === 1 ? assignedClasses[0] : "";
        }
-       document.getElementById("scoreTable").innerHTML = table(["Position", "Reg No", "Name", "Class", "Total", "Average", "Grade"], rankedStudents(targetClassId).map((s) => [s.position, esc(s.regNo), esc(fullName(s)), esc(cls(s.classId).name), s.total, s.avg.toFixed(2), s.grade]));
+       const tableEl = document.getElementById("scoreTable");
+       if (!targetClassId) {
+         tableEl.innerHTML = `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view scores.</p>`;
+         renderApprovalPanel();
+         return;
+       }
+       tableEl.innerHTML = table(["Position", "Reg No", "Name", "Class", "Total", "Average", "Grade"], rankedStudents(targetClassId).map((s) => [s.position, esc(s.regNo), esc(fullName(s)), esc(cls(s.classId).name), s.total, s.avg.toFixed(2), s.grade]));
        renderApprovalPanel();
      }
 
@@ -2392,10 +2724,13 @@ function renderScores() {
       const query = document.getElementById("feeSearch").value.trim().toLowerCase();
       const resultsEl = document.getElementById("feeSearchResults");
       if (!query) { resultsEl.style.display = "none"; resultsEl.innerHTML = ""; return; }
-      const matches = db.students.filter(s =>
+      let matches = db.students.filter(s =>
         (s.regNo && s.regNo.toLowerCase().includes(query)) ||
         fullName(s).toLowerCase().includes(query)
-      ).slice(0, 10);
+      );
+      const classId = document.getElementById("feeFilterClass")?.value || "";
+      if (classId) matches = matches.filter(s => s.classId === classId);
+      matches = matches.slice(0, 10);
       if (!matches.length) {
         resultsEl.innerHTML = `<div style="padding:10px 12px;color:#888;font-size:.9em;">No student found</div>`;
       } else {
@@ -2460,16 +2795,23 @@ function renderScores() {
     }
 
     function renderFees() {
-      let filteredFees = db.fees;
+      const classId = document.getElementById("feeFilterClass")?.value || "";
+      const tableEl = document.getElementById("feeTable");
+      if (!classId) {
+        tableEl.innerHTML = `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view fee reports.</p>`;
+        return;
+      }
+      const studentsInClass = db.students.filter((s) => s.classId === classId);
+      let filteredFees = db.fees.filter((f) => studentsInClass.some((s) => s.id === f.studentId));
       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
         const assignedClasses = [...new Set(db.subjects.filter((s) => s.teacherId === currentUser.staffId).map((s) => s.classId))];
-        filteredFees = db.fees.filter((f) => {
+        filteredFees = filteredFees.filter((f) => {
           const s = db.students.find((st) => st.id === f.studentId);
           return s && assignedClasses.includes(s.classId);
         });
       }
       const canPrint = ["Administrator","Accountant"].includes(currentUser?.role);
-      document.getElementById("feeTable").innerHTML = table(
+      tableEl.innerHTML = table(
         ["S/N", "Student", "Fee Type", "Amount Due", "Amount Paid", "Balance", "Status", canPrint ? "Receipt" : ""],
         filteredFees.map((fee, i) => {
           const balance = Math.max(0, fee.amountDue - fee.amountPaid);
@@ -2611,9 +2953,386 @@ ${eq}</pre>
         ${esc(db.settings.schoolName)}<br>
         ${esc(db.settings.session)}
       </div>
-      <script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script>
+       <script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script>
+       </body></html>`);
+      w.document.close();
+    }
+
+    function printFeeSection(section) {
+      const classLabel = (() => {
+        const el = document.getElementById(section === 'payment' ? 'feeFilterClass' : section === 'structure' ? 'feeStructClass' : null);
+        if (!el) return 'All Records';
+        const txt = el.options[el.selectedIndex]?.text || 'All Records';
+        return txt === 'Select Class' || txt === 'All Classes' ? 'All Records' : txt;
+      })();
+      let title = 'Madarkaci Model School';
+      let rowsHtml = '';
+      if (section === 'payment') {
+        title = 'Fee Payment Report';
+        const classId = document.getElementById("feeFilterClass")?.value || "";
+        let fees = db.fees.slice();
+        if (classId) {
+          const studentsInClass = db.students.filter(s => s.classId === classId);
+          fees = fees.filter(f => studentsInClass.some(s => s.id === f.studentId));
+        }
+        rowsHtml = fees.map((fee, i) => {
+          const s = db.students.find(st => st.id === fee.studentId) || {};
+          const balance = Math.max(0, fee.amountDue - fee.amountPaid);
+          return `<tr><td>${i + 1}</td><td>${esc(fullName(s))}</td><td>${esc(fee.label || '—')}</td><td>${money(fee.amountDue)}</td><td>${money(fee.amountPaid)}</td><td>${money(balance)}</td></tr>`;
+        }).join("");
+      } else if (section === 'plans') {
+        title = 'Payment Plans';
+        rowsHtml = (db.paymentPlans || []).map((p, i) => {
+          const s = db.students.find(st => st.id === p.studentId) || {};
+          return `<tr><td>${i + 1}</td><td>${esc(fullName(s))}</td><td>${esc(p.name)}</td><td>${money(p.total)}</td><td>${p.installments}</td><td>${esc(p.start)}</td><td>${esc(p.status)}</td></tr>`;
+        }).join("");
+      } else if (section === 'discounts') {
+        title = 'Discounts';
+        rowsHtml = (db.discounts || []).map((d, i) => {
+          const s = db.students.find(st => st.id === d.studentId) || {};
+          return `<tr><td>${i + 1}</td><td>${esc(fullName(s))}</td><td>${esc(d.label)}</td><td>${money(d.amount)}</td><td>${esc(d.date)}</td></tr>`;
+        }).join("");
+      } else if (section === 'scholarships') {
+        title = 'Scholarships';
+        rowsHtml = (db.scholarships || []).map((sh, i) => {
+          const s = db.students.find(st => st.id === sh.studentId) || {};
+          return `<tr><td>${i + 1}</td><td>${esc(fullName(s))}</td><td>${esc(sh.type)}</td><td>${money(sh.amount)}</td><td>${esc(sh.date)}</td></tr>`;
+        }).join("");
+      } else if (section === 'debtors') {
+        title = 'Debtors List';
+        const classId = document.getElementById("feeFilterClass")?.value || "";
+        let debtors = db.students.filter(s => {
+          const fee = db.fees.find(f => f.studentId === s.id);
+          return fee && fee.amountDue > fee.amountPaid;
+        });
+        if (classId) debtors = debtors.filter(s => s.classId === classId);
+        rowsHtml = debtors.map((s, i) => {
+          const fee = db.fees.find(f => f.studentId === s.id) || {};
+          const discount = (db.discounts || []).filter(d => d.studentId === s.id).reduce((sum, d) => sum + d.amount, 0);
+          const scholarship = (db.scholarships || []).filter(sh => sh.studentId === s.id).reduce((sum, sh) => sum + sh.amount, 0);
+          const balance = Math.max(0, (fee.amountDue || 0) - (fee.amountPaid || 0) - discount - scholarship);
+          return `<tr><td>${i + 1}</td><td>${esc(s.regNo)}</td><td>${esc(fullName(s))}</td><td>${esc(cls(s.classId).name)}</td><td>${money(fee.amountDue || 0)}</td><td>${money(fee.amountPaid || 0)}</td><td>${money(balance)}</td></tr>`;
+        }).join("");
+      } else if (section === 'online') {
+        title = 'Online Payments';
+        rowsHtml = (db.onlinePayments || []).map((p, i) => {
+          const s = db.students.find(st => st.id === p.studentId) || {};
+          return `<tr><td>${i + 1}</td><td>${esc(fullName(s))}</td><td>${esc(p.gateway)}</td><td>${money(p.amount)}</td><td>${esc(p.ref)}</td><td>${esc(p.status)}</td><td>${esc(p.date)}</td></tr>`;
+        }).join("");
+      } else if (section === 'structure') {
+        title = 'Fee Structure';
+        const classId = document.getElementById("feeStructClass")?.value || "";
+        let items = (db.feeStructure || []).slice();
+        if (classId) items = items.filter(fs => fs.classId === classId);
+        rowsHtml = items.map((fs, i) => `<tr><td>${i + 1}</td><td>${esc(cls(fs.classId).name)}</td><td>${esc(fs.term)}</td><td>${esc(fs.session)}</td><td>${esc(fs.label)}</td><td>${money(fs.amount)}</td></tr>`).join("");
+      }
+
+      const w = window.open('', '_blank', 'width=1000,height=700');
+      w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><style>
+        body{font-family:Arial,sans-serif;margin:24px;color:#111}
+        h2{text-align:center;margin-bottom:4px}
+        .meta{text-align:center;color:#555;margin-bottom:18px;font-size:13px}
+        table{border-collapse:collapse;width:100%;font-size:13px}
+        th,td{border:1px solid #bbb;padding:8px 10px;text-align:left}
+        th{background:#f2f6fa;font-weight:700}
+        tr:nth-child(even){background:#f9f9f9}
+        .footer{margin-top:14px;font-size:12px;color:#555}
+        @media print{body{margin:10px}table{font-size:11px}th,td{padding:6px 8px}}
+      </style></head><body>
+      <h2>${esc(db.settings.schoolName)}</h2>
+      <div class="meta">${esc(title)} · Class: ${esc(classLabel)} · Session: ${esc(db.settings.session)} · Term: ${esc(db.settings.term)}</div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>${(() => {
+            if (section === 'payment') return '<th>S/N</th><th>Student</th><th>Fee Type</th><th>Amount Due</th><th>Amount Paid</th><th>Balance</th>';
+            if (section === 'plans') return '<th>S/N</th><th>Student</th><th>Plan</th><th>Total</th><th>Installments</th><th>Start</th><th>Status</th>';
+            if (section === 'discounts') return '<th>S/N</th><th>Student</th><th>Label</th><th>Amount</th><th>Date</th>';
+            if (section === 'scholarships') return '<th>S/N</th><th>Student</th><th>Type</th><th>Amount</th><th>Date</th>';
+            if (section === 'debtors') return '<th>S/N</th><th>Reg No</th><th>Name</th><th>Class</th><th>Due</th><th>Paid</th><th>Balance</th>';
+            if (section === 'online') return '<th>S/N</th><th>Student</th><th>Gateway</th><th>Amount</th><th>Reference</th><th>Status</th><th>Date</th>';
+            if (section === 'structure') return '<th>S/N</th><th>Class</th><th>Term</th><th>Session</th><th>Label</th><th>Amount</th>';
+            return '<th>S/N</th><th>Details</th>';
+          })()}</tr></thead>
+          <tbody>${rowsHtml || '<tr><td colspan="20" style="text-align:center;color:#777">No records found.</td></tr>'}</tbody>
+        </table>
+      </div>
+      <div class="footer">Printed on ${new Date().toLocaleString()} · Generated by ${esc(db.settings.schoolName)}${currentUser ? ` · ${esc(currentUser.role)}` : ""}</div>
+      <script>window.onload=()=>{window.print();}<\/script>
       </body></html>`);
       w.document.close();
+    }
+
+    function showFeeTab(tab) {
+      ["payment", "plans", "discounts", "scholarships", "debtors", "online", "structure"].forEach(t => {
+        const el = document.getElementById("feeTab" + t.charAt(0).toUpperCase() + t.slice(1));
+        if (el) el.classList.toggle("hide", t !== tab);
+        const btn = document.getElementById("feeTabBtn-" + t);
+        if (btn) btn.classList.toggle("active", t === tab);
+      });
+      if (tab === "plans") renderPaymentPlans();
+      if (tab === "discounts") renderDiscounts();
+      if (tab === "scholarships") renderScholarships();
+      if (tab === "debtors") renderDebtors();
+      if (tab === "online") renderOnlinePayments();
+      if (tab === "structure") renderFeeStructures();
+    }
+
+    function populateStudentSelect(selectId) {
+      const el = document.getElementById(selectId);
+      if (!el) return;
+      el.innerHTML = `<option value="">Select Student</option>` + db.students.map(s => `<option value="${s.id}">${esc(fullName(s))} (${esc(s.regNo)})</option>`).join("");
+    }
+    function savePaymentPlan() {
+      const studentId = document.getElementById("planStudent").value;
+      if (!studentId) return toast("Select a student.");
+      const name = document.getElementById("planName").value.trim();
+      const total = Number(document.getElementById("planTotal").value || 0);
+      const installments = Number(document.getElementById("planInstallments").value || 2);
+      const start = document.getElementById("planStart").value || today;
+      const plan = { id: id(), studentId, name, total, installments, start, status: "Active" };
+      db.paymentPlans = db.paymentPlans || [];
+      db.paymentPlans.push(plan);
+      save();
+      logActivity("Payment Plan Created", `${name} for ${fullName(student(studentId))}`);
+      toast("Payment plan saved.");
+      renderPaymentPlans();
+    }
+    function renderPaymentPlans() {
+      const el = document.getElementById("planTable");
+      if (!el) return;
+      const rows = (db.paymentPlans || []).map(p => {
+        const s = student(p.studentId);
+        return [esc(s ? fullName(s) : "—"), esc(p.name), "₦" + money(p.total), p.installments, esc(p.start), esc(p.status), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deletePaymentPlan('${p.id}')">Delete</button>`];
+      });
+      el.innerHTML = rows.length ? table(["Student", "Plan", "Total", "Installments", "Start", "Status", "Action"], rows) : "<p class='hint'>No payment plans yet.</p>";
+    }
+    function deletePaymentPlan(id) {
+      if (!confirm("Delete this payment plan?")) return;
+      db.paymentPlans = (db.paymentPlans || []).filter(x => x.id !== id);
+      save();
+      renderPaymentPlans();
+    }
+    function saveDiscount() {
+      const studentId = document.getElementById("discountStudent").value;
+      if (!studentId) return toast("Select a student.");
+      const label = document.getElementById("discountLabel").value.trim();
+      const amount = Number(document.getElementById("discountAmount").value || 0);
+      db.discounts = db.discounts || [];
+      db.discounts.push({ id: id(), studentId, label, amount, date: today });
+      save();
+      logActivity("Discount Awarded", `${label}: ₦${amount} - ${fullName(student(studentId))}`);
+      toast("Discount saved.");
+      renderDiscounts();
+    }
+    function renderDiscounts() {
+      const el = document.getElementById("discountTable");
+      if (!el) return;
+      const rows = (db.discounts || []).map(d => {
+        const s = student(d.studentId);
+        return [esc(s ? fullName(s) : "—"), esc(d.label), "₦" + money(d.amount), esc(d.date), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteDiscount('${d.id}')">Delete</button>`];
+      });
+      el.innerHTML = rows.length ? table(["Student", "Label", "Amount", "Date", "Action"], rows) : "<p class='hint'>No discounts awarded yet.</p>";
+    }
+    function deleteDiscount(id) {
+      if (!confirm("Delete this discount?")) return;
+      db.discounts = (db.discounts || []).filter(x => x.id !== id);
+      save();
+      renderDiscounts();
+    }
+    function saveScholarship() {
+      const studentId = document.getElementById("scholarshipStudent").value;
+      if (!studentId) return toast("Select a student.");
+      const type = document.getElementById("scholarshipType").value.trim();
+      const amount = Number(document.getElementById("scholarshipAmount").value || 0);
+      db.scholarships = db.scholarships || [];
+      db.scholarships.push({ id: id(), studentId, type, amount, date: today });
+      save();
+      logActivity("Scholarship Created", `${type} for ${fullName(student(studentId))}`);
+      toast("Scholarship saved.");
+      renderScholarships();
+    }
+    function renderScholarships() {
+      const el = document.getElementById("scholarshipTable");
+      if (!el) return;
+      const rows = (db.scholarships || []).map(sh => {
+        const s = student(sh.studentId);
+        return [esc(s ? fullName(s) : "—"), esc(sh.type), "₦" + money(sh.amount), esc(sh.date), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteScholarship('${sh.id}')">Delete</button>`];
+      });
+      el.innerHTML = rows.length ? table(["Student", "Type", "Amount", "Date", "Action"], rows) : "<p class='hint'>No scholarships yet.</p>";
+    }
+    function deleteScholarship(id) {
+      if (!confirm("Delete this scholarship?")) return;
+      db.scholarships = (db.scholarships || []).filter(x => x.id !== id);
+      save();
+      renderScholarships();
+    }
+    function renderDebtors() {
+      const el = document.getElementById("debtorTable");
+      if (!el) return;
+      const debtors = db.students.filter(s => {
+        const fee = db.fees.find(f => f.studentId === s.id);
+        return fee && fee.amountDue > fee.amountPaid;
+      }).map(s => {
+        const fee = db.fees.find(f => f.studentId === s.id);
+        const discount = (db.discounts || []).filter(d => d.studentId === s.id).reduce((sum, d) => sum + d.amount, 0);
+        const scholarship = (db.scholarships || []).filter(sh => sh.studentId === s.id).reduce((sum, sh) => sum + sh.amount, 0);
+        const balance = Math.max(0, (fee.amountDue || 0) - (fee.amountPaid || 0) - discount - scholarship);
+        return { student: s, fee, balance, discount, scholarship };
+      }).filter(item => item.balance > 0);
+
+      const rows = debtors.map(item => [
+        esc(item.student.regNo), esc(fullName(item.student)), esc(cls(item.student.classId).name),
+        "₦" + money(item.fee.amountDue), "₦" + money(item.fee.amountPaid), "₦" + money(item.discount), "₦" + money(item.scholarship), "₦" + money(item.balance),
+        `<button class="secondary" style="padding:3px 8px;font-size:.82em;" onclick="showFeeTab('payment');searchFeeStudent();document.getElementById('feeSearch').value='${esc(fullName(item.student))}';searchFeeStudent();">Pay</button>`
+      ]);
+      document.getElementById("debtorTable").innerHTML = rows.length ? table(["Reg No", "Name", "Class", "Due", "Paid", "Discount", "Scholarship", "Balance", "Action"], rows) : "<p class='hint'>No debtors. All fees cleared.</p>";
+    }
+    function initOnlinePayment() {
+      const studentId = document.getElementById("onlineStudent").value;
+      const gateway = document.getElementById("onlineGateway").value;
+      const amount = Number(document.getElementById("onlineAmount").value || 0);
+      const email = document.getElementById("onlineEmail").value.trim();
+      const phone = document.getElementById("onlinePhone").value.trim();
+      if (!studentId || !amount) return toast("Select student and enter amount.");
+      const ref = "ONL-" + Date.now().toString(-10);
+      const link = `https://school.pay/${gateway.toLowerCase()}/${ref}`;
+      db.onlinePayments = db.onlinePayments || [];
+      db.onlinePayments.push({ id: id(), studentId, gateway, amount, email, phone, ref, link, status: "Pending", date: today });
+      save();
+      logActivity("Online Payment Initiated", `${gateway} ₦${amount} for ${fullName(student(studentId))}`);
+      toast("Payment initialized. Use the link to complete payment.");
+      renderOnlinePayments();
+    }
+    function renderOnlinePayments() {
+      const el = document.getElementById("onlineTable");
+      if (!el) return;
+      const rows = (db.onlinePayments || []).map(p => {
+        const s = student(p.studentId);
+        return [esc(s ? fullName(s) : "—"), esc(p.gateway), "₦" + money(p.amount), esc(p.ref), `<a href="${esc(p.link)}" target="_blank">Link</a>`, esc(p.status), esc(p.date)];
+      });
+      document.getElementById("onlineTable").innerHTML = rows.length ? table(["Student", "Gateway", "Amount", "Reference", "Link", "Status", "Date"], rows) : "<p class='hint'>No online payments yet.</p>";
+    }
+
+    function saveCashbookEntry() {
+      const date = document.getElementById("cbDate").value || today;
+      const type = document.getElementById("cbType").value;
+      const category = document.getElementById("cbCategory").value.trim();
+      const amount = Number(document.getElementById("cbAmount").value || 0);
+      const note = document.getElementById("cbNote").value.trim();
+      if (!category || !amount) return toast("Category and amount are required.");
+      db.cashbook = db.cashbook || [];
+      db.cashbook.push({ id: id(), date, type, category, amount, note });
+      save();
+      logActivity("Cashbook Entry", `${type} - ${category} ₦${amount}`);
+      toast("Entry saved.");
+      renderCashbook();
+    }
+    function renderCashbook() {
+      const el = document.getElementById("cashbookTable");
+      if (!el) return;
+      const entries = (db.cashbook || []).slice().reverse();
+      const totalIncome = entries.filter(e => e.type === "Income").reduce((s, e) => s + e.amount, 0);
+      const totalExpense = entries.filter(e => e.type === "Expense").reduce((s, e) => s + e.amount, 0);
+      const rows = entries.map(e => [esc(e.date), esc(e.type), esc(e.category), "₦" + money(e.amount), esc(e.note), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteCashbookEntry('${e.id}')">Delete</button>`]);
+      const summary = `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px"><div class="pill">Income: ₦${money(totalIncome)}</div><div class="pill bad">Expense: ₦${money(totalExpense)}</div><div class="pill">Net: ₦${money(totalIncome - totalExpense)}</div></div>`;
+      document.getElementById("cashbookTable").innerHTML = summary + (rows.length ? table(["Date", "Type", "Category", "Amount", "Note", "Action"], rows) : "<p class='hint'>No entries yet.</p>");
+    }
+    function deleteCashbookEntry(id) {
+      if (!confirm("Delete this entry?")) return;
+      db.cashbook = (db.cashbook || []).filter(x => x.id !== id);
+      save();
+      renderCashbook();
+    }
+    function saveExpense() {
+      const date = document.getElementById("expDate").value || today;
+      const category = document.getElementById("expCategory").value.trim();
+      const amount = Number(document.getElementById("expAmount").value || 0);
+      const note = document.getElementById("expNote").value.trim();
+      if (!category || !amount) return toast("Category and amount are required.");
+      db.expenses = db.expenses || [];
+      db.expenses.push({ id: id(), date, category, amount, note });
+      save();
+      logActivity("Expense Recorded", `${category} ₦${amount}`);
+      toast("Expense saved.");
+      renderExpenses();
+    }
+    function renderExpenses() {
+      const el = document.getElementById("expenseTable");
+      if (!el) return;
+      const rows = (db.expenses || []).slice().reverse().map(e => [esc(e.date), esc(e.category), "₦" + money(e.amount), esc(e.note), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteExpense('${e.id}')">Delete</button>`]);
+      document.getElementById("expenseTable").innerHTML = rows.length ? table(["Date", "Category", "Amount", "Note", "Action"], rows) : "<p class='hint'>No expenses yet.</p>";
+    }
+    function deleteExpense(id) {
+      if (!confirm("Delete this expense?")) return;
+      db.expenses = (db.expenses || []).filter(x => x.id !== id);
+      save();
+      renderExpenses();
+    }
+    function saveIncome() {
+      const date = document.getElementById("incDate").value || today;
+      const source = document.getElementById("incSource").value.trim();
+      const amount = Number(document.getElementById("incAmount").value || 0);
+      const note = document.getElementById("incNote").value.trim();
+      if (!source || !amount) return toast("Source and amount are required.");
+      db.incomes = db.incomes || [];
+      db.incomes.push({ id: id(), date, source, amount, note });
+      save();
+      logActivity("Income Recorded", `${source} ₦${amount}`);
+      toast("Income saved.");
+      renderIncomes();
+    }
+    function renderIncomes() {
+      const el = document.getElementById("incomeTable");
+      if (!el) return;
+      const rows = (db.incomes || []).slice().reverse().map(i => [esc(i.date), esc(i.source), "₦" + money(i.amount), esc(i.note), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteIncome('${i.id}')">Delete</button>`]);
+      document.getElementById("incomeTable").innerHTML = rows.length ? table(["Date", "Source", "Amount", "Note", "Action"], rows) : "<p class='hint'>No income records yet.</p>";
+    }
+    function deleteIncome(id) {
+      if (!confirm("Delete this income record?")) return;
+      db.incomes = (db.incomes || []).filter(x => x.id !== id);
+      save();
+      renderIncomes();
+    }
+    function savePayroll() {
+      const staffId = document.getElementById("payStaff").value;
+      const month = document.getElementById("payMonth").value.trim();
+      const amount = Number(document.getElementById("payAmount").value || 0);
+      const status = document.getElementById("payStatus").value;
+      if (!staffId || !month || !amount) return toast("Staff, month, and amount are required.");
+      db.payroll = db.payroll || [];
+      db.payroll.push({ id: id(), staffId, month, amount, status, date: today });
+      save();
+      logActivity("Payroll Processed", `${month} - ₦${amount} - ${status}`);
+      toast("Payroll saved.");
+      renderPayroll();
+    }
+    function renderPayroll() {
+      const el = document.getElementById("payrollTable");
+      if (!el) return;
+      const rows = (db.payroll || []).slice().reverse().map(p => {
+        const s = db.staff.find(st => st.id === p.staffId);
+        return [esc(s ? fullName(s) : "—"), esc(p.month), "₦" + money(p.amount), esc(p.status), esc(p.date), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deletePayroll('${p.id}')">Delete</button>`];
+      });
+      document.getElementById("payrollTable").innerHTML = rows.length ? table(["Staff", "Month", "Amount", "Status", "Date", "Action"], rows) : "<p class='hint'>No payroll records yet.</p>";
+    }
+    function deletePayroll(id) {
+      if (!confirm("Delete this payroll record?")) return;
+      db.payroll = (db.payroll || []).filter(x => x.id !== id);
+      save();
+      renderPayroll();
+    }
+    function renderAccountantAnalytics() {
+      const totalFeesDue = db.fees.reduce((s, f) => s + (f.amountDue || 0), 0);
+      const totalFeesPaid = db.fees.reduce((s, f) => s + (f.amountPaid || 0), 0);
+      const totalDiscount = (db.discounts || []).reduce((s, d) => s + d.amount, 0);
+      const totalScholarship = (db.scholarships || []).reduce((s, sh) => s + sh.amount, 0);
+      const totalExpense = (db.expenses || []).reduce((s, e) => s + e.amount, 0);
+      const totalIncome = (db.incomes || []).reduce((s, i) => s + i.amount, 0);
+      const debtorsCount = db.students.filter(s => { const f = db.fees.find(ff => ff.studentId === s.id); return f && f.amountDue > f.amountPaid; }).length;
+      return {
+        totalFeesDue, totalFeesPaid, totalDiscount, totalScholarship, totalExpense, totalIncome, debtorsCount,
+        balance: totalFeesPaid + totalIncome - totalExpense
+      };
     }
 
     function saveAttendance() {
@@ -2622,20 +3341,30 @@ ${eq}</pre>
       save();
       toast("Attendance saved");
     }
-function renderAttendance() {
-       let filteredAttendance = db.attendance.slice().reverse();
-       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
-         const assignedClasses = [...new Set(db.subjects.filter((s) => s.teacherId === currentUser.staffId).map((s) => s.classId))];
-         filteredAttendance = db.attendance.filter((a) => {
-           const s = db.students.find((st) => st.id === a.studentId);
-           return s && assignedClasses.includes(s.classId);
-         }).slice().reverse();
-       }
-       document.getElementById("attendanceTable").innerHTML = table(["Date", "Student", "Class", "Status"], filteredAttendance.map((a) => {
-         const s = student(a.studentId) || {};
-         return [esc(a.date), esc(fullName(s)), esc(cls(s.classId).name), esc(a.status)];
-       }));
-     }
+    function renderAttendance() {
+      const classId = document.getElementById("attendanceFilterClass")?.value || "";
+      const tableEl = document.getElementById("attendanceTable");
+      if (!classId) {
+        tableEl.innerHTML = `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view attendance.</p>`;
+        return;
+      }
+      let filteredAttendance = db.attendance.slice().reverse();
+      if (currentUser?.role === "Teacher" && currentUser?.staffId) {
+        const assignedClasses = [...new Set(db.subjects.filter((s) => s.teacherId === currentUser.staffId).map((s) => s.classId))];
+        filteredAttendance = db.attendance.filter((a) => {
+          const s = db.students.find((st) => st.id === a.studentId);
+          return s && assignedClasses.includes(s.classId);
+        }).slice().reverse();
+      }
+      filteredAttendance = filteredAttendance.filter((a) => {
+        const s = db.students.find((st) => st.id === a.studentId);
+        return s && s.classId === classId;
+      });
+      tableEl.innerHTML = table(["Date", "Student", "Class", "Status"], filteredAttendance.map((a) => {
+        const s = student(a.studentId) || {};
+        return [esc(a.date), esc(fullName(s)), esc(cls(s.classId).name), esc(a.status)];
+      }));
+    }
 
     function newUser() {
       document.getElementById("userId").value = "";
@@ -2694,6 +3423,60 @@ function renderAttendance() {
         esc(u.role),
         `<button class="secondary" onclick="editUser('${u.id}')">Edit</button> <button class="danger" onclick="deleteUser('${u.id}')">Delete</button>`
       ]));
+    }
+
+    function newRole() {
+      ["roleId", "roleName", "roleDescription"].forEach(x => document.getElementById(x).value = "");
+      const permSelect = document.getElementById("rolePermissions");
+      if (permSelect) Array.from(permSelect.options).forEach(opt => opt.selected = false);
+    }
+    function saveRole() {
+      const id = document.getElementById("roleId").value || id();
+      const name = document.getElementById("roleName").value.trim();
+      const description = document.getElementById("roleDescription").value.trim();
+      const permSelect = document.getElementById("rolePermissions");
+      const permissions = Array.from(permSelect.selectedOptions).map(opt => opt.value);
+      if (!name) return toast("Role name is required.");
+      if (!permissions.length) return toast("Select at least one permission.");
+      const existing = db.roles.findIndex((r) => r.id === id);
+      const data = { id, name, description, permissions, isSystem: existing >= 0 ? db.roles[existing].isSystem : false };
+      if (existing >= 0) db.roles[existing] = data; else db.roles.push(data);
+      save();
+      logActivity("Role Saved", `Role: ${name}, Permissions: ${permissions.join(", ")}`);
+      toast("Role saved");
+      renderRoles();
+    }
+    function editRole(roleId) {
+      const r = db.roles.find((item) => item.id === roleId);
+      if (!r) return;
+      document.getElementById("roleId").value = r.id;
+      document.getElementById("roleName").value = r.name;
+      document.getElementById("roleDescription").value = r.description || "";
+      const permSelect = document.getElementById("rolePermissions");
+      Array.from(permSelect.options).forEach(opt => opt.selected = r.permissions.includes(opt.value));
+    }
+    function deleteRole(roleId) {
+      const r = db.roles.find((item) => item.id === roleId);
+      if (!r) return;
+      if (r.isSystem) return toast("System roles cannot be deleted.");
+      if (!confirm(`Delete role "${r.name}"? Users with this role will need to be reassigned.`)) return;
+      db.roles = db.roles.filter((item) => item.id !== roleId);
+      save();
+      logActivity("Role Deleted", `Role: ${r.name}`);
+      toast("Role deleted");
+      renderRoles();
+    }
+    function renderRoles() {
+      const tableEl = document.getElementById("roleTable");
+      if (!tableEl) return;
+      const rows = db.roles.map((r) => [
+        esc(r.name),
+        esc(r.description || "—"),
+        esc(r.permissions.join(", ")),
+        r.isSystem ? '<span class="pill">System</span>' : '<span class="pill warn">Custom</span>',
+        `<button class="secondary" onclick="editRole('${r.id}')">Edit</button>${r.isSystem ? "" : ` <button class="danger" onclick="deleteRole('${r.id}')">Delete</button>`}`
+      ]);
+      tableEl.innerHTML = table(["Role Name", "Description", "Permissions", "Type", "Action"], rows);
     }
 
     function saveSettings() {
@@ -2994,11 +3777,29 @@ function renderAttendance() {
 
             <!-- AFFECTIVE DOMAIN -->
             <div style="background:#1565c0;color:#fff;padding:3px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">AFFECTIVE DOMAIN</div>
-            <div style="font-size:10px;color:#999;margin-bottom:7px;padding:2px 2px 4px;border-bottom:1px solid #eee">NO DATA</div>
+            <div style="font-size:10px;color:#333;margin-bottom:7px;padding:2px 2px 4px;border-bottom:1px solid #eee">
+              ${(() => {
+                const vals = scores.map(sc => sc.affective).filter(v => v != null && v > 0);
+                if (!vals.length) return '<span style="color:#999">No data</span>';
+                const avg = (vals.reduce((a,b) => a + b, 0) / vals.length).toFixed(1);
+                const max = Math.max(...vals);
+                const min = Math.min(...vals);
+                return `Avg: <strong>${avg}</strong> &nbsp; High: <strong>${max}</strong> &nbsp; Low: <strong>${min}</strong>`;
+              })()}
+            </div>
 
             <!-- PSYCHOMOTOR SKILLS -->
             <div style="background:#1565c0;color:#fff;padding:3px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">PSYCHOMOTOR SKILLS</div>
-            <div style="font-size:10px;color:#999;margin-bottom:7px;padding:2px 2px 4px;border-bottom:1px solid #eee">NO DATA</div>
+            <div style="font-size:10px;color:#333;margin-bottom:7px;padding:2px 2px 4px;border-bottom:1px solid #eee">
+              ${(() => {
+                const vals = scores.map(sc => sc.psychomotor).filter(v => v != null && v > 0);
+                if (!vals.length) return '<span style="color:#999">No data</span>';
+                const avg = (vals.reduce((a,b) => a + b, 0) / vals.length).toFixed(1);
+                const max = Math.max(...vals);
+                const min = Math.min(...vals);
+                return `Avg: <strong>${avg}</strong> &nbsp; High: <strong>${max}</strong> &nbsp; Low: <strong>${min}</strong>`;
+              })()}
+            </div>
 
             <!-- RATING KEY -->
             <div style="background:#1565c0;color:#fff;padding:3px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">RATING KEY</div>
@@ -3122,6 +3923,112 @@ function renderAttendance() {
         <span class="badge">${esc(s.role)}</span>
       </div>`;
       printIdCardWindow([[front, idCardBack()]], `ID Card — ${fullName(s)}`);
+    }
+    function printAdmissionLetter(studentId) {
+      const s = student(studentId);
+      if (!s) return toast("Student not found");
+      const classInfo = cls(s.classId);
+      const admissionDate = s.admissionDate ? new Date(s.admissionDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+      const dob = s.dob ? new Date(s.dob).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "N/A";
+      const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+      
+      const w = window.open("", "_blank", "width=800,height=900");
+      w.document.write(`<!DOCTYPE html><html><head><title>Admission Letter — ${fullName(s)}</title><style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Georgia', 'Times New Roman', serif; padding: 40px; color: #1a1a1a; line-height: 1.6; }
+        .letter-container { max-width: 700px; margin: 0 auto; }
+        .header { text-align: center; border-bottom: 3px double #1a5f8a; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; }
+        .school-name { font-size: 22px; font-weight: bold; color: #1a5f8a; margin-bottom: 5px; }
+        .school-details { font-size: 12px; color: #555; line-height: 1.5; }
+        .date { text-align: right; margin-bottom: 25px; font-size: 13px; }
+        .reference { font-weight: bold; margin-bottom: 20px; font-size: 13px; }
+        .subject { font-weight: bold; margin-bottom: 20px; font-size: 14px; text-decoration: underline; }
+        .greeting { margin-bottom: 15px; font-size: 14px; }
+        .body { margin-bottom: 25px; font-size: 13px; text-align: justify; }
+        .student-info { background: #f5f5f5; padding: 15px; border-left: 4px solid #1a5f8a; margin: 20px 0; }
+        .student-info table { width: 100%; border-collapse: collapse; }
+        .student-info td { padding: 6px 10px; font-size: 13px; }
+        .student-info td:first-child { font-weight: bold; width: 35%; }
+        .closing { margin-top: 30px; }
+        .signature { margin-top: 50px; text-align: center; }
+        .signature-line { border-top: 1px solid #333; width: 200px; margin: 0 auto 5px; padding-top: 5px; font-size: 12px; }
+        .footer { margin-top: 40px; padding-top: 15px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #777; }
+        @media print {
+          body { padding: 20px; }
+          .no-print { display: none; }
+        }
+      </style></head><body>
+        <div class="letter-container">
+          <div class="header">
+            <img src="assets/mms-logo.jpg" class="logo" alt="School Logo">
+            <div class="school-name">${esc(db.settings.schoolName)}</div>
+            <div class="school-details">
+              ${esc(db.settings.address || "Madarkaci Model School")}<br>
+              Email: ${esc(db.settings.email || "madarkacimodelschools@gmail.com")} | Tel: ${esc(db.settings.phone || "N/A")}<br>
+              Session: ${esc(db.settings.session)} | Term: ${esc(db.settings.term)}
+            </div>
+          </div>
+          
+          <div class="date">${today}</div>
+          
+          <div class="reference">Ref: MMS/${esc(db.settings.session || "2025/2026").replace("/", "")}/ADM/${esc(s.regNo || s.id)}</div>
+          
+          <div class="subject">SUBJECT: LETTER OF ADMISSION</div>
+          
+          <div class="greeting">Dear ${esc(s.parentName ? s.parentName : "Parent/Guardian")},</div>
+          
+          <div class="body">
+            <p>We are pleased to inform you that <strong>${esc(fullName(s))}</strong> has been granted admission into <strong>${esc(db.settings.schoolName)}</strong> for the <strong>${esc(db.settings.session)} Academic Session, ${esc(db.settings.term)}</strong>.</p>
+            
+            <p>The student is admitted into <strong>${esc(classInfo.name)} (${esc(classInfo.section)}) Class</strong> with the following details:</p>
+            
+            <div class="student-info">
+              <table>
+                <tr><td>Full Name:</td><td>${esc(fullName(s))}</td></tr>
+                <tr><td>Admission Number:</td><td>${esc(s.regNo || "Pending")}</td></tr>
+                <tr><td>Class:</td><td>${esc(classInfo.name)}</td></tr>
+                <tr><td>Section:</td><td>${esc(classInfo.section)}</td></tr>
+                <tr><td>Gender:</td><td>${esc(s.gender || "N/A")}</td></tr>
+                <tr><td>Date of Birth:</td><td>${dob}</td></tr>
+                <tr><td>Date of Admission:</td><td>${admissionDate}</td></tr>
+                <tr><td>Parent/Guardian:</td><td>${esc(s.parentName || "N/A")}</td></tr>
+                <tr><td>Parent Phone:</td><td>${esc(s.parentPhone || "N/A")}</td></tr>
+              </table>
+            </div>
+            
+            <p>You are required to complete the registration process by visiting the school administrative office. Please bring the following documents:</p>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+              <li>Birth Certificate / Age Declaration</li>
+              <li>Previous School Result / Transfer Certificate (if applicable)</li>
+              <li>2 Passport Photographs</li>
+              <li>Parent/Guardian ID Card</li>
+            </ul>
+            
+            <p style="margin-top: 15px;">We welcome ${esc(s.firstName)} to our school community and look forward to a successful academic journey.</p>
+          </div>
+          
+          <div class="closing">
+            <p>Yours sincerely,</p>
+            
+            <div class="signature">
+              <div class="signature-line">Principal / Headmistress</div>
+              <div style="font-size: 11px; color: #666;">Madarkaci Model School</div>
+            </div>
+          </div>
+          
+          <div class="footer">
+            This is a computer-generated admission letter. For verification, contact the school administrative office.<br>
+            ${esc(db.settings.schoolName)} | ${esc(db.settings.session)}
+          </div>
+        </div>
+      </body></html>`);
+      w.document.close();
+      if (w.attachEvent) {
+        w.attachEvent('onload', () => w.print());
+      } else {
+        w.addEventListener('load', () => w.print(), false);
+      }
     }
     function renderClassIdCards(classId) {
       if (!classId) return `<p class="hint">Please select a class to view bulk ID cards.</p>`;
@@ -3279,88 +4186,186 @@ function classBroadsheet(classId) {
         </div>`;
     }
 
-function renderReports() {
-       const type = document.getElementById("reportType").value;
-       const studentId = document.getElementById("reportStudent").value;
+ function renderReports() {
+        const type = document.getElementById("reportType").value;
+        const studentId = document.getElementById("reportStudent").value;
 
-       // Determine which students this user is allowed to see
-       let allowedStudents = db.students;
-       if (currentUser?.role === "Teacher" && currentUser?.staffId) {
-         const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
-         allowedStudents = db.students.filter((st) => assignedClasses.includes(st.classId));
-       }
+        // Role-based access control
+        const role = currentUser?.role ? normalizeRole(currentUser.role) : "";
+        const allowedReports = {
+          administrator: ["Student Report Card", "Class Broadsheet", "Academic Performance", "Attendance Report", "Fee Payment Report", "Staff Report", "Admission Report", "Student ID Card", "Class ID Cards (Bulk)", "Certificate", "Class List Report"],
+          teacher: ["Student Report Card", "Class Broadsheet", "Class List Report", "Attendance Report"],
+          examofficer: ["Student Report Card", "Class Broadsheet", "Class List Report", "Academic Performance", "Class ID Cards (Bulk)"],
+          accountant: ["Fee Payment Report", "Attendance Report", "Admission Report", "Class List Report", "Academic Performance"],
+          student: ["Student Report Card", "Class Broadsheet", "Attendance Report"],
+          parent: ["Student Report Card", "Attendance Report", "Fee Payment Report"]
+        };
 
-       const s = (studentId ? student(studentId) : null) || allowedStudents[0] || db.students[0];
-       let classId = document.getElementById("reportClass").value || s?.classId || "";
-       let html = "";
+        const userAllowed = allowedReports[role] || [];
+        if (!userAllowed.includes(type)) {
+          document.getElementById("reportOutput").innerHTML = `<div style="text-align:center;padding:40px;color:#c62828"><div style="font-size:48px;margin-bottom:12px">⛔</div><h3>Access Denied</h3><p>You do not have permission to view <strong>${esc(type)}</strong>.</p></div>`;
+          return;
+        }
 
-       const schoolHeader = `
-         <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 10px;">
-           <img src="assets/mms-logo.jpg" style="height: 60px; margin-bottom: 5px;">
-           <h2 style="margin: 0; color: var(--green);">${esc(db.settings.schoolName)}</h2>
-           <p style="margin: 3px 0; font-size: 12px;">${esc(db.settings.address)}</p>
-           <p style="margin: 3px 0; font-size: 12px; font-weight: bold;">Email: ${esc(db.settings.email)}</p>
-         </div>`;
+        // Determine which students this user is allowed to see
+        let allowedStudents = db.students;
+        if (role === "teacher" && currentUser?.staffId) {
+          const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
+          allowedStudents = db.students.filter((st) => assignedClasses.includes(st.classId));
+        }
 
-       // Filter class/report data for teachers
-       if (currentUser?.role === "Teacher" && currentUser?.staffId && type === "Class Broadsheet") {
-         const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
-         if (assignedClasses.length === 1) {
-           classId = assignedClasses[0];
-         } else if (!assignedClasses.includes(classId)) {
-           classId = "";
+        // Student/Parent can only see their own/child's records
+        if (role === "student") {
+          const myStudent = db.students.find(s => s.regNo === currentUser.username);
+          allowedStudents = myStudent ? [myStudent] : [];
+        } else if (role === "parent") {
+          const child = db.students[0];
+          allowedStudents = child ? [child] : [];
+        }
+
+        const s = (studentId ? student(studentId) : null) || allowedStudents[0] || db.students[0];
+        let classId = document.getElementById("reportClass").value || s?.classId || "";
+        let html = "";
+
+        const schoolHeader = `
+          <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 10px;">
+            <img src="assets/mms-logo.jpg" style="height: 60px; margin-bottom: 5px;">
+            <h2 style="margin: 0; color: var(--green);">${esc(db.settings.schoolName)}</h2>
+            <p style="margin: 3px 0; font-size: 12px;">${esc(db.settings.address)}</p>
+            <p style="margin: 3px 0; font-size: 12px; font-weight: bold;">Email: ${esc(db.settings.email)}</p>
+          </div>`;
+
+        const watermark = currentUser ? `<div class="report-watermark" style="display:none;">Printed by: ${esc(currentUser.role)} - ${esc(currentUser.username)} | ${new Date().toLocaleString()}</div>` : "";
+
+        // Filter class/report data for teachers
+        if (role === "teacher" && currentUser?.staffId && type === "Class Broadsheet") {
+          const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
+          if (assignedClasses.length === 1) {
+            classId = assignedClasses[0];
+          } else if (!assignedClasses.includes(classId)) {
+            classId = "";
+          }
+        }
+
+        // Restrict class selection for non-admin roles
+        if (role !== "administrator" && role !== "examofficer") {
+          const reportClassEl = document.getElementById("reportClass");
+          if (reportClassEl && reportClassEl.tagName === "SELECT") {
+            const currentVal = reportClassEl.value;
+            reportClassEl.innerHTML = `<option value="">Select Class</option>` + allowedStudents.map(st => `<option value="${st.classId}" ${st.classId === currentVal ? "selected" : ""}>${esc(cls(st.classId).name)}</option>`).join("");
+            if (!allowedStudents.some(st => st.classId === currentVal)) {
+              reportClassEl.value = allowedStudents[0]?.classId || "";
+            }
+          }
+        }
+
+        const selTerm    = document.getElementById("reportTerm")?.value    || db.settings.term;
+        const selSession = document.getElementById("reportSession")?.value || db.settings.session;
+
+        if (type === "Student Report Card") {
+          if (!allowedStudents.some(st => st.id === s?.id)) {
+            html = `<div style="text-align:center;padding:40px;color:#c62828"><h3>Access Denied</h3><p>You can only view your own report card.</p></div>`;
+          } else {
+            const classApproved = isClassApproved(s?.classId, selTerm, selSession);
+            if (!classApproved && role !== "administrator" && role !== "examofficer") {
+              html = `<div style="text-align:center;padding:60px 20px;color:#c62828">
+                <div style="font-size:48px;margin-bottom:12px">🔒</div>
+                <h3 style="color:#c62828;margin-bottom:8px">Report Card Not Yet Approved</h3>
+                <p style="color:#555;max-width:340px;margin:0 auto">The Exam Officer has not yet approved scores for <strong>${esc(cls(s?.classId).name)}</strong> for ${esc(selTerm)}, ${esc(selSession)}.<br><br>Please check back after approval.</p>
+              </div>`;
+            } else {
+              html = studentReportCard(s, selTerm, selSession);
+            }
+          }
+        }
+        if (type === "Class Broadsheet") {
+          if (!classId) {
+            html = schoolHeader + `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view the broadsheet.</p>`;
+          } else {
+            html = schoolHeader + classBroadsheet(classId);
+          }
+        }
+        if (type === "Academic Performance") {
+          if (role === "teacher" || role === "parent" || role === "student") {
+            html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Academic Performance Report</h3>` + table(["Class", "Students", "Class Average"], allowedStudents.map((c) => { const r = rankedStudents(c.id); const avg = r.length ? r.reduce((sum, x) => sum + x.avg, 0) / r.length : 0; return [esc(cls(c.id).name), r.length, avg.toFixed(2)]; }));
+          } else {
+            html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Academic Performance Report</h3>` + table(["Class", "Students", "Class Average"], db.classes.map((c) => { const r = rankedStudents(c.id); const avg = r.length ? r.reduce((sum, x) => sum + x.avg, 0) / r.length : 0; return [esc(c.name), r.length, avg.toFixed(2)]; }));
+          }
+        }
+         if (type === "Attendance Report") {
+           const classId = document.getElementById("reportClass").value;
+           if (!classId) {
+             html = schoolHeader + `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view the attendance report.</p>`;
+           } else {
+             let filteredAttendance = db.attendance.slice().reverse().filter((a) => {
+               const s = db.students.find((st) => st.id === a.studentId);
+               return s && s.classId === classId;
+             });
+             const rows = filteredAttendance.map((a) => {
+               const s = student(a.studentId) || {};
+               return [esc(a.date), esc(fullName(s)), esc(cls(s.classId).name), esc(a.status)];
+             });
+             html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Attendance Report</h3>` + table(["Date", "Student", "Class", "Status"], rows);
+           }
          }
-       }
-
-       const selTerm    = document.getElementById("reportTerm")?.value    || db.settings.term;
-       const selSession = document.getElementById("reportSession")?.value || db.settings.session;
-       if (type === "Student Report Card") {
-         const role = currentUser?.role;
-         const classApproved = isClassApproved(s?.classId, selTerm, selSession);
-         if (!classApproved && role !== "Administrator" && role !== "Exam Officer") {
-           html = `<div style="text-align:center;padding:60px 20px;color:#c62828">
-             <div style="font-size:48px;margin-bottom:12px">🔒</div>
-             <h3 style="color:#c62828;margin-bottom:8px">Report Card Not Yet Approved</h3>
-             <p style="color:#555;max-width:340px;margin:0 auto">The Exam Officer has not yet approved scores for <strong>${esc(cls(s?.classId).name)}</strong> for ${esc(selTerm)}, ${esc(selSession)}.<br><br>Please check back after approval.</p>
-           </div>`;
-         } else {
-           html = studentReportCard(s, selTerm, selSession);
+         if (type === "Fee Payment Report") {
+           const classId = document.getElementById("reportClass").value;
+           if (!classId) {
+             html = schoolHeader + `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view the fee payment report.</p>`;
+           } else {
+             const studentsInClass = db.students.filter((s) => s.classId === classId);
+             const filteredFees = db.fees.filter((f) => studentsInClass.some((s) => s.id === f.studentId));
+             const canPrint = ["Administrator","Accountant"].includes(currentUser?.role);
+             const rows = filteredFees.map((fee, i) => {
+               const balance = Math.max(0, fee.amountDue - fee.amountPaid);
+               const status = balance === 0 ? '<span class="pill">Paid</span>' : fee.amountPaid > 0 ? '<span class="pill warn">Part Payment</span>' : '<span class="pill bad">Not Paid</span>';
+               const receiptBtn = canPrint ? `<button class="secondary" style="padding:3px 8px;font-size:.82em;" onclick="printFeeReceipt('${fee.studentId}', db.fees.find(f=>f.studentId==='${fee.studentId}'))">🧾 Receipt</button>` : "";
+               return [i + 1, esc(fullName(student(fee.studentId) || {})), esc(fee.label || "—"), money(fee.amountDue), money(fee.amountPaid), money(balance), status, receiptBtn];
+             });
+             html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Fee Payment Report</h3>` + table(["S/N", "Student", "Fee Type", "Amount Due", "Amount Paid", "Balance", "Status", canPrint ? "Receipt" : ""], rows);
+           }
          }
-       }
-       if (type === "Class Broadsheet") html = schoolHeader + classBroadsheet(classId);
-       if (type === "Academic Performance") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Academic Performance Report</h3>` + table(["Class", "Students", "Class Average"], db.classes.map((c) => { const r = rankedStudents(c.id); const avg = r.length ? r.reduce((sum, x) => sum + x.avg, 0) / r.length : 0; return [esc(c.name), r.length, avg.toFixed(2)]; }));
-       if (type === "Attendance Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Attendance Report</h3>` + document.getElementById("attendanceTable").innerHTML;
-       if (type === "Fee Payment Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Fee Payment Report</h3>` + document.getElementById("feeTable").innerHTML;
-       if (type === "Staff Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Staff Directory Report</h3>` + document.getElementById("staffTable").innerHTML;
-       if (type === "Admission Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Admission List</h3>` + table(["S/N", "Reg No", "Name", "Class", "Parent", "Phone"], db.students.map((x, i) => [i + 1, esc(x.regNo), esc(fullName(x)), esc(cls(x.classId).name), esc(x.parentName), esc(x.parentPhone)]));
-       if (type === "Student ID Card") html = idCard(s);
-       if (type === "Class ID Cards (Bulk)") html = renderClassIdCards(classId);
-       if (type === "Certificate") html = certificate(s);
-       if (type === "Class List Report") {
-         // Filter class list for teachers
-         if (currentUser?.role === "Teacher" && currentUser?.staffId) {
-           const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
-           if (!assignedClasses.includes(classId)) classId = assignedClasses[0] || "";
-         }
-         const studentsInClass = db.students
-             .filter((std) => std.classId === classId)
-             .map((std, i) => [
-                 i + 1,
-                 esc(std.regNo),
-                 esc(fullName(std)),
-                 esc(std.gender),
-                 esc(std.dob || "N/A"),
-                 esc(std.parentPhone || "N/A")
-             ]);
-         if (classId && studentsInClass.length > 0) {
-           html = schoolHeader + `<h3 style="margin-top: 15px; text-align:center; border-bottom: 1px solid var(--ink); padding-bottom: 10px;">Class List for ${esc(cls(classId).name)}</h3>` + table(["S/N", "Reg No", "Student Name", "Gender", "Date of Birth", "Parent Phone"], studentsInClass);
-         } else {
-           html = `<p class="hint">No students found for the selected class or class not selected.</p>`;
-         }
-       }
-       document.getElementById("reportOutput").innerHTML = html;
-     }
-    function printCurrentReport() { window.print(); }
+        if (type === "Staff Report") html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Staff Directory Report</h3>` + document.getElementById("staffTable").innerHTML;
+        if (type === "Admission Report") {
+          const classId = document.getElementById("reportClass").value;
+          const studentsToShow = classId ? db.students.filter(st => st.classId === classId) : db.students;
+          if (!classId) {
+            html = schoolHeader + `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view the admission report.</p>`;
+          } else {
+            html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Student Admission List</h3>` + table(["S/N", "Reg No", "Name", "Class", "Parent", "Phone"], studentsToShow.map((x, i) => [i + 1, esc(x.regNo), esc(fullName(x)), esc(cls(x.classId).name), esc(x.parentName), esc(x.parentPhone)]));
+          }
+        }
+        if (type === "Student ID Card") html = idCard(s);
+        if (type === "Class ID Cards (Bulk)") html = renderClassIdCards(classId);
+        if (type === "Certificate") html = certificate(s);
+        if (type === "Class List Report") {
+          const studentsInClass = db.students
+              .filter((std) => std.classId === classId)
+              .map((std, i) => [
+                  i + 1,
+                  esc(std.regNo),
+                  esc(fullName(std)),
+                  esc(std.gender),
+                  esc(std.dob || "N/A"),
+                  esc(std.parentPhone || "N/A")
+              ]);
+          if (classId && studentsInClass.length > 0) {
+            html = schoolHeader + `<h3 style="margin-top: 15px; text-align:center; border-bottom: 1px solid var(--ink); padding-bottom: 10px;">Class List for ${esc(cls(classId).name)}</h3>` + table(["S/N", "Reg No", "Student Name", "Gender", "Date of Birth", "Parent Phone"], studentsInClass);
+          } else {
+            html = `<p class="hint">No students found for the selected class or class not selected.</p>`;
+          }
+        }
+        document.getElementById("reportOutput").innerHTML = watermark + html;
+      }
+    function printCurrentReport() {
+      const output = document.getElementById("reportOutput");
+      if (!output) return;
+      if (output.innerHTML.includes("Access Denied")) {
+        toast("Access Denied: You cannot print this report.");
+        return;
+      }
+      window.print();
+    }
     function downloadCsv() {
       const csv = currentCsv.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
       const link = document.createElement("a");
@@ -3425,7 +4430,7 @@ function renderReports() {
 
     /* ── WEBSITE EDITOR ─────────────────────────── */
     function renderWebsite() {
-      if (!currentUser || currentUser.role !== 'Administrator') return;
+      if (!hasPermission('website')) return;
       const w = db.website || { hero: {}, gallery: [] };
       const h = w.hero || {};
 
@@ -3482,6 +4487,35 @@ function renderReports() {
       }
     }
 
+    async function uploadStaffImage(input, previewId, hiddenId) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const preview = document.getElementById(previewId);
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('filename', 'staff-' + file.name);
+      toast('Uploading staff image...');
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById(hiddenId).value = data.path;
+          toast('Staff image uploaded!');
+        } else {
+          toast('Upload failed: ' + (data.error || 'unknown error'));
+        }
+      } catch (e) {
+        toast('Upload error: ' + e.message);
+      }
+    }
+
     async function saveWebsite() {
       if (!db.website) db.website = { hero: {}, gallery: [] };
       db.website.hero = {
@@ -3516,13 +4550,23 @@ function renderReports() {
       renderScores();
       renderFees();
       renderFeeStructures();
+      renderPaymentPlans();
+      renderDiscounts();
+      renderScholarships();
+      renderDebtors();
+      renderOnlinePayments();
+      renderCashbook();
+      renderExpenses();
+      renderIncomes();
+      renderPayroll();
       renderAttendance();
       renderUsers();
+      renderRoles();
       renderSettings();
       renderTools();
       renderReports();
       renderWebsite();
-      if (currentUser?.role === "Administrator") renderActivityLog();
+      if (hasPermission('activity')) renderActivityLog();
     }
 
     attendanceDate.value = today;
