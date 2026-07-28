@@ -3,391 +3,347 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sign In â Madarkaci Model School</title>
+  <title>Sign In — Madarkaci Model School</title>
   <link rel="icon" href="assets/mms-logo.jpg" type="image/jpeg">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --blue:       #1d4ed8;
-      --blue-dark:  #1e3a5f;
-      --blue-light: #3b82f6;
-      --gold:       #f59e0b;
-      --gold-light: #fbbf24;
-      --surface:    #f8fafc;
-      --white:      #ffffff;
-      --text:       #1e293b;
-      --text-muted: #64748b;
-      --border:     #e2e8f0;
-      --shadow-sm:  0 1px 3px rgba(0,0,0,.08);
-      --shadow-md:  0 4px 16px rgba(0,0,0,.1);
-      --shadow-lg:  0 12px 40px rgba(0,0,0,.12);
-      --radius:     16px;
-      --radius-sm:  10px;
+      --green: #15803d;
+      --green-dark: #0f5c28;
+      --dark-blue: #1a2a4a;
+      --white: #ffffff;
+      --muted: #6b7280;
+      --glass-bg: rgba(255, 255, 255, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.3);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+      --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.25);
     }
 
     html, body {
       height: 100%;
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--surface);
-      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #1a1a2e;
+      overflow-x: hidden;
     }
 
     body {
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
       min-height: 100vh;
-      padding: 1.5rem;
-      background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 40%, #fefce8 100%);
     }
 
-    .login-wrapper {
+    /* Blurred full-screen background */
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: url('assets/image1.jpg') center/cover no-repeat;
+      filter: blur(8px) brightness(0.5);
+      transform: scale(1.1);
+      animation: bgPulse 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgPulse {
+      0% { transform: scale(1.1) translate(0, 0); }
+      100% { transform: scale(1.15) translate(-1%, -1%); }
+    }
+
+    /* Dark overlay on top of blurred image */
+    .bg-overlay::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 15, 30, 0.55);
+    }
+
+    /* Top Header */
+    .top-header {
       display: flex;
-      width: 100%;
-      max-width: 920px;
-      min-height: 560px;
-      background: var(--white);
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: var(--shadow-lg);
+      align-items: center;
+      gap: 16px;
+      padding: 12px 28px;
+      background: rgba(26, 42, 74, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(21, 128, 61, 0.6);
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+      flex-shrink: 0;
     }
 
-    /* â Left Panel */
-    .left-panel {
-      flex: 1;
-      background: linear-gradient(160deg, var(--blue-dark) 0%, var(--blue) 50%, var(--blue-light) 100%);
-      color: #fff;
+    .top-header .header-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: contain;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+    }
+
+    .top-header .header-info {
       display: flex;
       flex-direction: column;
+      gap: 1px;
+    }
+
+    .top-header .header-school {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+    }
+
+    .top-header .header-system {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 500;
+    }
+
+    .top-header .header-meta {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .top-header .header-meta span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .top-header .header-meta .badge {
+      background: var(--green);
+      color: var(--white);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
       justify-content: center;
-      padding: 3rem 2.5rem;
+      padding: 24px;
+    }
+
+    /* Glass Card */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: var(--shadow);
+      animation: cardSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
       overflow: hidden;
     }
 
-    .left-panel::before {
-      content: '';
+    .glass-card::before {
+      content: "";
       position: absolute;
-      width: 420px; height: 420px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.06);
-      top: -120px; right: -120px;
-      pointer-events: none;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--green), #22c55e, var(--green));
+      border-radius: 20px 20px 0 0;
     }
 
-    .left-panel::after {
-      content: '';
-      position: absolute;
-      width: 260px; height: 260px;
-      border-radius: 50%;
-      background: rgba(251,191,36,.12);
-      bottom: -80px; left: -80px;
-      pointer-events: none;
+    @keyframes cardSlideIn {
+      0% { opacity: 0; transform: translateY(30px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    .left-content { position: relative; z-index: 1; }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-      margin-bottom: 2.5rem;
+    /* Logo at top of card */
+    .card-logo {
+      text-align: center;
+      margin-bottom: 8px;
     }
 
-    .brand-icon {
-      width: 48px; height: 48px;
-      background: rgba(255,255,255,.15);
+    .card-logo img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
       border-radius: 14px;
-      display: grid;
-      place-items: center;
-      font-size: 1.4rem;
-      border: 2px solid rgba(255,255,255,.25);
+      border: 3px solid var(--green);
+      box-shadow: 0 4px 16px rgba(21, 128, 61, 0.25);
+      animation: logoFloat 3s ease-in-out infinite;
     }
 
-    .brand-text {
-      font-size: 1.05rem;
-      font-weight: 800;
-      line-height: 1.3;
-      letter-spacing: -0.01em;
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
     }
 
-    .brand-text small {
-      display: block;
-      font-size: 0.72rem;
-      font-weight: 500;
-      opacity: .65;
-      margin-top: 2px;
-    }
-
-    .left-heading {
-      font-size: clamp(1.6rem, 2.4vw, 2.2rem);
-      font-weight: 900;
-      line-height: 1.15;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.85rem;
-    }
-
-    .left-heading .highlight { color: var(--gold-light); }
-
-    .left-desc {
-      color: rgba(255,255,255,.72);
-      font-size: 0.9rem;
-      line-height: 1.7;
-      max-width: 360px;
-      margin-bottom: 2rem;
-    }
-
-    .feature-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .feature-list li {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.85rem;
-      color: rgba(255,255,255,.85);
-    }
-
-    .feature-list li i {
-      color: var(--gold-light);
-      font-size: 0.95rem;
-      width: 18px;
+    /* Header */
+    .card-header {
       text-align: center;
+      margin-bottom: 28px;
     }
 
-    /* â Right Panel */
-    .right-panel {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2.5rem 2rem;
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 380px;
-    }
-
-    .login-card-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .login-card-header .avatar {
-      width: 56px; height: 56px;
-      background: linear-gradient(135deg, var(--blue-light), var(--blue));
-      border-radius: 16px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+    .card-header h2 {
       font-size: 1.5rem;
-      color: #fff;
-      margin-bottom: 0.85rem;
-      box-shadow: 0 6px 16px rgba(59,130,246,.3);
-    }
-
-    .login-card-header h2 {
-      font-size: 1.35rem;
       font-weight: 800;
-      color: var(--text);
-      letter-spacing: -0.02em;
+      color: var(--dark-blue);
+      margin: 0 0 4px;
+      letter-spacing: -0.3px;
     }
 
-    .login-card-header p {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-top: 0.3rem;
+    .card-header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0;
     }
 
-    .form-group { margin-bottom: 1rem; }
+    /* Form */
+    .form-group {
+      margin-bottom: 18px;
+    }
 
     .form-group label {
       display: block;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       font-weight: 700;
+      color: var(--dark-blue);
+      margin-bottom: 6px;
       text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--text-muted);
-      margin-bottom: 0.35rem;
+      letter-spacing: 0.6px;
     }
 
-    .input-wrap {
-      position: relative;
-    }
-
-    .input-wrap i {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #94a3b8;
-      font-size: 0.95rem;
-      pointer-events: none;
-    }
-
-    .input-wrap input,
-    .input-wrap select {
+    .form-group input,
+    .form-group select {
       width: 100%;
-      height: 46px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0 14px 0 40px;
-      font-size: 0.9rem;
-      color: var(--text);
-      background: var(--white);
-      transition: border-color .2s, box-shadow .2s;
+      padding: 12px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 0.95rem;
       font-family: inherit;
-    }
-
-    .input-wrap input:focus,
-    .input-wrap select:focus {
+      color: #1a1a2e;
+      background: var(--white);
+      transition: all 0.25s ease;
       outline: none;
-      border-color: var(--blue-light);
-      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
     }
 
-    .input-wrap input::placeholder { color: #94a3b8; }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
+    }
 
-    .input-wrap .toggle-pw {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
+    .form-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 18px;
+      padding-right: 38px;
       cursor: pointer;
-      color: #94a3b8;
-      font-size: 0.9rem;
-      padding: 0;
-      pointer-events: all;
-      transition: color .2s;
     }
 
-    .input-wrap .toggle-pw:hover { color: var(--blue); }
-
-    .btn-login {
+    /* Sign In Button */
+    .signin-btn {
       width: 100%;
-      height: 48px;
-      background: linear-gradient(135deg, var(--blue), var(--blue-light));
-      color: #fff;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
+      color: var(--white);
       border: none;
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
-      font-weight: 700;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 1rem;
       cursor: pointer;
-      transition: all .25s;
-      box-shadow: 0 4px 14px rgba(59,130,246,.35);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.45rem;
-      margin-top: 0.5rem;
+      gap: 10px;
+      margin-top: 6px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 14px rgba(21, 128, 61, 0.35);
       font-family: inherit;
+      letter-spacing: 0.3px;
     }
 
-    .btn-login:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(59,130,246,.4);
+    .signin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(21, 128, 61, 0.45);
     }
 
-    .btn-login:active { transform: translateY(0); }
+    .signin-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(21, 128, 61, 0.3);
+    }
 
-    .btn-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      color: var(--blue);
+    .signin-btn svg {
+      transition: transform 0.2s ease;
+    }
+
+    .signin-btn:hover svg {
+      transform: translateX(3px);
+    }
+
+    /* Forgot Password Link */
+    .forgot-link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--green);
       text-decoration: none;
-      font-size: 0.82rem;
-      font-weight: 600;
-      transition: color .2s;
-      margin-top: 0.75rem;
+      transition: color 0.2s;
     }
 
-    .btn-link:hover { color: var(--blue-dark); }
-
-    .btn-link i { font-size: 0.75rem; }
-
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin: 1.2rem 0;
-      color: #cbd5e1;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
+    .forgot-link:hover {
+      color: var(--green-dark);
+      text-decoration: underline;
     }
 
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
+    /* Demo Credentials Box */
     .demo-box {
-      background: linear-gradient(135deg, rgba(59,130,246,.04), rgba(245,158,11,.06));
-      border: 1px solid rgba(59,130,246,.1);
-      border-radius: var(--radius-sm);
-      padding: 0.85rem 1rem;
-      margin-top: 1rem;
+      margin-top: 22px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(21, 128, 61, 0.06), rgba(26, 42, 74, 0.04));
+      border: 1px solid rgba(21, 128, 61, 0.15);
+      border-radius: 10px;
+      text-align: center;
     }
 
     .demo-box .demo-title {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       font-weight: 800;
+      color: var(--green);
       text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--blue);
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
     }
 
-    .demo-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.78rem;
-      padding: 0.25rem 0;
-      border-bottom: 1px solid rgba(59,130,246,.06);
-      color: var(--text-muted);
+    .demo-box .demo-creds {
+      font-size: 0.82rem;
+      color: #4b5563;
+      font-weight: 500;
+      line-height: 1.7;
     }
 
-    .demo-row:last-child { border-bottom: none; }
-
-    .demo-row .role-tag {
+    .demo-box .demo-creds strong {
+      color: var(--dark-blue);
       font-weight: 700;
-      color: var(--blue);
-      min-width: 70px;
-      font-size: 0.72rem;
     }
 
-    .demo-row code {
-      background: rgba(59,130,246,.07);
-      color: var(--blue);
-      padding: 0.12rem 0.45rem;
-      border-radius: 5px;
-      font-size: 0.72rem;
-      cursor: pointer;
-      transition: background .15s;
-      font-family: inherit;
-    }
-
-    .demo-row code:hover { background: rgba(59,130,246,.14); }
-
+    /* Toast */
     .toast {
       position: fixed;
       bottom: 1.5rem;
@@ -395,145 +351,151 @@
       background: #1e293b;
       color: #fff;
       padding: 0.75rem 1.2rem;
-      border-radius: var(--radius-sm);
+      border-radius: 10px;
       font-size: 0.85rem;
       font-weight: 600;
-      box-shadow: 0 8px 24px rgba(0,0,0,.2);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
       z-index: 9999;
       opacity: 0;
       transform: translateY(10px);
-      transition: all .25s;
+      transition: all 0.3s ease;
       pointer-events: none;
     }
 
-    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-    @media (max-width: 768px) {
-      .login-wrapper { flex-direction: column; max-width: 440px; min-height: auto; }
-      .left-panel { padding: 2rem 1.5rem; }
-      .left-heading { font-size: 1.5rem; }
-      .right-panel { padding: 2rem 1.5rem; }
-      body { padding: 0; }
-      .login-wrapper { border-radius: 0; min-height: 100vh; }
+    /* Responsive */
+    @media (max-width: 640px) {
+      .top-header {
+        padding: 10px 16px;
+        gap: 10px;
+      }
+
+      .top-header .header-school {
+        font-size: 0.95rem;
+      }
+
+      .top-header .header-system {
+        font-size: 0.72rem;
+      }
+
+      .top-header .header-meta {
+        display: none;
+      }
+
+      .main-content {
+        padding: 16px;
+      }
+
+      .glass-card {
+        padding: 28px 20px;
+        border-radius: 16px;
+      }
+
+      .card-header h2 {
+        font-size: 1.25rem;
+      }
+
+      .card-logo img {
+        width: 52px;
+        height: 52px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .top-header .header-logo {
+        width: 38px;
+        height: 38px;
+      }
+
+      .top-header .header-school {
+        font-size: 0.85rem;
+      }
+
+      .glass-card {
+        padding: 24px 16px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="login-wrapper">
+  <div class="bg-overlay"></div>
 
-    <!-- Left Panel -->
-    <div class="left-panel">
-      <div class="left-content">
-        <div class="brand">
-          <div class="brand-icon"><i class="bi bi-building"></i></div>
-          <div class="brand-text">Madarkaci Model School<small>Management System</small></div>
-        </div>
-
-        <h2 class="left-heading">
-          Your school,<br>
-          <span class="highlight">fully connected.</span>
-        </h2>
-
-        <p class="left-desc">
-          Manage students, staff, results, fees, attendance, and reports from one unified platform built for every member of the school community.
-        </p>
-
-        <ul class="feature-list">
-          <li><i class="bi bi-check-circle-fill"></i> Student Records &amp; Results</li>
-          <li><i class="bi bi-check-circle-fill"></i> Staff Management</li>
-          <li><i class="bi bi-check-circle-fill"></i> Fees &amp; Financial Tracking</li>
-          <li><i class="bi bi-check-circle-fill"></i> Attendance &amp; Reports</li>
-        </ul>
-
-        <a class="btn-link" href="madarkaci_school_management.html" style="margin-top:2rem;color:rgba(255,255,255,.8)">
-          <i class="bi bi-house-door"></i> Back to Homepage
-        </a>
-      </div>
+  <!-- Top Header -->
+  <header class="top-header">
+    <img src="assets/mms-logo.jpg" alt="Madarkaci Model School Logo" class="header-logo">
+    <div class="header-info">
+      <span class="header-school">Madarkaci Model School</span>
+      <span class="header-system">School Management System</span>
     </div>
-
-    <!-- Right Panel -->
-    <div class="right-panel">
-      <div class="login-card">
-        <div class="login-card-header">
-          <div class="avatar"><i class="bi bi-person-badge-fill"></i></div>
-          <h2>Welcome Back</h2>
-          <p>Sign in to your dashboard</p>
-        </div>
-
-        <div class="form-group">
-          <label>Login Type</label>
-          <div class="input-wrap">
-            <i class="bi bi-person-gear"></i>
-            <select id="loginRole" onchange="syncRoleCards()">
-              <option value="Administrator">Administrator</option>
-              <option value="Teacher">Teacher</option>
-              <option value="Accountant">Accountant</option>
-              <option value="Exam Officer">Exam Officer</option>
-              <option value="Parent">Parent</option>
-              <option value="Student">Student</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Username / ID / Phone</label>
-          <div class="input-wrap">
-            <i class="bi bi-person-fill"></i>
-            <input type="text" id="loginUsername" placeholder="Enter your ID, username or phone">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Password</label>
-          <div class="input-wrap">
-            <i class="bi bi-lock-fill"></i>
-            <input type="password" id="loginPassword" placeholder="Enter your password">
-            <button class="toggle-pw" type="button" onclick="togglePassword()" title="Show/hide password">
-              <i class="bi bi-eye-fill" id="pwEyeIcon"></i>
-            </button>
-          </div>
-        </div>
-
-        <button class="btn-login" onclick="doLogin()">
-          <i class="bi bi-box-arrow-in-right"></i> Sign In
-        </button>
-
-        <a class="btn-link" href="#" onclick="recoverPassword(); return false;">
-          <i class="bi bi-question-circle"></i> Forgot password?
-        </a>
-
-        <div class="divider">or try demo</div>
-
-        <div class="demo-box">
-          <div class="demo-title">
-            <i class="bi bi-lightbulb-fill"></i> Demo Credentials
-          </div>
-          <div class="demo-row">
-            <span class="role-tag">Admin</span>
-            <code onclick="fillDemo('admin','admin123','Administrator')">admin / admin123</code>
-          </div>
-          <div class="demo-row">
-            <span class="role-tag">Teacher</span>
-            <code onclick="fillDemo('MMS/STF/001','teacher','Teacher')">MMS/STF/001 / teacher</code>
-          </div>
-          <div class="demo-row">
-            <span class="role-tag">Accountant</span>
-            <code onclick="fillDemo('accountant','account123','Accountant')">accountant / account123</code>
-          </div>
-          <div class="demo-row">
-            <span class="role-tag">Student</span>
-            <code onclick="fillDemo('MMS/2026/001','student123','Student')">MMS/2026/001 / student123</code>
-          </div>
-        </div>
-
-        <a class="btn-link" href="madarkaci_school_management.html" style="justify-content:center;margin-top:1rem">
-          <i class="bi bi-house-door"></i> Go to Main Dashboard
-        </a>
-      </div>
+    <div class="header-meta">
+      <span>2026/2027</span>
+      <span>First Term</span>
+      <span class="badge">Days Open: 65</span>
     </div>
+  </header>
 
-  </div>
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="glass-card">
+
+      <!-- Logo -->
+      <div class="card-logo">
+        <img src="assets/mms-logo.jpg" alt="School Logo">
+      </div>
+
+      <!-- Header -->
+      <div class="card-header">
+        <h2>Welcome Back</h2>
+        <p>Sign in to access your dashboard</p>
+      </div>
+
+      <!-- Login Form -->
+      <div class="form-group">
+        <label for="loginRole">Login Type</label>
+        <select id="loginRole">
+          <option>Administrator</option>
+          <option>Teacher</option>
+          <option>Accountant</option>
+          <option>Exam Officer</option>
+          <option>Parent</option>
+          <option>Student</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="loginUsername">Username</label>
+        <input id="loginUsername" value="admin">
+      </div>
+
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" value="admin123">
+      </div>
+
+      <button class="signin-btn" onclick="doLogin()">
+        <span>Sign In</span>
+        <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+
+      <a href="#" class="forgot-link" onclick="recoverPassword(); return false;">Forgot Password?</a>
+
+      <!-- Demo Credentials -->
+      <div class="demo-box">
+        <div class="demo-title">Demo Credentials</div>
+        <div class="demo-creds">
+          <strong>admin / admin123</strong> &nbsp;|&nbsp;
+          <strong>teacher / teacher</strong> &nbsp;|&nbsp;
+          <strong>accountant / account123</strong>
+        </div>
+      </div>
+
+    </div>
+  </main>
 
   <div id="toast" class="toast"></div>
 
@@ -544,15 +506,15 @@
     const seed = {
       settings: { schoolName: "Madarkaci Model School" },
       users: [
-        { id: "u1", username: "admin",      password: "admin123",   role: "Administrator" },
-        { id: "u2", username: "teacher",    password: "teacher",    role: "Teacher" },
+        { id: "u1", username: "admin", password: "admin123", role: "Administrator" },
+        { id: "u2", username: "teacher", password: "teacher", role: "Teacher" },
         { id: "u3", username: "accountant", password: "account123", role: "Accountant" },
-        { id: "u4", username: "parent",     password: "parent123",  role: "Parent" },
-        { id: "u5", username: "student",    password: "student123", role: "Student" },
-        { id: "u6", username: "exam_officer", password: "exam123",  role: "Exam Officer" }
+        { id: "u4", username: "parent", password: "parent123", role: "Parent" },
+        { id: "u5", username: "student", password: "student123", role: "Student" },
+        { id: "u6", username: "exam_officer", password: "exam123", role: "Exam Officer" }
       ],
       staff: [
-        { id: "s1", staffNo: "MMS/STF/001", firstName: "Amina",  middleName: "", lastName: "Yusuf", role: "Teacher" },
+        { id: "s1", staffNo: "MMS/STF/001", firstName: "Amina", middleName: "", lastName: "Yusuf", role: "Teacher" },
         { id: "s2", staffNo: "MMS/STF/002", firstName: "Kabiru", middleName: "Muhammad", lastName: "Sani", role: "Teacher" },
         { id: "s3", staffNo: "MMS/STF/003", firstName: "Maryam", middleName: "", lastName: "Ali", role: "Accountant" }
       ],
@@ -571,65 +533,24 @@
       setTimeout(() => el.classList.remove("show"), 2800);
     }
 
-    function togglePassword() {
-      const inp = document.getElementById("loginPassword");
-      const icon = document.getElementById("pwEyeIcon");
-      if (inp.type === "password") {
-        inp.type = "text";
-        icon.className = "bi bi-eye-slash-fill";
-      } else {
-        inp.type = "password";
-        icon.className = "bi bi-eye-fill";
-      }
-    }
-
-    function setRole(role) {
-      document.getElementById("loginRole").value = role;
-      syncRoleCards();
-    }
-
-    function syncRoleCards() {
-      const role = document.getElementById("loginRole").value;
-      document.querySelectorAll(".role-card").forEach(card => {
-        card.classList.toggle("active", card.textContent.trim() === role);
-      });
-    }
-
-    function fillDemo(user, pass, role) {
-      document.getElementById("loginUsername").value = user;
-      document.getElementById("loginPassword").value = pass;
-      setRole(role);
-    }
-
-    async function loadDB() {
-      try {
-        const res = await fetch(API_URL);
-        if (res.ok) db = await res.json();
-        else db = seed;
-      } catch {
-        db = seed;
-      }
-    }
-
     function doLogin() {
-      const role     = document.getElementById("loginRole").value;
+      const role = document.getElementById("loginRole").value;
       const username = document.getElementById("loginUsername").value.trim();
       const password = document.getElementById("loginPassword").value;
 
       if (!username || !password) return toast("Please enter username and password.", true);
 
       const data = db || seed;
-      const lowerUser = username.toLowerCase();
       let user = null;
 
       user = data.users.find(u =>
-        u.username.toLowerCase() === lowerUser &&
+        u.username.toLowerCase() === username.toLowerCase() &&
         u.password === password &&
         u.role === role
       );
 
       if (!user && role === "Student") {
-        const s = data.students.find(s => s.regNo.toLowerCase() === lowerUser);
+        const s = data.students.find(s => s.regNo.toLowerCase() === username.toLowerCase());
         if (s && password === "student123") user = { id: s.id, username: s.regNo, role: "Student", studentId: s.id };
       }
 
@@ -639,7 +560,7 @@
       }
 
       if (!user && (role === "Teacher" || role === "Accountant" || role === "Exam Officer")) {
-        const s = data.staff.find(s => s.staffNo.toLowerCase() === lowerUser && s.role === role);
+        const s = data.staff.find(s => s.staffNo.toLowerCase() === username.toLowerCase() && s.role === role);
         if (s) {
           const demos = { "Teacher": "teacher", "Accountant": "account123", "Exam Officer": "exam123" };
           if (password === demos[role]) user = { id: s.id, username: fullName(s), role, staffId: s.id };
@@ -658,14 +579,23 @@
       if (!username) return toast("Enter your username first.", true);
       const data = db || seed;
       const user = data.users.find(u => u.username === username);
-      toast(user ? `Password hint: ${user.password}` : "User not found.");
+      toast(user ? "Password hint: " + user.password : "User not found.");
     }
 
     const urlParams = new URLSearchParams(window.location.search);
     const preRole = urlParams.get("role");
     if (preRole) { document.getElementById("loginRole").value = preRole; }
 
-    syncRoleCards();
+    async function loadDB() {
+      try {
+        const res = await fetch(API_URL);
+        if (res.ok) db = await res.json();
+        else db = seed;
+      } catch {
+        db = seed;
+      }
+    }
+
     loadDB();
   </script>
 </body>
