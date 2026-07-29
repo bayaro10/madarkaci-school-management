@@ -9,6 +9,14 @@
     "nextTermBegins": "2026-01-12",
     "principalComment": "Approved. More effort is encouraged."
   },
+  "roles": [
+    { "id": "role_admin", "name": "Administrator", "description": "Super Admin - Full system control", "permissions": ["dashboard", "students", "staff", "classes", "subjects", "scores", "fees", "attendance", "users", "settings", "reports", "portals", "tools", "website", "roles", "activity"], "isSystem": true },
+    { "id": "role_teacher", "name": "Teacher", "description": "Class Teacher - Enter scores and attendance", "permissions": ["dashboard", "scores", "attendance", "reports", "portals"], "isSystem": true },
+    { "id": "role_exam", "name": "Exam Officer", "description": "Manage exams and results", "permissions": ["dashboard", "scores", "reports"], "isSystem": true },
+    { "id": "role_accountant", "name": "Accountant", "description": "Manage fees, payments, cashbook, expenses, payroll", "permissions": ["dashboard", "fees", "payments", "cashbook", "expenses", "income", "payroll", "reports"], "isSystem": true },
+    { "id": "role_student", "name": "Student", "description": "View own results and attendance", "permissions": ["dashboard", "portals", "reports"], "isSystem": true },
+    { "id": "role_parent", "name": "Parent", "description": "View child results and fees", "permissions": ["dashboard", "portals", "reports"], "isSystem": true }
+  ],
   "users": [
     {
       "id": "u1",
