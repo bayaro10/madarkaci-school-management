@@ -1,0 +1,109 @@
+/* Scores/Results page specific styles */
+#scores .panel {
+  transition: box-shadow 0.2s ease;
+}
+
+#scores .panel:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+#scores .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+#scores .form-grid .full {
+  grid-column: 1 / -1;
+}
+
+#scores .table-wrap {
+  overflow: auto;
+  max-height: 600px;
+}
+
+#scores .table-wrap table {
+  font-size: 13px;
+}
+
+#scores .table-wrap th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#scores .score-input {
+  width: 60px;
+  text-align: center;
+  border: 1px solid #d8e0e8;
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 13px;
+}
+
+#scores .score-input:focus {
+  border-color: #20795d;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(32, 121, 93, 0.1);
+}
+
+#scores .bulk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+#scores .bulk-table th {
+  background: #1565c0;
+  color: #fff;
+  padding: 6px 8px;
+  border: 1px solid #0d47a1;
+  text-align: center;
+}
+
+#scores .bulk-table td {
+  padding: 5px 8px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+#scores .bulk-table tr:nth-child(even) {
+  background: #f5f8fc;
+}
+
+#scores .approval-panel {
+  margin-top: 14px;
+}
+
+#scores .mode-btn {
+  min-width: 120px;
+}
+
+@media (max-width: 1000px) {
+  #scores .grid > .panel {
+    grid-column: span 12 !important;
+  }
+}
+
+@media (max-width: 650px) {
+  #scores .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #scores .table-wrap {
+    max-height: 400px;
+  }
+
+  #scores .table-wrap table {
+    font-size: 11px;
+  }
+
+  #scores .panel {
+    padding: 12px;
+  }
+
+  #scores .score-input {
+    width: 50px;
+    font-size: 11px;
+  }
+}

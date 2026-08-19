@@ -1,0 +1,51 @@
+:root {
+  --blue: #0d47a1;
+}
+
+.features-intro {
+  max-width: 520px;
+}
+
+.about-copy {
+  line-height: 1.8;
+}
+
+.carousel-indicators {
+  bottom: -2rem;
+}
+
+.carousel-indicators button {
+  background: var(--blue);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.cta-heading,
+.cta-copy,
+.cta-actions {
+  position: relative;
+  z-index: 1;
+}
+
+.footer-copy {
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.footer-links {
+  font-size: 0.93rem;
+}
+
+.footer-link-icon {
+  font-size: 0.7rem;
+}
+
+.footer-contact-icon {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.footer-note {
+  font-size: 0.85rem;
+}

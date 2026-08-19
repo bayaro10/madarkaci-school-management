@@ -1,0 +1,81 @@
+/* Staff page specific styles */
+#staff .panel {
+  transition: box-shadow 0.2s ease;
+}
+
+#staff .panel:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+#staff .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+#staff .form-grid .full {
+  grid-column: 1 / -1;
+}
+
+#staff .section-header {
+  grid-column: 1 / -1;
+  font-weight: 700;
+  color: #1565c0;
+  padding-top: 6px;
+  font-size: 0.95em;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+#staff .table-wrap {
+  overflow: auto;
+  max-height: 600px;
+}
+
+#staff .table-wrap table {
+  font-size: 13px;
+}
+
+#staff .table-wrap th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#staff #staffImagePreview {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  display: none;
+  margin-top: 8px;
+}
+
+#staff #staffSubject[multiple] {
+  min-height: 100px;
+}
+
+@media (max-width: 1000px) {
+  #staff .grid > .panel {
+    grid-column: span 12 !important;
+  }
+}
+
+@media (max-width: 650px) {
+  #staff .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #staff .table-wrap {
+    max-height: 400px;
+  }
+
+  #staff .table-wrap table {
+    font-size: 11px;
+  }
+
+  #staff .panel {
+    padding: 12px;
+  }
+}

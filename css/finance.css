@@ -1,0 +1,230 @@
+/* Finance pages specific styles */
+#fees .panel,
+#payments .panel,
+#cashbook .panel,
+#expenses .panel,
+#income .panel,
+#payroll .panel {
+  transition: box-shadow 0.2s ease;
+}
+
+#fees .panel:hover,
+#payments .panel:hover,
+#cashbook .panel:hover,
+#expenses .panel:hover,
+#income .panel:hover,
+#payroll .panel:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+#fees .form-grid,
+#payments .form-grid,
+#cashbook .form-grid,
+#expenses .form-grid,
+#income .form-grid,
+#payroll .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+#fees .form-grid .full,
+#payments .form-grid .full,
+#cashbook .form-grid .full,
+#expenses .form-grid .full,
+#income .form-grid .full,
+#payroll .form-grid .full {
+  grid-column: 1 / -1;
+}
+
+#fees .table-wrap,
+#payments .table-wrap,
+#cashbook .table-wrap,
+#expenses .table-wrap,
+#income .table-wrap,
+#payroll .table-wrap {
+  overflow: auto;
+  max-height: 600px;
+}
+
+#fees .table-wrap table,
+#payments .table-wrap table,
+#cashbook .table-wrap table,
+#expenses .table-wrap table,
+#income .table-wrap table,
+#payroll .table-wrap table {
+  font-size: 13px;
+}
+
+#fees .table-wrap th,
+#payments .table-wrap th,
+#cashbook .table-wrap th,
+#expenses .table-wrap th,
+#income .table-wrap th,
+#payroll .table-wrap th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.fee-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+.fee-tab-btn {
+  padding: 8px 14px;
+  border: 1px solid #d8e0e8;
+  border-radius: 8px;
+  background: #fff;
+  color: #182433;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.fee-tab-btn:hover {
+  background: #f3f6f8;
+  border-color: #285f9d;
+}
+
+.fee-tab-btn.active {
+  background: #20795d;
+  color: #fff;
+  border-color: #20795d;
+  box-shadow: 0 2px 8px rgba(32, 121, 93, 0.25);
+}
+
+.fee-search-results {
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #fff;
+  position: relative;
+  z-index: 10;
+}
+
+.fee-search-result-item {
+  padding: 9px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.93em;
+}
+
+.fee-search-result-item:hover {
+  background: #f5f7ff;
+}
+
+.fee-student-info {
+  display: none;
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.95em;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 23px;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.status-paid {
+  background: #e7f3ee;
+  color: #20795d;
+}
+
+.status-part {
+  background: #fff3dc;
+  color: #98620b;
+}
+
+.status-not-paid {
+  background: #ffe8e8;
+  color: #b33d3a;
+}
+
+.amount-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d8e0e8;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.amount-input:focus {
+  border-color: #20795d;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(32, 121, 93, 0.1);
+}
+
+@media (max-width: 1000px) {
+  #fees .grid > .panel,
+  #payments .grid > .panel,
+  #cashbook .grid > .panel,
+  #expenses .grid > .panel,
+  #income .grid > .panel,
+  #payroll .grid > .panel {
+    grid-column: span 12 !important;
+  }
+}
+
+@media (max-width: 650px) {
+  #fees .form-grid,
+  #payments .form-grid,
+  #cashbook .form-grid,
+  #expenses .form-grid,
+  #income .form-grid,
+  #payroll .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #fees .table-wrap,
+  #payments .table-wrap,
+  #cashbook .table-wrap,
+  #expenses .table-wrap,
+  #income .table-wrap,
+  #payroll .table-wrap {
+    max-height: 400px;
+  }
+
+  #fees .table-wrap table,
+  #payments .table-wrap table,
+  #cashbook .table-wrap table,
+  #expenses .table-wrap table,
+  #income .table-wrap table,
+  #payroll .table-wrap table {
+    font-size: 11px;
+  }
+
+  #fees .panel,
+  #payments .panel,
+  #cashbook .panel,
+  #expenses .panel,
+  #income .panel,
+  #payroll .panel {
+    padding: 12px;
+  }
+
+  .fee-tabs {
+    gap: 4px;
+  }
+
+  .fee-tab-btn {
+    font-size: 0.78rem;
+    padding: 6px 10px;
+  }
+}

@@ -4,3 +4,6 @@ node_modules/
 dist/
 .env
 school_db.json
+.kilo/
+.local/
+*.bak

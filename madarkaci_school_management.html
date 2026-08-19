@@ -643,24 +643,46 @@
               <div><label>Class</label><select id="studentClass"></select></div>
               <div><label>First Name</label><input id="studentFirst"></div>
               <div><label>Middle Name</label><input id="studentMiddle"></div>
-              <div><label>Last Name</label><input id="studentLast"></div>
+              <div><label>Surname</label><input id="studentLast"></div>
               <div><label>Gender</label><select id="studentGender"><option>Female</option><option>Male</option></select></div>
-              <div><label>House</label><input id="studentHouse"></div>
               <div><label>Date of Birth</label><input id="studentDob" type="date"></div>
-              <div><label>Religion</label><input id="studentReligion"></div>
+              <div><label>Place of Birth</label><input id="studentPob"></div>
+              <div><label>Nationality</label><input id="studentNationality"></div>
+              <div><label>State of Origin</label><input id="studentState"></div>
               <div><label>LGA</label><input id="studentLga"></div>
-              <div><label>State</label><input id="studentState"></div>
-              <div><label>Parent Name</label><input id="studentParent"></div>
-              <div><label>Parent Phone</label><input id="studentPhone"></div>
-              <div class="full"><label>Parent Address</label><textarea id="studentAddress"></textarea></div>
-              <div><label>Medical Fitness</label><input id="studentMedical"></div>
-              <div><label>Status</label><select id="studentStatus"><option>Active</option><option>Graduated</option><option>Transferred</option></select></div>
-              <div class="full"><label>Student Photo</label><input type="file" id="studentPhoto" accept="image/*" onchange="handlePhoto(event)"></div>
+              <div><label>Religion</label><input id="studentReligion"></div>
+              <div class="full"><label>Home Address</label><textarea id="studentAddress"></textarea></div>
+              <div><label>Phone Number</label><input id="studentPhone"></div>
+              <div><label>Email Address</label><input id="studentEmail" type="email"></div>
+              <div class="full" style="font-weight:700;color:#1565c0;padding-top:6px">Parent / Guardian Information</div>
+              <div><label>Parent / Guardian Name</label><input id="studentParent"></div>
+              <div><label>Relationship</label><input id="studentParentRelation"></div>
+              <div><label>Occupation</label><input id="studentParentOccupation"></div>
+              <div><label>Phone Number</label><input id="studentParentPhone"></div>
+              <div><label>Alternative Phone</label><input id="studentAltPhone"></div>
+              <div class="full"><label>Address</label><textarea id="studentParentAddress"></textarea></div>
+              <div><label>Email Address</label><input id="studentParentEmail" type="email"></div>
+              <div class="full" style="font-weight:700;color:#1565c0;padding-top:6px">Academic Information</div>
+              <div><label>Previous School Attended</label><input id="studentPrevSchool"></div>
+              <div><label>Last Class Completed</label><input id="studentLastClass"></div>
+              <div><label>Admission Date</label><input id="studentAdmissionDate" type="date"></div>
+              <div><label>Student Status</label><select id="studentStatus"><option>New</option><option>Returning</option><option>Active</option><option>Graduated</option><option>Transferred</option></select></div>
+              <div class="full" style="font-weight:700;color:#1565c0;padding-top:6px">Medical Information</div>
+              <div><label>Blood Group</label><input id="studentBloodGroup"></div>
+              <div><label>Genotype</label><input id="studentGenotype"></div>
+              <div><label>Allergies</label><input id="studentAllergies"></div>
+              <div><label>Medical Conditions</label><input id="studentMedicalConditions"></div>
+              <div><label>Emergency Contact</label><input id="studentEmergencyContact"></div>
+              <div class="full" style="font-weight:700;color:#1565c0;padding-top:6px">Documents</div>
+              <div><label>Birth Certificate</label><input type="file" id="studentBirthCert" accept="image/*,.pdf"></div>
+              <div><label>Previous School Result</label><input type="file" id="studentPrevResult" accept="image/*,.pdf"></div>
+              <div><label>Transfer Certificate</label><input type="file" id="studentTransferCert" accept="image/*,.pdf"></div>
+              <div><label>Passport Photograph</label><input type="file" id="studentPhoto" accept="image/*" onchange="handlePhoto(event)"></div>
               <div class="photo" id="studentPhotoPreview" style="width:100px; height:110px;">PHOTO</div>
             </div>
           </div>
           <div class="panel span-7">
-            <h3>Student Search and Filtering</h3>
+            <h3>Student Search and Filtering <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printStudentTable()">🖨️ Print</button></h3>
             <div class="form-grid" style="margin-bottom:12px">
               <div><label>Search</label><input id="studentSearch" oninput="renderStudents()" placeholder="Name, reg no, parent phone"></div>
               <div><label>Filter Class</label><select id="studentFilterClass" onchange="renderStudents()"></select></div>
@@ -696,19 +718,62 @@
             <input id="staffId" type="hidden">
             <input id="staffImagePath" type="hidden">
             <div class="form-grid">
-              <div><label>Staff No (Auto-generated)</label><input id="staffNo" readonly placeholder="Auto-generated"></div>
+              <div><label>Staff ID</label><input id="staffNo" readonly placeholder="Auto-generated"></div>
               <div><label>Role</label><select id="staffRole"><option>Teacher</option><option>Accountant</option><option>Administrator</option><option>Exam Officer</option></select></div>
               <div><label>First Name</label><input id="staffFirst"></div>
               <div><label>Middle Name</label><input id="staffMiddle"></div>
-              <div><label>Last Name</label><input id="staffLast"></div>
-              <div><label>Phone</label><input id="staffPhone"></div>
-              <div class="full"><label>Subjects (Hold Ctrl to select multiple)</label><select id="staffSubject" multiple style="height: 100px;"></select></div>
-              <div class="full"><label>Address</label><textarea id="staffAddress"></textarea></div>
-              <div class="full"><label>Staff Photo</label><input type="file" id="staffImageFile" accept="image/*" onchange="uploadStaffImage(this, 'staffImagePreview', 'staffImagePath')"></div>
+              <div><label>Surname</label><input id="staffLast"></div>
+              <div><label>Gender</label><select id="staffGender"><option>Male</option><option>Female</option></select></div>
+              <div><label>Date of Birth</label><input id="staffDob" type="date"></div>
+              <div><label>Marital Status</label><select id="staffMaritalStatus"><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option></select></div>
+              <div><label>Nationality</label><input id="staffNationality"></div>
+              <div><label>State of Origin</label><input id="staffState"></div>
+              <div><label>LGA</label><input id="staffLga"></div>
+              <div><label>Religion</label><input id="staffReligion"></div>
+              <div class="section-header">Contact Information</div>
+              <div class="full"><label>Residential Address</label><textarea id="staffAddress"></textarea></div>
+              <div><label>Phone Number</label><input id="staffPhone"></div>
+              <div><label>Email Address</label><input id="staffEmail" type="email"></div>
+              <div class="section-header">Professional Information</div>
+              <div><label>Employment Date</label><input id="staffEmploymentDate" type="date"></div>
+              <div><label>Designation / Position</label><input id="staffDesignation"></div>
+              <div><label>Department</label><input id="staffDepartment"></div>
+              <div><label>Class Assigned</label><select id="staffClassAssigned"></select></div>
+              <div><label>Employment Type</label><select id="staffEmploymentType"><option>Permanent</option><option>Contract</option><option>Part-Time</option></select></div>
+              <div class="full"><label>Subjects Taught (Hold Ctrl to select multiple)</label><select id="staffSubject" multiple style="height: 100px;"></select></div>
+              <div class="section-header">Educational Qualifications</div>
+              <div><label>Highest Qualification</label><input id="staffHighestQualification"></div>
+              <div><label>Institution Attended</label><input id="staffInstitution"></div>
+              <div><label>Year Graduated</label><input id="staffYearGraduated"></div>
+              <div><label>Professional Certifications</label><input id="staffProfessionalCerts"></div>
+              <div class="section-header">Salary Information</div>
+              <div><label>Salary Scale</label><input id="staffSalaryScale"></div>
+              <div><label>Bank Name</label><input id="staffBankName"></div>
+              <div><label>Account Number</label><input id="staffAccountNumber"></div>
+              <div><label>Account Name</label><input id="staffAccountName"></div>
+              <div><label>Tax Identification Number (TIN)</label><input id="staffTin"></div>
+              <div class="section-header">Next of Kin Information</div>
+              <div><label>Name</label><input id="staffNokName"></div>
+              <div><label>Relationship</label><input id="staffNokRelation"></div>
+              <div class="full"><label>Address</label><textarea id="staffNokAddress"></textarea></div>
+              <div><label>Phone Number</label><input id="staffNokPhone"></div>
+              <div class="section-header">Documents</div>
+              <div><label>CV / Resume</label><input type="file" id="staffCv" accept="image/*,.pdf"></div>
+              <div><label>Academic Certificates</label><input type="file" id="staffAcademicCerts" accept="image/*,.pdf"></div>
+              <div><label>Professional Certificates</label><input type="file" id="staffProfessionalCerts" accept="image/*,.pdf"></div>
+              <div><label>Appointment Letter</label><input type="file" id="staffAppointmentLetter" accept="image/*,.pdf"></div>
+              <div><label>National ID Card</label><input type="file" id="staffNationalId" accept="image/*,.pdf"></div>
+              <div><label>Passport Photograph</label><input type="file" id="staffImageFile" accept="image/*" onchange="uploadStaffImage(this, 'staffImagePreview', 'staffImagePath')"></div>
               <div class="full"><img id="staffImagePreview" src="" alt="Staff Photo Preview" style="max-width: 200px; max-height: 200px; object-fit: cover; border-radius: 8px; display: none;"></div>
             </div>
           </div>
-          <div class="panel span-8"><h3>Staff Reports</h3><div class="table-wrap" id="staffTable"></div></div>
+            <div class="panel span-8">
+              <h3>Staff Reports <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printStaffTable()">🖨️ Print</button></h3>
+              <div class="form-grid" style="margin-bottom:12px">
+                <div><label>Search</label><input id="staffSearch" oninput="renderStaff()" placeholder="Name, staff no"></div>
+              </div>
+              <div class="table-wrap" id="staffTable"></div>
+            </div>
         </div>
       </div>
 
@@ -724,7 +789,7 @@
               <div class="full"><label>Class Teacher</label><select id="classTeacher"></select></div>
             </div>
           </div>
-          <div class="panel span-8"><h3>Class Lists</h3><div class="table-wrap" id="classTable"></div></div>
+          <div class="panel span-8"><h3>Class Lists <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printClassTable()">🖨️ Print</button></h3><div class="table-wrap" id="classTable"></div></div>
         </div>
       </div>
 
@@ -741,7 +806,14 @@
               <div><label>Assign Teacher</label><select id="subjectTeacher"></select></div>
             </div>
           </div>
-          <div class="panel span-8"><h3>Subjects and Assigned Teachers</h3><div class="table-wrap" id="subjectTable"></div></div>
+          <div class="panel span-8">
+            <h3>Class Broadsheet <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printSubjectBroadsheet()">🖨️ Print</button></h3>
+            <div class="form-grid" style="margin-bottom:12px">
+              <div><label>Filter Class</label><select id="broadsheetClass" onchange="renderSubjectBroadsheet()"></select></div>
+              <div><label>Filter Subject</label><select id="broadsheetSubject" onchange="renderSubjectBroadsheet()"><option value="">All Subjects</option></select></div>
+            </div>
+            <div class="table-wrap" id="broadsheetTable"></div>
+          </div>
         </div>
       </div>
 
@@ -767,7 +839,7 @@
             <button class="primary" style="width:100%;margin-top:10px" onclick="saveScore()">Save Score</button>
           </div>
           <div class="panel span-8">
-            <h3>Class Broadsheet / Position Ranking</h3>
+            <h3>Class Broadsheet / Position Ranking <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printScoreTable()">🖨️ Print</button></h3>
             <div class="form-grid" style="max-width:300px;margin-bottom:12px">
               <div><label>Filter Class</label><select id="scoreFilterClass" onchange="renderScores()"><option value="">Select Class</option></select></div>
             </div>
@@ -845,11 +917,11 @@
               </div>
               <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="primary" onclick="saveFee()" style="display:none;" id="feeSubmitBtn">💾 Record Payment</button>
-                <button class="secondary" onclick="printFeeReceipt(document.getElementById('feeStudent').value, db.fees.find(f=>f.studentId===document.getElementById('feeStudent').value))">🧾 Receipt</button>
+                <button class="secondary no-print" onclick="printFeeReceipt(document.getElementById('feeStudent').value, db.fees.find(f=>f.studentId===document.getElementById('feeStudent').value))">🧾 Receipt</button>
               </div>
             </div>
             <div class="panel span-8">
-              <h3>Fee Payment Reports <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('payment')">🖨️ Print</button></h3>
+              <h3>Fee Payment Reports <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printFeeSection('payment')">🖨️ Print</button></h3>
               <div class="form-grid" style="max-width:300px;margin-bottom:12px">
                 <div><label>Filter Class</label><select id="feeFilterClass" onchange="renderFees()"><option value="">Select Class</option></select></div>
               </div>
@@ -871,7 +943,7 @@
               </div>
               <button class="primary" onclick="savePaymentPlan()" style="margin-top:12px;width:100%">Save Payment Plan</button>
             </div>
-            <div class="panel span-8"><h3>Payment Plans <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('plans')">🖨️ Print</button></h3><div class="table-wrap" id="planTable"></div></div>
+            <div class="panel span-8"><h3>Payment Plans <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printFeeSection('plans')">🖨️ Print</button></h3><div class="table-wrap" id="planTable"></div></div>
           </div>
         </div>
 
@@ -886,7 +958,7 @@
               </div>
               <button class="primary" onclick="saveDiscount()" style="margin-top:12px;width:100%">Save Discount</button>
             </div>
-            <div class="panel span-8"><h3>Discounts <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('discounts')">🖨️ Print</button></h3><div class="table-wrap" id="discountTable"></div></div>
+            <div class="panel span-8"><h3>Discounts <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printFeeSection('discounts')">🖨️ Print</button></h3><div class="table-wrap" id="discountTable"></div></div>
           </div>
         </div>
 
@@ -901,13 +973,13 @@
               </div>
               <button class="primary" onclick="saveScholarship()" style="margin-top:12px;width:100%">Save Scholarship</button>
             </div>
-            <div class="panel span-8"><h3>Scholarships <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('scholarships')">🖨️ Print</button></h3><div class="table-wrap" id="scholarshipTable"></div></div>
+            <div class="panel span-8"><h3>Scholarships <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printFeeSection('scholarships')">🖨️ Print</button></h3><div class="table-wrap" id="scholarshipTable"></div></div>
           </div>
         </div>
 
         <div id="feeTabDebtors" class="hide">
           <div class="panel span-12">
-            <h3>Debtors List <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('debtors')">🖨️ Print</button></h3>
+            <h3>Debtors List <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printFeeSection('debtors')">🖨️ Print</button></h3>
             <div class="table-wrap" id="debtorTable"></div>
           </div>
         </div>
@@ -927,7 +999,7 @@
               <p class="hint">This integrates with supported payment providers. Use demo mode in this build.</p>
             </div>
             <div class="panel span-6">
-              <h3>Payment Links / Status <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('online')">🖨️ Print</button></h3>
+              <h3>Payment Links / Status <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printFeeSection('online')">🖨️ Print</button></h3>
               <div class="table-wrap" id="onlineTable"></div>
             </div>
           </div>
@@ -948,7 +1020,7 @@
               <button class="primary" onclick="saveFeeStructure()" style="margin-top:12px;width:100%">Save Fee Structure</button>
             </div>
             <div class="panel span-8">
-              <h3>Configured Fee Structures <button class="secondary" style="float:right;font-size:.82em;" onclick="printFeeSection('structure')">🖨️ Print</button></h3>
+              <h3>Configured Fee Structures <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printFeeSection('structure')">🖨️ Print</button></h3>
               <div class="table-wrap" id="feeStructTable"></div>
             </div>
           </div>
@@ -957,7 +1029,7 @@
 
       <div id="payments" class="page hide">
         <div class="toolbar"><h2>Online Payments</h2><div class="actions"><button class="secondary" onclick="showPage('fees')">Back</button></div></div>
-        <div class="panel span-12"><h3>Payment Requests &amp; Status <button class="secondary" style="float:right;font-size:.82em;" onclick="printTableSection('onlinePaymentTable','Online Payments')">🖨️ Print</button></h3><div class="table-wrap" id="onlinePaymentTable"></div></div>
+        <div class="panel span-12"><h3>Payment Requests &amp; Status <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printTableSection('onlinePaymentTable','Online Payments')">🖨️ Print</button></h3><div class="table-wrap" id="onlinePaymentTable"></div></div>
       </div>
 
       <div id="cashbook" class="page hide">
@@ -973,7 +1045,7 @@
               <div class="full"><label>Note</label><input id="cbNote"></div>
             </div>
           </div>
-          <div class="panel span-8"><h3>Cash Book Entries <button class="secondary" style="float:right;font-size:.82em;" onclick="printTableSection('cashbookTable','Cash Book Entries')">🖨️ Print</button></h3><div class="table-wrap" id="cashbookTable"></div></div>
+          <div class="panel span-8"><h3>Cash Book Entries <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printTableSection('cashbookTable','Cash Book Entries')">🖨️ Print</button></h3><div class="table-wrap" id="cashbookTable"></div></div>
         </div>
       </div>
 
@@ -989,7 +1061,7 @@
               <div class="full"><label>Note</label><input id="expNote"></div>
             </div>
           </div>
-          <div class="panel span-8"><h3>Expense Records <button class="secondary" style="float:right;font-size:.82em;" onclick="printTableSection('expenseTable','Expense Records')">🖨️ Print</button></h3><div class="table-wrap" id="expenseTable"></div></div>
+          <div class="panel span-8"><h3>Expense Records <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printTableSection('expenseTable','Expense Records')">🖨️ Print</button></h3><div class="table-wrap" id="expenseTable"></div></div>
         </div>
       </div>
 
@@ -1005,7 +1077,7 @@
               <div class="full"><label>Note</label><input id="incNote"></div>
             </div>
           </div>
-          <div class="panel span-8"><h3>Income Records <button class="secondary" style="float:right;font-size:.82em;" onclick="printTableSection('incomeTable','Income Records')">🖨️ Print</button></h3><div class="table-wrap" id="incomeTable"></div></div>
+          <div class="panel span-8"><h3>Income Records <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printTableSection('incomeTable','Income Records')">🖨️ Print</button></h3><div class="table-wrap" id="incomeTable"></div></div>
         </div>
       </div>
 
@@ -1017,11 +1089,14 @@
             <div class="form-grid">
               <div class="full"><label>Staff</label><select id="payStaff"></select></div>
               <div><label>Month</label><input id="payMonth" placeholder="e.g. July 2026"></div>
-              <div><label>Amount (₦)</label><input id="payAmount" type="number" value="0"></div>
+              <div><label>Basic Salary (₦)</label><input id="payAmount" type="number" value="0" oninput="document.getElementById('payNet').value=(Number(document.getElementById('payAmount').value||0)+Number(document.getElementById('payAllowance').value||0)-Number(document.getElementById('payDeduction').value||0))"></div>
+              <div><label>Allowances (₦)</label><input id="payAllowance" type="number" value="0" oninput="document.getElementById('payNet').value=(Number(document.getElementById('payAmount').value||0)+Number(document.getElementById('payAllowance').value||0)-Number(document.getElementById('payDeduction').value||0))"></div>
+              <div><label>Deductions (₦)</label><input id="payDeduction" type="number" value="0" oninput="document.getElementById('payNet').value=(Number(document.getElementById('payAmount').value||0)+Number(document.getElementById('payAllowance').value||0)-Number(document.getElementById('payDeduction').value||0))"></div>
+              <div><label>Net Pay (₦)</label><input id="payNet" type="number" value="0" readonly></div>
               <div class="full"><label>Status</label><select id="payStatus"><option>Pending</option><option>Paid</option></select></div>
             </div>
           </div>
-          <div class="panel span-8"><h3>Payroll Records <button class="secondary" style="float:right;font-size:.82em;" onclick="printTableSection('payrollTable','Payroll Records')">🖨️ Print</button></h3><div class="table-wrap" id="payrollTable"></div></div>
+          <div class="panel span-8"><h3>Payroll Records <button class="secondary no-print" style="float:right;font-size:.82em;" onclick="printTableSection('payrollTable','Payroll Records')">🖨️ Print</button></h3><div class="table-wrap" id="payrollTable"></div></div>
         </div>
       </div>
 
@@ -1132,7 +1207,7 @@
         <div class="grid">
           <div class="panel span-4">
             <h3>Online Result Checking</h3>
-            <label>Admission Number</label><input id="portalRegNo" value="MMS/2026/001">
+            <label>Admission Number</label><input id="portalRegNo" value="MMS/26/001">
             <p class="hint" style="margin-top:10px">Parents and students can view published results, fees, and attendance using the admission number.</p>
           </div>
           <div class="panel span-8"><div id="portalOutput"></div></div>
@@ -1293,67 +1368,67 @@
         { id: "s3", staffNo: "MMS/STF/003", firstName: "Maryam", middleName: "", lastName: "Ali", role: "Accountant", phone: "08010000003", subjectIds: ["sub14"], address: "Madarkaci" }
       ],
       students: [
-        { id: "st1", regNo: "MMS/2026/001", firstName: "Aisha", middleName: "", lastName: "Abdullahi", gender: "Female", classId: "c3", house: "Red", dob: "2013-05-12", religion: "Islam", lga: "Fagge", state: "Kano", parentName: "Malam Abdullahi", parentPhone: "08000000001", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active", photo: "assets/school-image-2.jpg" },
-        { id: "st2", regNo: "MMS/2026/002", firstName: "Musa", middleName: "Ahmad", lastName: "Ibrahim", gender: "Male", classId: "c3", house: "Blue", dob: "2012-09-21", religion: "Islam", lga: "Fagge", state: "Kano", parentName: "Malam Ibrahim", parentPhone: "08000000002", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active" },
-        { id: "st3", regNo: "MMS/2026/003", firstName: "Fatima", middleName: "", lastName: "Sani", gender: "Female", classId: "c3", house: "Green", dob: "2013-02-03", religion: "Islam", lga: "Gwale", state: "Kano", parentName: "Hajiya Sani", parentPhone: "08000000003", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active" },
+        { id: "st1", regNo: "MMS/26/001", firstName: "Aisha", middleName: "", lastName: "Abdullahi", gender: "Female", classId: "c3", house: "Red", dob: "2013-05-12", religion: "Islam", lga: "Fagge", state: "Kano", parentName: "Malam Abdullahi", parentPhone: "08000000001", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active", photo: "assets/school-image-2.jpg" },
+        { id: "st2", regNo: "MMS/26/002", firstName: "Musa", middleName: "Ahmad", lastName: "Ibrahim", gender: "Male", classId: "c3", house: "Blue", dob: "2012-09-21", religion: "Islam", lga: "Fagge", state: "Kano", parentName: "Malam Ibrahim", parentPhone: "08000000002", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active" },
+        { id: "st3", regNo: "MMS/26/003", firstName: "Fatima", middleName: "", lastName: "Sani", gender: "Female", classId: "c3", house: "Green", dob: "2013-02-03", religion: "Islam", lga: "Gwale", state: "Kano", parentName: "Hajiya Sani", parentPhone: "08000000003", parentAddress: "Madarkaci, Kano", medical: "Fit", status: "Active" },
         // Basic 4 Students
-        { id: "st4", regNo: "MMS/2026/004", firstName: "Buhari", middleName: "", lastName: "Zubairu", gender: "Male", classId: "c6", status: "Active" },
-        { id: "st5", regNo: "MMS/2026/005", firstName: "Kabir", middleName: "", lastName: "Abdulaziz", gender: "Male", classId: "c6", status: "Active" },
-        { id: "st6", regNo: "MMS/2026/006", firstName: "Alamin", middleName: "Yusuf", lastName: "Adam", gender: "Male", classId: "c6", status: "Active" },
-        { id: "st7", regNo: "MMS/2026/007", firstName: "Umar", middleName: "Faruk", lastName: "Sufiyan", gender: "Male", classId: "c6", status: "Active" },
-        { id: "st8", regNo: "MMS/2026/008", firstName: "Hauwa’u", middleName: "", lastName: "Isah", gender: "Female", classId: "c6", status: "Active" },
-        { id: "st9", regNo: "MMS/2026/009", firstName: "Muhamad", middleName: "", lastName: "Lawal", gender: "Male", classId: "c6", status: "Active" },
-        { id: "st10", regNo: "MMS/2026/010", firstName: "Hauwa’u", middleName: "", lastName: "Abdulganiyyu", gender: "Female", classId: "c6", status: "Active" },
-        { id: "st11", regNo: "MMS/2026/011", firstName: "Zainab", middleName: "", lastName: "Mustapha", gender: "Female", classId: "c6", status: "Active" },
+        { id: "st4", regNo: "MMS/26/004", firstName: "Buhari", middleName: "", lastName: "Zubairu", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st5", regNo: "MMS/26/005", firstName: "Kabir", middleName: "", lastName: "Abdulaziz", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st6", regNo: "MMS/26/006", firstName: "Alamin", middleName: "Yusuf", lastName: "Adam", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st7", regNo: "MMS/26/007", firstName: "Umar", middleName: "Faruk", lastName: "Sufiyan", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st8", regNo: "MMS/26/008", firstName: "Hauwa’u", middleName: "", lastName: "Isah", gender: "Female", classId: "c6", status: "Active" },
+        { id: "st9", regNo: "MMS/26/009", firstName: "Muhamad", middleName: "", lastName: "Lawal", gender: "Male", classId: "c6", status: "Active" },
+        { id: "st10", regNo: "MMS/26/010", firstName: "Hauwa’u", middleName: "", lastName: "Abdulganiyyu", gender: "Female", classId: "c6", status: "Active" },
+        { id: "st11", regNo: "MMS/26/011", firstName: "Zainab", middleName: "", lastName: "Mustapha", gender: "Female", classId: "c6", status: "Active" },
         // Basic 2 Students
-        { id: "st12", regNo: "MMS/2026/012", firstName: "Aisha", middleName: "Aliyu", lastName: "Ja’afar", gender: "Female", classId: "c5", status: "Active" },
-        { id: "st13", regNo: "MMS/2026/013", firstName: "Abu-Sufyan", middleName: "", lastName: "Abdulkarim", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st14", regNo: "MMS/2026/014", firstName: "Hafsat", middleName: "", lastName: "Hashim", gender: "Female", classId: "c5", status: "Active" },
-        { id: "st15", regNo: "MMS/2026/015", firstName: "Abubakar", middleName: "Sadiq", lastName: "Ibrahim", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st16", regNo: "MMS/2026/016", firstName: "Ramlat", middleName: "Yakubu", lastName: "Abubakar", gender: "Female", classId: "c5", status: "Active" },
-        { id: "st17", regNo: "MMS/2026/017", firstName: "Abdulmalik", middleName: "Aminu", lastName: "Gambo", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st18", regNo: "MMS/2026/018", firstName: "Isah", middleName: "", lastName: "Zakariyya", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st19", regNo: "MMS/2026/019", firstName: "Abdulhalim", middleName: "Aliyu", lastName: "Gibril", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st20", regNo: "MMS/2026/020", firstName: "Safarau", middleName: "", lastName: "Abdulkarim", gender: "Female", classId: "c5", status: "Active" },
-        { id: "st21", regNo: "MMS/2026/021", firstName: "Yusuf", middleName: "", lastName: "Khalil", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st22", regNo: "MMS/2026/022", firstName: "Muhammed", middleName: "Ismail", lastName: "Danbaba", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st23", regNo: "MMS/2026/023", firstName: "Fatima", middleName: "Yusuf", lastName: "Adam", gender: "Female", classId: "c5", status: "Active" },
-        { id: "st24", regNo: "MMS/2026/024", firstName: "Abdullahi", middleName: "", lastName: "Usman", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st25", regNo: "MMS/2026/025", firstName: "Aisha", middleName: "", lastName: "Hawal", gender: "Female", classId: "c5", status: "Active" },
-        { id: "st26", regNo: "MMS/2026/026", firstName: "Adam", middleName: "", lastName: "Abdulkadir", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st27", regNo: "MMS/2026/027", firstName: "Ishaq", middleName: "", lastName: "Abdurrahman", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st28", regNo: "MMS/2026/028", firstName: "Hassana", middleName: "Idris", lastName: "Musa", gender: "Female", classId: "c5", status: "Active" },
-        { id: "st29", regNo: "MMS/2026/029", firstName: "Aliyu", middleName: "Haidar", lastName: "Ishaq", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st30", regNo: "MMS/2026/030", firstName: "Muhammed", middleName: "Adnan", lastName: "Dalhat", gender: "Male", classId: "c5", status: "Active" },
-        { id: "st31", regNo: "MMS/2026/031", firstName: "Salamatu", middleName: "Ilyasu", lastName: "Sani", gender: "Female", classId: "c5", status: "Active" },
-        { id: "st32", regNo: "MMS/2026/032", firstName: "Abdullahi", middleName: "", lastName: "Aminu", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st12", regNo: "MMS/26/012", firstName: "Aisha", middleName: "Aliyu", lastName: "Ja’afar", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st13", regNo: "MMS/26/013", firstName: "Abu-Sufyan", middleName: "", lastName: "Abdulkarim", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st14", regNo: "MMS/26/014", firstName: "Hafsat", middleName: "", lastName: "Hashim", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st15", regNo: "MMS/26/015", firstName: "Abubakar", middleName: "Sadiq", lastName: "Ibrahim", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st16", regNo: "MMS/26/016", firstName: "Ramlat", middleName: "Yakubu", lastName: "Abubakar", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st17", regNo: "MMS/26/017", firstName: "Abdulmalik", middleName: "Aminu", lastName: "Gambo", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st18", regNo: "MMS/26/018", firstName: "Isah", middleName: "", lastName: "Zakariyya", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st19", regNo: "MMS/26/019", firstName: "Abdulhalim", middleName: "Aliyu", lastName: "Gibril", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st20", regNo: "MMS/26/020", firstName: "Safarau", middleName: "", lastName: "Abdulkarim", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st21", regNo: "MMS/26/021", firstName: "Yusuf", middleName: "", lastName: "Khalil", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st22", regNo: "MMS/26/022", firstName: "Muhammed", middleName: "Ismail", lastName: "Danbaba", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st23", regNo: "MMS/26/023", firstName: "Fatima", middleName: "Yusuf", lastName: "Adam", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st24", regNo: "MMS/26/024", firstName: "Abdullahi", middleName: "", lastName: "Usman", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st25", regNo: "MMS/26/025", firstName: "Aisha", middleName: "", lastName: "Hawal", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st26", regNo: "MMS/26/026", firstName: "Adam", middleName: "", lastName: "Abdulkadir", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st27", regNo: "MMS/26/027", firstName: "Ishaq", middleName: "", lastName: "Abdurrahman", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st28", regNo: "MMS/26/028", firstName: "Hassana", middleName: "Idris", lastName: "Musa", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st29", regNo: "MMS/26/029", firstName: "Aliyu", middleName: "Haidar", lastName: "Ishaq", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st30", regNo: "MMS/26/030", firstName: "Muhammed", middleName: "Adnan", lastName: "Dalhat", gender: "Male", classId: "c5", status: "Active" },
+        { id: "st31", regNo: "MMS/26/031", firstName: "Salamatu", middleName: "Ilyasu", lastName: "Sani", gender: "Female", classId: "c5", status: "Active" },
+        { id: "st32", regNo: "MMS/26/032", firstName: "Abdullahi", middleName: "", lastName: "Aminu", gender: "Male", classId: "c5", status: "Active" },
         // Basic 5 Students
-        { id: "st33", regNo: "MMS/2026/033", firstName: "Ahmad", middleName: "M.", lastName: "Sani", gender: "Male", classId: "c7", status: "Active" },
-        { id: "st34", regNo: "MMS/2026/034", firstName: "Abdulkadir", middleName: "", lastName: "Mustapha", gender: "Male", classId: "c7", status: "Active" },
-        { id: "st35", regNo: "MMS/2026/035", firstName: "Khadija", middleName: "Dauda", lastName: "Yusuf", gender: "Female", classId: "c7", status: "Active" },
-        { id: "st36", regNo: "MMS/2026/036", firstName: "Khadija", middleName: "", lastName: "Abdulkadir", gender: "Female", classId: "c7", status: "Active" },
+        { id: "st33", regNo: "MMS/26/033", firstName: "Ahmad", middleName: "M.", lastName: "Sani", gender: "Male", classId: "c7", status: "Active" },
+        { id: "st34", regNo: "MMS/26/034", firstName: "Abdulkadir", middleName: "", lastName: "Mustapha", gender: "Male", classId: "c7", status: "Active" },
+        { id: "st35", regNo: "MMS/26/035", firstName: "Khadija", middleName: "Dauda", lastName: "Yusuf", gender: "Female", classId: "c7", status: "Active" },
+        { id: "st36", regNo: "MMS/26/036", firstName: "Khadija", middleName: "", lastName: "Abdulkadir", gender: "Female", classId: "c7", status: "Active" },
         // Basic 7 Students
-        { id: "st37", regNo: "MMS/2026/037", firstName: "Abu", middleName: "sufyan", lastName: "Iliyasu sani", gender: "Male", classId: "c3", status: "Active" },
-        { id: "st38", regNo: "MMS/2026/038", firstName: "Ahmad", middleName: "", lastName: "sadiq", gender: "Male", classId: "c3", status: "Active" },
-        { id: "st39", regNo: "MMS/2026/039", firstName: "Umar", middleName: "M", lastName: "Bello", gender: "Male", classId: "c3", status: "Active" },
-        { id: "st40", regNo: "MMS/2026/040", firstName: "fatima", middleName: "Ismail", lastName: "danbaba", gender: "Female", classId: "c3", status: "Active" },
-        { id: "st41", regNo: "MMS/2026/041", firstName: "salbiyya", middleName: "", lastName: "Abdulaziz", gender: "Female", classId: "c3", status: "Active" },
-        { id: "st42", regNo: "MMS/2026/042", firstName: "Humaida", middleName: "", lastName: "Ibrahim", gender: "Female", classId: "c3", status: "Active" },
-        { id: "st43", regNo: "MMS/2026/043", firstName: "Nusaiba", middleName: "", lastName: "Ibrahim", gender: "Female", classId: "c3", status: "Active" },
-        { id: "st44", regNo: "MMS/2026/044", firstName: "khadija", middleName: "", lastName: "shehu", gender: "Female", classId: "c3", status: "Active" },
-        { id: "st45", regNo: "MMS/2026/045", firstName: "Aisha", middleName: "Aliyu", lastName: "Jibril", gender: "Female", classId: "c3", status: "Active" },
-        { id: "st46", regNo: "MMS/2026/046", firstName: "Amina", middleName: "Yusuf", lastName: "Jibril", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st37", regNo: "MMS/26/037", firstName: "Abu", middleName: "sufyan", lastName: "Iliyasu sani", gender: "Male", classId: "c3", status: "Active" },
+        { id: "st38", regNo: "MMS/26/038", firstName: "Ahmad", middleName: "", lastName: "sadiq", gender: "Male", classId: "c3", status: "Active" },
+        { id: "st39", regNo: "MMS/26/039", firstName: "Umar", middleName: "M", lastName: "Bello", gender: "Male", classId: "c3", status: "Active" },
+        { id: "st40", regNo: "MMS/26/040", firstName: "fatima", middleName: "Ismail", lastName: "danbaba", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st41", regNo: "MMS/26/041", firstName: "salbiyya", middleName: "", lastName: "Abdulaziz", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st42", regNo: "MMS/26/042", firstName: "Humaida", middleName: "", lastName: "Ibrahim", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st43", regNo: "MMS/26/043", firstName: "Nusaiba", middleName: "", lastName: "Ibrahim", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st44", regNo: "MMS/26/044", firstName: "khadija", middleName: "", lastName: "shehu", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st45", regNo: "MMS/26/045", firstName: "Aisha", middleName: "Aliyu", lastName: "Jibril", gender: "Female", classId: "c3", status: "Active" },
+        { id: "st46", regNo: "MMS/26/046", firstName: "Amina", middleName: "Yusuf", lastName: "Jibril", gender: "Female", classId: "c3", status: "Active" },
         // Basic 8 Students
-        { id: "st47", regNo: "MMS/2026/047", firstName: "Abubakar", middleName: "", lastName: "Abdulkadir", gender: "Male", classId: "c8", status: "Active" },
-        { id: "st48", regNo: "MMS/2026/048", firstName: "Ahmad", middleName: "", lastName: "Abubakar", gender: "Male", classId: "c8", status: "Active" },
-        { id: "st49", regNo: "MMS/2026/049", firstName: "Bilal", middleName: "", lastName: "Abubakar", gender: "Male", classId: "c8", status: "Active" },
-        { id: "st50", regNo: "MMS/2026/050", firstName: "Khalid", middleName: "", lastName: "Hashim", gender: "Male", classId: "c8", status: "Active" },
-        { id: "st51", regNo: "MMS/2026/051", firstName: "fatima", middleName: "Ibrahim", lastName: "Kusfa", gender: "Female", classId: "c8", status: "Active" },
-        { id: "st52", regNo: "MMS/2026/052", firstName: "Maryam", middleName: "D", lastName: "Yusuf", gender: "Female", classId: "c8", status: "Active" },
-        { id: "st53", regNo: "MMS/2026/053", firstName: "firdausi", middleName: "", lastName: "Lawal", gender: "Female", classId: "c8", status: "Active" },
-        { id: "st54", regNo: "MMS/2026/054", firstName: "fatima", middleName: "", lastName: "Isah", gender: "Female", classId: "c8", status: "Active" },
-        { id: "st55", regNo: "MMS/2026/055", firstName: "Mabruka", middleName: "Ahmad", lastName: "Nuhu", gender: "Female", classId: "c8", status: "Active" },
-        { id: "st56", regNo: "MMS/2026/056", firstName: "Ahmad", middleName: "M", lastName: "Malik", gender: "Male", classId: "c8", status: "Active" }
+        { id: "st47", regNo: "MMS/26/047", firstName: "Abubakar", middleName: "", lastName: "Abdulkadir", gender: "Male", classId: "c8", status: "Active" },
+        { id: "st48", regNo: "MMS/26/048", firstName: "Ahmad", middleName: "", lastName: "Abubakar", gender: "Male", classId: "c8", status: "Active" },
+        { id: "st49", regNo: "MMS/26/049", firstName: "Bilal", middleName: "", lastName: "Abubakar", gender: "Male", classId: "c8", status: "Active" },
+        { id: "st50", regNo: "MMS/26/050", firstName: "Khalid", middleName: "", lastName: "Hashim", gender: "Male", classId: "c8", status: "Active" },
+        { id: "st51", regNo: "MMS/26/051", firstName: "fatima", middleName: "Ibrahim", lastName: "Kusfa", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st52", regNo: "MMS/26/052", firstName: "Maryam", middleName: "D", lastName: "Yusuf", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st53", regNo: "MMS/26/053", firstName: "firdausi", middleName: "", lastName: "Lawal", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st54", regNo: "MMS/26/054", firstName: "fatima", middleName: "", lastName: "Isah", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st55", regNo: "MMS/26/055", firstName: "Mabruka", middleName: "Ahmad", lastName: "Nuhu", gender: "Female", classId: "c8", status: "Active" },
+        { id: "st56", regNo: "MMS/26/056", firstName: "Ahmad", middleName: "M", lastName: "Malik", gender: "Male", classId: "c8", status: "Active" }
       ],
       scores: [],
       fees: [
@@ -1731,7 +1806,7 @@
 
         const classOpts = `<option value="">All Classes</option>${options(db.classes)}`;
         const classFilterOpts = `<option value="">Select Class</option>${options(db.classes)}`;
-        ["studentClass", "studentFilterClass", "subjectClass"].forEach((idName) => {
+        ["studentClass", "studentFilterClass", "subjectClass", "broadsheetClass"].forEach((idName) => {
           const el = document.getElementById(idName);
           if (el) el.innerHTML = classOpts;
         });
@@ -1771,9 +1846,24 @@
          } else {
            reportClassEl.innerHTML = classOpts;
          }
-       }
+        }
 
-       // Filter students based on role
+        // Populate broadsheet subject dropdown based on selected class
+        const broadsheetClassEl = document.getElementById("broadsheetClass");
+        const broadsheetSubjectEl = document.getElementById("broadsheetSubject");
+        const updateBroadsheetSubjects = () => {
+          if (!broadsheetSubjectEl) return;
+          const cId = broadsheetClassEl?.value || "";
+          const subjects = cId ? db.subjects.filter((sub) => sub.classId === cId) : db.subjects;
+          broadsheetSubjectEl.innerHTML = `<option value="">All Subjects</option>` + subjects.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
+        };
+        if (broadsheetClassEl) {
+          broadsheetClassEl.removeEventListener("change", updateBroadsheetSubjects);
+          broadsheetClassEl.addEventListener("change", updateBroadsheetSubjects);
+        }
+        updateBroadsheetSubjects();
+
+        // Filter students based on role
        let studentOptions = db.students;
        if (currentUser?.role === "Teacher" && currentUser?.staffId && currentUser?.role !== "Administrator") {
          const assignedClasses = [...new Set(db.subjects.filter((subj) => subj.teacherId === currentUser.staffId).map((subj) => subj.classId))];
@@ -1863,8 +1953,47 @@
     function renderClasses() {
       document.getElementById("classTable").innerHTML = table(["Class", "Section", "Class Teacher", "Students", "Action"], db.classes.map((c) => [
         esc(c.name), esc(c.section), esc(fullName(staff(c.teacherId))), db.students.filter((s) => s.classId === c.id).length,
-        `<button class="secondary" onclick="editClass('${c.id}')">Edit</button> <button class="danger" onclick="deleteClass('${c.id}')">Delete</button>`
+         `<button class="secondary no-print" onclick="editClass('${c.id}')">Edit</button> <button class="danger no-print" onclick="deleteClass('${c.id}')">Delete</button>`
       ]));
+    }
+
+    function printClassTable() {
+      const tableEl = document.getElementById("classTable");
+      if (!tableEl) return toast("No class data to print.");
+
+      const clone = tableEl.cloneNode(true);
+      const headerCells = clone.querySelectorAll("thead tr th");
+      if (headerCells.length > 0) headerCells[headerCells.length - 1].remove();
+      clone.querySelectorAll("tbody tr").forEach((tr) => {
+        const cells = tr.querySelectorAll("td");
+        if (cells.length) cells[cells.length - 1].remove();
+      });
+
+      const w = window.open("", "_blank", "width=900,height=700");
+      w.document.write(`<!DOCTYPE html><html><head><title>Class Lists</title><style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 30px; color: #1a1a2e; }
+        .print-header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #0d47a1; padding-bottom: 15px; }
+        .print-header h2 { font-size: 20px; color: #0d47a1; margin-bottom: 5px; }
+        .print-header p { font-size: 12px; color: #555; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th { background: #0d47a1; color: #fff; padding: 10px; text-align: left; font-weight: 600; }
+        td { padding: 9px 10px; border-bottom: 1px solid #e5e7eb; }
+        tr:nth-child(even) { background: #f8fafc; }
+        .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; }
+        @media print {
+          body { padding: 15px; }
+          .no-print { display: none !important; }
+        }
+      </style></head><body>
+        <div class="print-header">
+          <h2>${esc(db.settings.schoolName)}</h2>
+          <p>Class Lists | Session: ${esc(db.settings.session)} | Term: ${esc(db.settings.term)} | Generated: ${new Date().toLocaleDateString()}</p>
+        </div>
+        ${clone.outerHTML}
+        <div class="footer">Printed from ${esc(db.settings.schoolName)} School Management System</div>
+        <script>window.onload=()=>window.print();<\/script>
+      </body></html>`);
     }
 
     function newSubject() { ["subjectId", "subjectName", "subjectCode"].forEach(id => document.getElementById(id).value = ""); }
@@ -1892,8 +2021,93 @@
     }
     function renderSubjects() {
       document.getElementById("subjectTable").innerHTML = table(["Subject", "Code", "Class", "Teacher", "Action"], db.subjects.map((s) => [
-        esc(s.name), esc(s.code), esc(cls(s.classId).name), esc(fullName(staff(s.teacherId))), `<button class="secondary" onclick="editSubject('${s.id}')">Edit</button> <button class="danger" onclick="deleteSubject('${s.id}')">Delete</button>`
+         esc(s.name), esc(s.code), esc(cls(s.classId).name), esc(fullName(staff(s.teacherId))), `<button class="secondary no-print" onclick="editSubject('${s.id}')">Edit</button> <button class="danger no-print" onclick="deleteSubject('${s.id}')">Delete</button>`
       ]));
+    }
+
+    function renderSubjectBroadsheet() {
+      const classId = document.getElementById("broadsheetClass")?.value || "";
+      const subjectId = document.getElementById("broadsheetSubject")?.value || "";
+      const tableEl = document.getElementById("broadsheetTable");
+      if (!tableEl) return;
+
+      if (!classId) {
+        tableEl.innerHTML = `<p class="hint" style="padding:30px;text-align:center;color:#888">Please select a class to view broadsheet.</p>`;
+        return;
+      }
+
+      const students = db.students.filter((s) => s.classId === classId);
+      const ranked = students.map((s) => {
+        const scores = db.scores.filter((sc) => sc.studentId === s.id);
+        let total, avg, grade;
+        if (subjectId) {
+          const subScore = scores.find((sc) => sc.subjectId === subjectId);
+          total = subScore ? subScore.total : 0;
+          avg = total;
+          grade = subScore ? subScore.grade : "—";
+        } else {
+          total = scores.reduce((sum, sc) => sum + (sc.total || 0), 0);
+          avg = scores.length ? total / scores.length : 0;
+          grade = gradeFor(avg).grade;
+        }
+        return { ...s, total, avg, grade };
+      }).sort((a, b) => b.total - a.total);
+
+      const rows = ranked.map((s, idx) => [
+        idx + 1,
+        esc(s.regNo),
+        esc(fullName(s)),
+        esc(cls(s.classId).name),
+        s.total,
+        s.grade,
+        s.avg.toFixed(2),
+        idx + 1
+      ]);
+
+      tableEl.innerHTML = table(["S/No", "Reg No", "Name", "Class", "Total", "Grade", "Average", "Position"], rows);
+    }
+
+    function printSubjectBroadsheet() {
+      const tableEl = document.getElementById("broadsheetTable");
+      if (!tableEl) return toast("No broadsheet data to print.");
+      const classId = document.getElementById("broadsheetClass")?.value || "";
+      const subjectId = document.getElementById("broadsheetSubject")?.value || "";
+      const className = classId ? cls(classId).name : "All Classes";
+      const subjectName = subjectId ? subject(subjectId).name : "All Subjects";
+
+      const clone = tableEl.cloneNode(true);
+      const headerCells = clone.querySelectorAll("thead tr th");
+      if (headerCells.length > 0) headerCells[headerCells.length - 1].remove();
+      clone.querySelectorAll("tbody tr").forEach((tr) => {
+        const cells = tr.querySelectorAll("td");
+        if (cells.length) cells[cells.length - 1].remove();
+      });
+
+      const w = window.open("", "_blank", "width=900,height=700");
+      w.document.write(`<!DOCTYPE html><html><head><title>Class Broadsheet — ${esc(className)}</title><style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 30px; color: #1a1a2e; }
+        .print-header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #0d47a1; padding-bottom: 15px; }
+        .print-header h2 { font-size: 20px; color: #0d47a1; margin-bottom: 5px; }
+        .print-header p { font-size: 12px; color: #555; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th { background: #0d47a1; color: #fff; padding: 10px; text-align: left; font-weight: 600; }
+        td { padding: 9px 10px; border-bottom: 1px solid #e5e7eb; }
+        tr:nth-child(even) { background: #f8fafc; }
+        .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; }
+        @media print {
+          body { padding: 15px; }
+          .no-print { display: none !important; }
+        }
+      </style></head><body>
+        <div class="print-header">
+          <h2>${esc(db.settings.schoolName)}</h2>
+          <p>Class Broadsheet — ${esc(className)} | ${esc(subjectName)} | Session: ${esc(db.settings.session)} | Term: ${esc(db.settings.term)} | Generated: ${new Date().toLocaleDateString()}</p>
+        </div>
+        ${clone.outerHTML}
+        <div class="footer">Printed from ${esc(db.settings.schoolName)} School Management System</div>
+        <script>window.onload=()=>window.print();<\/script>
+      </body></html>`);
     }
 
     // Scores functions moved to js/scores.js
@@ -1994,7 +2208,7 @@
         filteredFees.map((fee, i) => {
           const balance = Math.max(0, fee.amountDue - fee.amountPaid);
           const status = balance === 0 ? '<span class="pill">Paid</span>' : fee.amountPaid > 0 ? '<span class="pill warn">Part Payment</span>' : '<span class="pill bad">Not Paid</span>';
-          const receiptBtn = canPrint ? `<button class="secondary" style="padding:3px 8px;font-size:.82em;" onclick="printFeeReceipt('${fee.studentId}', db.fees.find(f=>f.studentId==='${fee.studentId}'))">🧾 Receipt</button>` : "";
+               const receiptBtn = canPrint ? `<button class="secondary no-print" style="padding:3px 8px;font-size:.82em;" onclick="printFeeReceipt('${fee.studentId}', db.fees.find(f=>f.studentId==='${fee.studentId}'))">🧾 Receipt</button>` : "";
           return [i + 1, esc(fullName(student(fee.studentId) || {})), esc(fee.label || "—"), money(fee.amountDue), money(fee.amountPaid), money(balance), status, receiptBtn];
         })
       );
@@ -2048,7 +2262,7 @@
               esc(fs.session),
               esc(fs.label),
               "₦" + money(fs.amount),
-              `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteFeeStructure('${fs.id}')">Delete</button>`
+               `<button class="danger no-print" style="padding:3px 8px;font-size:.82em;" onclick="deleteFeeStructure('${fs.id}')">Delete</button>`
             ])
           )
         : "<p class='hint'>No fee structures defined yet. Use the form to add one.</p>";
@@ -2277,7 +2491,7 @@ ${eq}</pre>
       if (!el) return;
       const rows = (db.paymentPlans || []).map(p => {
         const s = student(p.studentId);
-        return [esc(s ? fullName(s) : "—"), esc(p.name), "₦" + money(p.total), p.installments, esc(p.start), esc(p.status), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deletePaymentPlan('${p.id}')">Delete</button>`];
+        return [esc(s ? fullName(s) : "—"), esc(p.name), "₦" + money(p.total), p.installments, esc(p.start), esc(p.status), `<button class="danger no-print" style="padding:3px 8px;font-size:.82em;" onclick="deletePaymentPlan('${p.id}')">Delete</button>`];
       });
       el.innerHTML = rows.length ? table(["Student", "Plan", "Total", "Installments", "Start", "Status", "Action"], rows) : "<p class='hint'>No payment plans yet.</p>";
     }
@@ -2304,7 +2518,7 @@ ${eq}</pre>
       if (!el) return;
       const rows = (db.discounts || []).map(d => {
         const s = student(d.studentId);
-        return [esc(s ? fullName(s) : "—"), esc(d.label), "₦" + money(d.amount), esc(d.date), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteDiscount('${d.id}')">Delete</button>`];
+        return [esc(s ? fullName(s) : "—"), esc(d.label), "₦" + money(d.amount), esc(d.date), `<button class="danger no-print" style="padding:3px 8px;font-size:.82em;" onclick="deleteDiscount('${d.id}')">Delete</button>`];
       });
       el.innerHTML = rows.length ? table(["Student", "Label", "Amount", "Date", "Action"], rows) : "<p class='hint'>No discounts awarded yet.</p>";
     }
@@ -2331,7 +2545,7 @@ ${eq}</pre>
       if (!el) return;
       const rows = (db.scholarships || []).map(sh => {
         const s = student(sh.studentId);
-        return [esc(s ? fullName(s) : "—"), esc(sh.type), "₦" + money(sh.amount), esc(sh.date), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteScholarship('${sh.id}')">Delete</button>`];
+        return [esc(s ? fullName(s) : "—"), esc(sh.type), "₦" + money(sh.amount), esc(sh.date), `<button class="danger no-print" style="padding:3px 8px;font-size:.82em;" onclick="deleteScholarship('${sh.id}')">Delete</button>`];
       });
       el.innerHTML = rows.length ? table(["Student", "Type", "Amount", "Date", "Action"], rows) : "<p class='hint'>No scholarships yet.</p>";
     }
@@ -2408,7 +2622,7 @@ ${eq}</pre>
       const entries = (db.cashbook || []).slice().reverse();
       const totalIncome = entries.filter(e => e.type === "Income").reduce((s, e) => s + e.amount, 0);
       const totalExpense = entries.filter(e => e.type === "Expense").reduce((s, e) => s + e.amount, 0);
-      const rows = entries.map(e => [esc(e.date), esc(e.type), esc(e.category), "₦" + money(e.amount), esc(e.note), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteCashbookEntry('${e.id}')">Delete</button>`]);
+      const rows = entries.map(e => [esc(e.date), esc(e.type), esc(e.category), "₦" + money(e.amount), esc(e.note), `<button class="danger no-print" style="padding:3px 8px;font-size:.82em;" onclick="deleteCashbookEntry('${e.id}')">Delete</button>`]);
       const summary = `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px"><div class="pill">Income: ₦${money(totalIncome)}</div><div class="pill bad">Expense: ₦${money(totalExpense)}</div><div class="pill">Net: ₦${money(totalIncome - totalExpense)}</div></div>`;
       document.getElementById("cashbookTable").innerHTML = summary + (rows.length ? table(["Date", "Type", "Category", "Amount", "Note", "Action"], rows) : "<p class='hint'>No entries yet.</p>");
     }
@@ -2434,7 +2648,7 @@ ${eq}</pre>
     function renderExpenses() {
       const el = document.getElementById("expenseTable");
       if (!el) return;
-      const rows = (db.expenses || []).slice().reverse().map(e => [esc(e.date), esc(e.category), "₦" + money(e.amount), esc(e.note), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteExpense('${e.id}')">Delete</button>`]);
+      const rows = (db.expenses || []).slice().reverse().map(e => [esc(e.date), esc(e.category), "₦" + money(e.amount), esc(e.note), `<button class="danger no-print" style="padding:3px 8px;font-size:.82em;" onclick="deleteExpense('${e.id}')">Delete</button>`]);
       document.getElementById("expenseTable").innerHTML = rows.length ? table(["Date", "Category", "Amount", "Note", "Action"], rows) : "<p class='hint'>No expenses yet.</p>";
     }
     function deleteExpense(id) {
@@ -2459,7 +2673,7 @@ ${eq}</pre>
     function renderIncomes() {
       const el = document.getElementById("incomeTable");
       if (!el) return;
-      const rows = (db.incomes || []).slice().reverse().map(i => [esc(i.date), esc(i.source), "₦" + money(i.amount), esc(i.note), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deleteIncome('${i.id}')">Delete</button>`]);
+      const rows = (db.incomes || []).slice().reverse().map(i => [esc(i.date), esc(i.source), "₦" + money(i.amount), esc(i.note), `<button class="danger no-print" style="padding:3px 8px;font-size:.82em;" onclick="deleteIncome('${i.id}')">Delete</button>`]);
       document.getElementById("incomeTable").innerHTML = rows.length ? table(["Date", "Source", "Amount", "Note", "Action"], rows) : "<p class='hint'>No income records yet.</p>";
     }
     function deleteIncome(id) {
@@ -2472,12 +2686,15 @@ ${eq}</pre>
       const staffId = document.getElementById("payStaff").value;
       const month = document.getElementById("payMonth").value.trim();
       const amount = Number(document.getElementById("payAmount").value || 0);
+      const allowance = Number(document.getElementById("payAllowance").value || 0);
+      const deduction = Number(document.getElementById("payDeduction").value || 0);
+      const net = Number(document.getElementById("payNet").value || 0);
       const status = document.getElementById("payStatus").value;
-      if (!staffId || !month || !amount) return toast("Staff, month, and amount are required.");
+      if (!staffId || !month || !amount) return toast("Staff, month, and basic amount are required.");
       db.payroll = db.payroll || [];
-      db.payroll.push({ id: id(), staffId, month, amount, status, date: today });
+      db.payroll.push({ id: id(), staffId, month, amount, allowance, deduction, total: net, status, date: today });
       save();
-      logActivity("Payroll Processed", `${month} - ₦${amount} - ${status}`);
+      logActivity("Payroll Processed", `${month} - ₦${money(net)} - ${status}`);
       toast("Payroll saved.");
       renderPayroll();
     }
@@ -2486,15 +2703,87 @@ ${eq}</pre>
       if (!el) return;
       const rows = (db.payroll || []).slice().reverse().map(p => {
         const s = db.staff.find(st => st.id === p.staffId);
-        return [esc(s ? fullName(s) : "—"), esc(p.month), "₦" + money(p.amount), esc(p.status), esc(p.date), `<button class="danger" style="padding:3px 8px;font-size:.82em;" onclick="deletePayroll('${p.id}')">Delete</button>`];
+        return [esc(s ? fullName(s) : "—"), esc(p.month), "₦" + money(p.amount), "₦" + money(p.allowance || 0), "₦" + money(p.deduction || 0), "₦" + money(p.total || p.amount), esc(p.status), esc(p.date), `<button class="secondary no-print" style="padding:3px 8px;font-size:.82em;" onclick="printPayslip('${p.id}')">🖨️ Payslip</button> <button class="danger no-print" style="padding:3px 8px;font-size:.82em;" onclick="deletePayroll('${p.id}')">Delete</button>`];
       });
-      document.getElementById("payrollTable").innerHTML = rows.length ? table(["Staff", "Month", "Amount", "Status", "Date", "Action"], rows) : "<p class='hint'>No payroll records yet.</p>";
+      document.getElementById("payrollTable").innerHTML = rows.length ? table(["Staff", "Month", "Basic Salary", "Allowances", "Deductions", "Net Pay", "Status", "Date", "Action"], rows) : "<p class='hint'>No payroll records yet.</p>";
     }
     function deletePayroll(id) {
       if (!confirm("Delete this payroll record?")) return;
       db.payroll = (db.payroll || []).filter(x => x.id !== id);
       save();
       renderPayroll();
+    }
+    function printPayslip(payrollId) {
+      const p = (db.payroll || []).find(x => x.id === payrollId);
+      if (!p) return toast("Payroll record not found");
+      const s = db.staff.find(st => st.id === p.staffId);
+      const staffName = s ? fullName(s) : "Unknown Staff";
+      const staffNo = s ? s.staffNo : "—";
+      const designation = s ? (s.designation || s.role || "Staff") : "Staff";
+
+      const w = window.open("", "_blank", "width=700,height=800");
+      w.document.write(`<!DOCTYPE html><html><head><title>Payslip — ${esc(staffName)}</title><style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 30px; color: #1a1a2e; }
+        .payslip-header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #0d47a1; padding-bottom: 15px; }
+        .payslip-header h2 { font-size: 20px; color: #0d47a1; margin-bottom: 5px; }
+        .payslip-header p { font-size: 12px; color: #555; }
+        .info-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+        .info-table td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; }
+        .info-table td:first-child { font-weight: 600; width: 35%; }
+        .salary-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+        .salary-table th { background: #f2f6fa; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #0d47a1; }
+        .salary-table td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
+        .salary-table td.amount { text-align: right; }
+        .salary-table tr.total-row td { font-weight: 700; background: #f5f5f5; border-top: 2px solid #0d47a1; }
+        .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; }
+        .signature { margin-top: 40px; display: flex; justify-content: space-between; }
+        .signature-box { text-align: center; width: 45%; }
+        .signature-line { border-top: 1px solid #333; padding-top: 8px; font-size: 12px; color: #555; }
+        @media print {
+          body { padding: 15px; }
+          .no-print { display: none !important; }
+        }
+      </style></head><body>
+        <div class="payslip-header">
+          <h2>${esc(db.settings.schoolName)}</h2>
+          <p>Salary Payment Slip | Month: ${esc(p.month)} | Status: ${esc(p.status)}</p>
+        </div>
+        <table class="info-table">
+          <tr><td>Staff Name:</td><td>${esc(staffName)}</td></tr>
+          <tr><td>Staff ID:</td><td>${esc(staffNo)}</td></tr>
+          <tr><td>Designation:</td><td>${esc(designation)}</td></tr>
+          <tr><td>Pay Period:</td><td>${esc(p.month)}</td></tr>
+          <tr><td>Payment Date:</td><td>${esc(p.date)}</td></tr>
+        </table>
+        <table class="salary-table">
+          <thead>
+            <tr><th>Description</th><th style="text-align:right">Amount (₦)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Basic Salary</td><td class="amount">₦${money(p.amount)}</td></tr>
+            <tr><td>Allowances</td><td class="amount">₦${money(p.allowance || 0)}</td></tr>
+            <tr><td>Gross Pay</td><td class="amount">₦${money((p.amount || 0) + (p.allowance || 0))}</td></tr>
+            <tr><td>Deductions</td><td class="amount">-₦${money(p.deduction || 0)}</td></tr>
+            <tr class="total-row"><td>Net Pay</td><td class="amount">₦${money(p.total || p.amount)}</td></tr>
+          </tbody>
+        </table>
+        <div class="signature">
+          <div class="signature-box">
+            <div class="signature-line">Employee Signature</div>
+            <div style="font-size:11px;color:#888">Date: _______________</div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-line">Employer / Finance Officer</div>
+            <div style="font-size:11px;color:#888">Date: _______________</div>
+          </div>
+        </div>
+        <div class="footer">
+          This is a computer-generated payslip. For enquiries, contact the school finance office.<br>
+          ${esc(db.settings.schoolName)} | ${esc(db.settings.session)}
+        </div>
+        <script>window.onload=()=>window.print();<\/script>
+      </body></html>`);
     }
     function renderAccountantAnalytics() {
       const totalFeesDue = db.fees.reduce((s, f) => s + (f.amountDue || 0), 0);
@@ -2567,7 +2856,7 @@ ${eq}</pre>
       document.getElementById("userTable").innerHTML = table(["Username", "Role", "Action"], db.users.map((u) => [
         esc(u.username),
         esc(u.role),
-        `<button class="secondary" onclick="editUser('${u.id}')">Edit</button> <button class="danger" onclick="deleteUser('${u.id}')">Delete</button>`
+         `<button class="secondary no-print" onclick="editUser('${u.id}')">Edit</button> <button class="danger no-print" onclick="deleteUser('${u.id}')">Delete</button>`
       ]));
     }
 
@@ -2620,7 +2909,7 @@ ${eq}</pre>
         esc(r.description || "—"),
         esc(r.permissions.join(", ")),
         r.isSystem ? '<span class="pill">System</span>' : '<span class="pill warn">Custom</span>',
-        `<button class="secondary" onclick="editRole('${r.id}')">Edit</button>${r.isSystem ? "" : ` <button class="danger" onclick="deleteRole('${r.id}')">Delete</button>`}`
+         `<button class="secondary no-print" onclick="editRole('${r.id}')">Edit</button>${r.isSystem ? "" : ` <button class="danger no-print" onclick="deleteRole('${r.id}')">Delete</button>`}`
       ]);
       tableEl.innerHTML = table(["Role Name", "Description", "Permissions", "Type", "Action"], rows);
     }
@@ -3089,7 +3378,7 @@ ${eq}</pre>
         .school-details { font-size: 12px; color: #555; line-height: 1.5; }
         .date { text-align: right; margin-bottom: 25px; font-size: 13px; }
         .reference { font-weight: bold; margin-bottom: 20px; font-size: 13px; }
-        .subject { font-weight: bold; margin-bottom: 20px; font-size: 14px; text-decoration: underline; }
+        .subject { font-weight: bold; margin-bottom: 20px; font-size: 14px; text-decoration: underline; text-align: center; color: #b71c1c; }
         .greeting { margin-bottom: 15px; font-size: 14px; }
         .body { margin-bottom: 25px; font-size: 13px; text-align: justify; }
         .student-info { background: #f5f5f5; padding: 15px; border-left: 4px solid #1a5f8a; margin: 20px 0; }
@@ -3120,7 +3409,7 @@ ${eq}</pre>
           
           <div class="reference">Ref: MMS/${esc(db.settings.session || "2025/2026").replace("/", "")}/ADM/${esc(s.regNo || s.id)}</div>
           
-          <div class="subject">SUBJECT: LETTER OF ADMISSION</div>
+          <div class="subject">LETTER OF ADMISSION</div>
           
           <div class="greeting">Dear ${esc(s.parentName ? s.parentName : "Parent/Guardian")},</div>
           
@@ -3147,6 +3436,8 @@ ${eq}</pre>
             <ul style="margin-left: 20px; margin-top: 10px;">
               <li>Birth Certificate / Age Declaration</li>
               <li>Previous School Result / Transfer Certificate (if applicable)</li>
+             <li>1 Rim of A4 Paper Passport</li>
+              <li>black sandals or brown shoes as part of the school dress code</li>
               <li>2 Passport Photographs</li>
               <li>Parent/Guardian ID Card</li>
             </ul>
@@ -3464,7 +3755,7 @@ function classBroadsheet(classId) {
              const rows = filteredFees.map((fee, i) => {
                const balance = Math.max(0, fee.amountDue - fee.amountPaid);
                const status = balance === 0 ? '<span class="pill">Paid</span>' : fee.amountPaid > 0 ? '<span class="pill warn">Part Payment</span>' : '<span class="pill bad">Not Paid</span>';
-               const receiptBtn = canPrint ? `<button class="secondary" style="padding:3px 8px;font-size:.82em;" onclick="printFeeReceipt('${fee.studentId}', db.fees.find(f=>f.studentId==='${fee.studentId}'))">🧾 Receipt</button>` : "";
+          const receiptBtn = canPrint ? `<button class="secondary no-print" style="padding:3px 8px;font-size:.82em;" onclick="printFeeReceipt('${fee.studentId}', db.fees.find(f=>f.studentId==='${fee.studentId}'))">🧾 Receipt</button>` : "";
                return [i + 1, esc(fullName(student(fee.studentId) || {})), esc(fee.label || "—"), money(fee.amountDue), money(fee.amountPaid), money(balance), status, receiptBtn];
              });
              html = schoolHeader + `<h3 style="text-align:center; margin-bottom:10px;">Fee Payment Report</h3>` + table(["S/N", "Student", "Fee Type", "Amount Due", "Amount Paid", "Balance", "Status", canPrint ? "Receipt" : ""], rows);
@@ -3514,6 +3805,15 @@ function classBroadsheet(classId) {
     function printTableSection(tableId, title = "Report") {
       const el = document.getElementById(tableId);
       if (!el) return toast("Nothing to print.");
+
+      const clone = el.cloneNode(true);
+      const headerCells = clone.querySelectorAll("thead tr th");
+      if (headerCells.length > 0) headerCells[headerCells.length - 1].remove();
+      clone.querySelectorAll("tbody tr").forEach((tr) => {
+        const cells = tr.querySelectorAll("td");
+        if (cells.length) cells[cells.length - 1].remove();
+      });
+
       const w = window.open('', '_blank', 'width=1000,height=700');
       const html = `<!DOCTYPE html><html><head><title>${esc(title)}</title><style>
         body{font-family:Arial,sans-serif;margin:24px;color:#111}
@@ -3527,7 +3827,7 @@ function classBroadsheet(classId) {
       </style></head><body>
         <h2>${esc(db.settings.schoolName)}</h2>
         <div class="meta">${esc(title)} · ${esc(db.settings.session)} · ${esc(db.settings.term)}</div>
-        <div>${el.innerHTML}</div>
+        <div>${clone.innerHTML}</div>
         <div class="meta">Printed on ${new Date().toLocaleString()}</div>
       </body></html>`;
       w.document.write(html);
@@ -3715,6 +4015,7 @@ function classBroadsheet(classId) {
       renderStaff();
       renderClasses();
       renderSubjects();
+      renderSubjectBroadsheet();
       renderScores();
       renderFees();
       renderFeeStructures();
